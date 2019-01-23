@@ -1,0 +1,126 @@
+                
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="imagine-pledgeform-footer">
+                    <hr>
+                    <p>
+                        <strong>All commitments will be kept confidential.</strong><br>
+                        This is a statement of intent that may be increased or decreased at any time.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    var ua = navigator.userAgent.toLowerCase(); 
+    if (ua.indexOf('safari') != -1) { 
+      if (ua.indexOf('chrome') > -1) {
+        console.log();
+      } else {
+        $(document).ready(function(){
+             if ( $('#datePicker').prop('type') != 'date' ) $('#datePicker').datepicker(); // Safari
+        }); 
+      }
+    }
+    if(ua.indexOf('firefox') > -1){
+     if ( $('#datePicker').prop('type') != 'date' ) $('#datePicker').datepicker(); //Firefox
+}
+
+    
+
+    var sel1 = "Yearly";
+    var sel2 = document.querySelector("#sel2");
+    var in1 = document.querySelector("#in1");
+    var in2 = document.querySelector("#in2");
+    var datePicker = document.querySelector("#datePicker");
+    var dateString = datePicker.value
+    var datePicked = new Date(datePicker.value);
+
+    var endDate = new Date('December 6, 2020');
+    var totalDays = Math.floor((endDate-datePicked)/(1000*60*60*24));
+    
+    
+    var dPUpdate = function(){
+        dateString = datePicker.value;
+        datePicked = new Date(datePicker.value);
+        totalDays = Math.floor((endDate-datePicked)/(1000*60*60*24));
+    };
+    
+    var in1Update = function(){
+        if(sel2.value === "Yearly"){
+            if(sel1 === "Yearly"){
+                if(totalDays >= 365){
+                    var r = Math.floor(totalDays/365);
+                    in1.value = Math.round(in2.value*r);
+                }else{
+                    in1.value = in2.value;
+                }
+            } 
+        }else if(sel2.value === "Monthly"){
+            if(sel1 === "Yearly"){
+                if(totalDays<30){
+                    in1.value = in2.value;
+                }else if(totalDays>365){
+                    var r = totalDays-365;
+                    var months = Math.floor(r/30+12);
+                    in1.value = Math.round(in2.value*months);
+                }else{
+                    var months = Math.floor(totalDays/30);
+                    in1.value = Math.round(in2.value*months);
+                }
+            } 
+        } else if(sel2.value === "Weekly"){
+            if(sel1 === "Yearly"){
+                if(totalDays>7){
+                    var weeks = Math.floor(totalDays/7);
+                    in1.value = Math.round(in2.value*weeks);
+                }else{
+                    in1.value = in2.value;
+                }
+            }
+        }
+
+    };
+
+    var in2Update = function(){
+        if(sel1 === "Yearly"){
+            if(sel2.value === "Monthly"){
+                if(totalDays>365){
+                    var r = totalDays-365;
+                    var months = Math.floor(r/30)+12;
+                    in2.value = Math.round(in1.value/months);
+                }else{
+                    var months = Math.floor(totalDays/30);
+                    in2.value = Math.round(in1.value/months);
+                }
+            } else if (sel2.value === "Weekly"){
+                if(totalDays>7){
+                    var weeks = Math.floor(totalDays/7);
+                    in2.value = Math.round(in1.value/weeks);
+                }else{
+                    in2.value = in1.value;
+                }
+            } else {
+                if(totalDays>365){
+                    var years = Math.round(totalDays/365);
+                    in2.value = Math.round(in1.value/years);
+                }else{
+                    in2.value = in1.value;
+                }
+            }
+        }
+    };
+
+    datePicker.addEventListener("input", dPUpdate);
+    datePicker.addEventListener("input", in2Update);
+    datePicker.addEventListener("input", in1Update);
+    in1.addEventListener("input", in2Update);
+    in2.addEventListener("input", in1Update);
+
+    sel2.addEventListener("input", in2Update);
+
+</script>

@@ -1,0 +1,34 @@
+<style>
+	.tfh-men-box {
+		background-color: #E0E0E0;
+		margin: 20px;
+		padding: 1px 20px 20px 20px;
+		
+	}
+	
+	.tfh-men-box .btn-primary {
+		margin: 0 auto;
+		width: 250px;
+	}
+
+</style>
+
+<section>
+    <div>
+        <h2>Current &amp; Upcoming Resources</h2>
+    </div>
+    {% for item in Items %}
+		<div class="tfh-men-box">
+
+			<h2>{{ item.Title }}</h2>
+			<p>{{ item.Content }}</p>
+			<h3>When &amp; Where</h3>
+			<p>{{ item.EventLocation }}<br>{{ item.EventDate }}</p>
+			{% if item.ButtonLabel != 'None' %}
+			<div class="">
+				<a class="btn btn-block button-md btn-primary" href="{{ item.ButtonURL }}">{{ item.ButtonLabel }}</a>
+			</div>
+			{% endif %}
+		</div>
+		{% endfor %}
+</section>

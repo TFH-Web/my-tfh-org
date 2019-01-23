@@ -1,0 +1,59 @@
+<style>
+
+label {
+    text-transform: uppercase;
+}
+
+.form-group.required .control-label:after {
+    color: #ebe12a;
+}
+.btn-primary {
+    color: #000;
+    background-color: #f8ee00;
+}
+
+.control-label {
+    float: left; 
+    width: 8.5em;
+    margin-right: .5em;
+    text-align: right;
+}
+
+.control-wrapper {
+    display: flex;
+}
+
+form.group {
+    margin-bottom: 25px;
+}
+
+label[for=ctl00_main_ctl32_ctl02_ctl06_attribute_field_4021] {
+    float: none;
+    width: 100%;
+    text-align: left;
+}
+
+.radio-inline {
+    display: block;
+    text-align: left;
+    padding-top: 5px;
+}
+
+.rock-radio-button-list {
+    margin: 0 auto;
+    max-width: 420px;
+    padding: 20px 5px 0px 5px;
+}
+
+#bid_1418 {
+    max-width: 550px;
+    text-align: center;
+    margin: 0 auto;
+    padding-right: 25px;
+}
+
+.actions {
+    padding: 40px;
+}
+
+</style>

@@ -1,0 +1,108 @@
+<style>
+ul {
+    padding-left: 0px;
+}
+ 
+.TFHaccordion [type=radio], .TFHaccordion [type=checkbox] {
+    display:none;
+}
+  
+.TFHaccordion label {
+    display:block;
+    font-size:16px;
+    line-height:16px;
+    background:#767779;
+    border:1px solid #fff;
+    color:#fff;
+    text-shadow:1px 1px 1px rgba(255,255,255,0.3);
+    font-weight:700;
+    cursor:pointer;
+    text-transform:uppercase;
+    -webkit-transition: all .2s ease-out;
+    -moz-transition: all .2s ease-out;
+}
+
+.TFHaccordion .TFHcontent {
+    padding:0 10px;
+    overflow:hidden;
+    border:0px solid #fff; /* Make the border match the background so it fades in nicely */
+    -webkit-transition: all .5s ease-out;
+    -moz-transition: all .5s ease-out;
+}
+
+/* Vertical */
+.TFHvertical ul li {
+    overflow:hidden;
+    margin:0 0 1px;
+}
+
+.TFHvertical ul li label {
+    padding:10px;
+}
+
+.TFHvertical ul li .TFHcontent {
+    height:0px;
+    border-top:0;
+}
+
+/* TEXT BOX BORDER */
+.TFHvertical [type=radio]:checked ~ label ~ .TFHcontent, .TFHvertical [type=checkbox]:checked ~ label ~ .TFHcontent {
+    height: auto;
+    border:1px solid #fff;
+}
+
+</style>
+
+<div class="TFHaccordion TFHvertical">
+    <ul>
+        <li>
+            <input type="radio" id="radio-1" name="radio-accordion" checked="checked" />
+            <label for="radio-1">Activate Pending Members</label>
+            <div class="TFHcontent">
+                <p>When someone signs up for your TFH Group on the website, the system will automatically add them as a <b>pending</b> member. The system will also send you an email with that individual's contact information, so you can reach out to them within 24-48 hours and introduce yourself.After talking with them, you can <b>activate them in your TFH Group if they decide to join &amp; attend your group.</b></p>
+                <h4>You will follow the same steps for <b>activating or inactivating</b> a group member:</h4>
+                <ol type="a">
+                    <li>· Go to your <font color="#B8D05B"><b>GROUP TOOLBOX</b></font> by clicking your group's link on your <font color="B8D05B"><b>MyTFH ACCOUNT</b></font> Page.</li>
+                    <br>
+                    <li>· Click the <b>pencil icon</b> that appears to the right of their name when you hover over the individual's name on your roster.</li>
+                    <br>
+                    <img src="https://my.tfh.org/Content/ExternalSite/Resources/BlogPosts/Inactivate Member Step 1.jpg" style="width: 100%;" alt="Inactivate Member Step 1.jpg">
+                    <br>
+                    <li>· Once you have clicked the pencil &amp; opened the <font color="B8D05B"><b>GROUP MEMBER EDIT</b></font> Page, you will be able to change their group member status to <b>active or inactive.</b></li>
+                    <br>
+                    <li>· Click <b>save.</b></li><br><img src="https://my.tfh.org/Content/ExternalSite/Resources/BlogPosts/Inactivate Member Step 2.jpg" alt="Inactivate Member Step 2.jpg" style="width: 100%;"><br> </ol>
+
+                <p>Pending Members can be also be found easily on your&nbsp;<font color="#B8D05B"><b>GROUP TOOLBOX</b></font> Page, listed in a grid directly above your active group members.</p><p><img src="https://my.tfh.org/Content/ExternalSite/Resources/BlogPosts/Pending Group Member.jpg" style="width: 100%;" alt="Pending Group Member.jpg"></p><br>
+
+            </div>
+        </li>
+        <li>
+            <input type="radio" id="radio-2" name="radio-accordion" />
+            <label for="radio-2">Inactivating or Removing Members</label>
+            <div class="TFHcontent">
+                <p><b>If a pending individual </b>decides that they are going to join a different TFH Group &amp; <b>will not be attending your group, you can inactivate them as a group member</b> to make sure that your roster is up to date and their membership status doesn't affect your group's capacity and keep others from signing up &amp; taking their place.</p>
+                <h4>You will follow the same steps for <b>activating or inactivating</b> a group member:</h4>
+                <ol type="a">
+                    <li>· Go to your <font color="#B8D05B"><b>GROUP TOOLBOX</b></font> by clicking your group's link on your <font color="B8D05B"><b>MyTFH ACCOUNT</b></font> Page.</li>
+                    <br>
+                    <li>· Click the <b>pencil icon</b> that appears to the right of their name when you hover over the individual's name on your roster.</li>
+                    <br>
+                    <img src="https://my.tfh.org/Content/ExternalSite/Resources/BlogPosts/Inactivate Member Step 1.jpg" style="width: 100%;" alt="Inactivate Member Step 1.jpg">
+                    <br>
+                    <li>· Once you have clicked the pencil &amp; opened the <font color="B8D05B"><b>GROUP MEMBER EDIT</b></font> Page, you will be able to change their group member status to <b>active or inactive.</b></li>
+                    <br>
+                    <li>· Click <b>save.</b></li><br><img src="https://my.tfh.org/Content/ExternalSite/Resources/BlogPosts/Inactivate Member Step 2.jpg" alt="Inactivate Member Step 2.jpg" style="width: 100%;"><br> </ol>
+                <p><b>You can also inactivate group members that will no longer be attending by following the same steps</b>. This enables you to give their spot to someone else looking for a TFH Group.</p><br>
+
+            </div>
+        </li>
+        <li>
+            <input type="radio" id="radio-3" name="radio-accordion" />
+            <label for="radio-3">Adding Members Manually</label>
+            <div class="TFHcontent">
+                <p>If you need to add group members to your roster that haven't signed up for the group via the website, or you have a private group and new members aren't able to register through the website, then send an email to: <a href="mailto:groups@tfh.org"><font color="blue"><b>groups@tfh.org</b></font></a>. <b>The Groups Department will manually add your new members for you.</b></p> <p>When you send this email, <b>please include the group member's first name, last name, and phone number</b> so we can add the correct person from the system.</p><br>
+            </div>
+        </li>
+        
+    </ul>
+</div>

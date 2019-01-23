@@ -1,0 +1,33 @@
+<style>
+	.tfh-men-box {
+		background-color: #E0E0E0;
+		margin: 20px;
+		padding: 1px 20px 20px 20px;
+		
+	}
+	
+	.tfh-men-box .btn-primary {
+		margin: 0 auto;
+		width: 250px;
+	}
+
+</style>
+
+<section>
+    <div>
+        <h2>Monthly Events</h2>
+        <p>BBQ, camp out, motorcylce ride, golf and more. See whats happening this month.</p>
+    </div>
+    {% for item in Items %}
+		<div class="tfh-men-box">
+
+			<h2>{{ item.Title }}</h2>
+			<p>{{ item.Content }}</p>
+			<p>{{ item.EventLocation }}</p>
+			<p>{{ item.EventDate }}</p>
+			<div class="">
+				<a class="btn btn-block button-md btn-primary" href="{{ item.ButtonURL }}">{{ item.ButtonLabel }}</a>
+			</div>
+		</div>
+		{% endfor %}
+</section>

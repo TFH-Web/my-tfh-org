@@ -1,0 +1,41 @@
+<style>
+    .card {
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        display: block;
+        padding: 10px;
+        margin: 5px;
+        min-height: 215px
+    }
+    
+    .card a {
+        color: #000;
+        text-decoration: none;
+    }
+
+    .card p {
+        font-weight: normal;
+    }
+</style>
+
+<section>
+    <div class="container">
+        <div class="row">
+        {% if Page.DisplayChildPages == 'true' and Page.Pages != empty %}
+            {% for childPage in Page.Pages %}
+            <div class="col-xs-12 col-md-6 col-lg-3">
+                <div class="card">
+                    <a href="{{ childPage.Url }}">
+                        <div class="card-body">
+                            <h2 class="card-title">{{ childPage.Title }}</h2>
+                            <p class="card-text">{{ childPage.Description }}</p>
+                            <p><strong>LEARN MORE <i class="fa fa-chevron-right"></i></strong></p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+        </div>
+    </div>
+</section>

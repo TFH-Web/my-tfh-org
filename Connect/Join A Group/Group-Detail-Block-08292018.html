@@ -1,0 +1,94 @@
+{% if Group.Topic == 'Intimate Encounters (Marriage)' %}
+    <h1>Intimate Encounters</h1>
+    <p>Intimate Encounters offers practical help to make good marriages even better and brings hope and healing for troubled relationships. Through our relationship with Christ, biblical insight and the support of friends, this curriculum provides practical tools couples need to improve the spiritual, emotional and physical intimacy within their marriage. Hundreds of TFH couples have seen their marriages strengthened through Intimate Encounters. Groups are starting throughout the entire year and meet bi-weekly for 10 months. Contact us for more information and to find a group near you.</p>
+    <br><h2>Vacaville Campus</h2>
+    <p>4th Sunday each month, 1:30pm-2:30pm, Bldg C - 2nd/4th grade room</p>
+    <br>
+    <p>Contact <a href="mailto:ie@tfh.org?subject=Intimate Encounters" class="mytfh-btn btn-inline mytfh-btn-grey mytfh-btn-med"><i class="fa fa-envelope"></i> ie@tfh.org</a></p>
+
+{% elseif Group.Topic == 'Hope and Recovery from Sexual Abuse' %}
+    <h1>Hope and Recovery from Sexual Abuse</h1>
+    <p class="lead">{{ Group.Campus.Name }}</p>
+    <p>{{ Group.Description }}</p>
+    <br><br>
+		{% if Group.Campus.Name == 'Vacaville Campus' %}
+    <h3>Confidential Contact</h3>
+        <a href="mailto:Liv2cshells@gmail.com?subject=Hope and Recovery Group Request" class="mytfh-btn btn-inline mytfh-btn-grey mytfh-btn-med"><i class="fa fa-envelope"></i> Liv2cshells@gmail.com</a>
+        <button class="mytfh-btn btn-inline mytfh-btn-grey mytfh-btn-med"><i class="fas fa-phone"></i> 707-290-0644</button>
+		{% elseif Group.Campus.Name == 'Napa Campus' %}
+    <h3>Confidential Contact</h3>
+        <a href="mailto:Cynthia704@sbcglobal.net?subject=Hope and Recovery Group Request" class="mytfh-btn btn-inline mytfh-btn-grey mytfh-btn-med"><i class="fa fa-envelope"></i> Cynthia704@sbcglobal.net</a>
+        <button class="mytfh-btn btn-inline mytfh-btn-grey mytfh-btn-med"><i class="fas fa-phone"></i> 707-688-5500</button>
+		{% endif %}
+
+{% elseif Group.Topic == 'Saving Your Marriage Before it Starts' %}
+    <h1>Saving Your Marriage Before it Starts</h1>
+    <div class="row">
+        <div class="col-sm-8">
+            <h2>Getting Married?</h2>
+            <p>Great marriages don’t just happen! An important part of having a great marriage is preparation. TFH Pre-Marriage Mentoring is designed to help prepare engaged couples for strong, lasting marriages based on biblical principles.</p>
+            <p>Engaged couples will be paired a with a group of other engaged couples and a trained mentor couple in a TFH Marriage Group setting for 8 mentoring sessions. A structured curriculum provides excellent preparation in areas key to a successful marriage: communication, conflict resolution, finances, love styles and intimacy. The curriculum we use is Saving Your Marriage Before It Starts (SYMBIS) by Drs. Les and Leslie Parrott.</p>
+            <br>
+            <p><a href="http://www.tfh.org/marriage/premarriage" class="mytfh-btn btn-inline mytfh-btn-grey mytfh-btn-med">More Info and Sign Up <i class="fa fa-chevron-right"></i></a></p>
+        </div>
+        <div class="col-sm-4">
+            <img src="http://tfh.org/-/img/sections/marriage/marriage-getting.png" class="img-responsive">
+            <br>
+        </div>
+    </div>
+
+{% else %}
+    <h1>{{ Group.Name }}</h1>
+    {{ Group.Campus.Name }} | <strong>Topic:</strong> {{ Group.Topic }} | <strong>Category: </strong>{{ Group.TFHGroupCategory }}
+
+    <br>
+    <br>
+
+    <h2>Group Details</h2>
+    {{ Group.Description }}
+    <br>
+    <br>
+
+    {% if Group.VimeoID == 'none' %} 
+    {% else %} 
+        <style>.embed-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; } .embed-container iframe, .embed-container object, .embed-container embed { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }</style><div class='embed-container'><iframe src='https://player.vimeo.com/video/{{Group.VimeoID}}' frameborder='0' webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></div>
+        <br>
+        <br>
+    {% endif %}
+
+
+    <h3>Day and Time</h3>
+    {{ Group.Schedule.WeeklyDayOfWeek }} 
+    {% if Group.Schedule.WeeklyTimeOfDay %} 
+        at {{ Group.Schedule.WeeklyTimeOfDay | Date: 'h:mm tt' }} 
+    {% else %} 
+    {% endif %}
+    <br>
+    <br>
+
+    {% for GroupLocation in Group.GroupLocations %} 
+        {% if GroupLocation.Location.City %} 
+            <h2>Location</h2> 
+            {% for GroupLocation in Group.GroupLocations %} {{ GroupLocation.Location.City }} {% endfor %}, {% for GroupLocation in Group.GroupLocations %} {{ GroupLocation.Location.State }} {% endfor %}
+                <br>
+                <br>
+        {% endif %} 
+    {% endfor %}
+
+    {% comment %}
+    {% for groupLocation in Group.GroupLocations %}
+        {% if groupLocation.Location.GeoPoint != '' %}
+
+        <div class="packagesummary-image"
+             style="background: url('https://maps.googleapis.com/maps/api/staticmap?size=1400x400&zoom=14&maptype=roadmap&markers={{ groupLocation.Location.GeoPoint }}&scale=2&key={{ 'Global' | Attribute:'GoogleAPIKey' }}') no-repeat center;
+                    width: 100%;
+                    height: 200px;">
+        </div>
+
+        {% endif %}
+    {% endfor %}
+    <br>
+    <br>
+    {% endcomment %}
+     <p><a class="mytfh-btn btn-inline mytfh-btn-grey mytfh-btn-med" href="https://my.tfh.org/page/367?GroupGuid={{ Group.Guid }}">Register for this group <i class="fa fa-angle-right"></i></a></p>
+{% endif %}
