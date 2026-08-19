@@ -178,6 +178,25 @@ The detail page's `<h1 class="pagetitle">` is rewritten too — from the static
 "Sign-up Detail" to the group name — so the page reads **Kids Min Orientation** →
 *Thursday, August 27* instead of leading with a label that tells a visitor nothing.
 
+### Why the opportunity detail page exists
+
+It is **deliberately kept**, and it will look redundant if you only read the code.
+
+Every field it renders is already visible on the group page: date, time, campus,
+room, capacity and Register come from the card, and the photo and description come
+from the group header directly above the cards. Rock also gives it almost nowhere
+to grow — an opportunity is a Location + Schedule pair with no description and no
+attributes; the only per-occurrence content hook is `Schedule.Name` /
+`Schedule.Description`, and sign-up schedules are created inline and left unnamed.
+
+It is kept anyway because it is the **only shareable URL for a single date**. That
+is its job: something to send to a person or a group to point them at one specific
+opportunity before they commit to registering. A modal — which was considered and
+rejected for this reason — cannot be linked.
+
+So: do not "simplify" this away on the grounds that it duplicates the card. The
+duplication is the point; the URL is the feature.
+
 ### Layout and page settings
 
 - **Content width belongs to the layout, not the block.** `.signup` sets no
