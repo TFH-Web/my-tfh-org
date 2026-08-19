@@ -7,7 +7,7 @@ Public, marketing-linkable views of Rock's Sign-Up feature on **my.tfh.org**
 |---|---|
 | `signups-menu-and-group-block.html` | HTML Content block on **page 3716** |
 | `signups-opportunity-detail-block.html` | HTML Content block on **page 3717** |
-| `tfh-signups.less` | Theme Styler → **CSS Overrides** on theme `MyTFH-2021` |
+| *(styles)* | Merged into `theme/Styles/_css-overrides.less` as **section 22** |
 
 ## URL structure
 
@@ -66,19 +66,26 @@ On both new HTML Content blocks:
 | Cache Duration | **0** — capacity must never be cached |
 
 ### 4. Styles
-Paste the whole of `tfh-signups.less` into
-Admin → CMS → Themes → **MyTFH-2021** → Theme Styler → **CSS Overrides**, and save.
-Rock recompiles the theme on save.
+Styles live in **`theme/Styles/_css-overrides.less`, section 22** — the file
+`theme.less` imports at line 861, which is what backs
+Admin → CMS → Themes → **MyTFH-2021** → Theme Styler → **CSS Overrides**.
 
-`MyTFH-2021` is a **v1 theme, so the override field is compiled by dotless.**
-The file is written accordingly:
+There is no separate sign-up stylesheet. Rock has one override field, so the
+section lives inside that file with the rest of the site's overrides.
 
-- LESS variables (`@tfh-su-*`) rather than CSS custom properties
+To deploy, paste the current `_css-overrides.less` into the Theme Styler CSS
+Overrides field and save; Rock recompiles the theme. If it fails to compile
+Rock reports it on save and rejects the whole field, so nothing renders
+half-styled.
+
+`MyTFH-2021` is a **v1 theme, so this is compiled by dotless.** Section 22 is
+written accordingly:
+
+- LESS variables (`@signup-*`) rather than CSS custom properties
 - no `:has()` — the Lava emits `--nophoto` modifier classes instead
 - no `grid-column: 1 / -1`, which dotless evaluates as arithmetic
-
-If the theme fails to compile, Rock reports it on save — the whole override
-field is rejected, so nothing renders half-styled.
+- mobile-first `min-width: @screen-sm-min`, matching the file's own idiom, with
+  no arithmetic inside the media query
 
 Adobe Fonts is already loaded site-wide on MyTFH (kit `dpm1txa`). Confirm that
 kit publishes `neue-haas-grotesk-text` (400/500) and `neue-haas-grotesk-display`,
@@ -144,7 +151,7 @@ These are deliberate, driven by what the data and platform actually support.
 2. **Outer spacing.** Per the project rule these blocks add no outer padding or
    margin, on the assumption Rock already pads blocks on MyTFH as it does
    elsewhere. If the content sits flush to the viewport edge, that assumption is
-   wrong for this theme and the gutter belongs on `.tfh-signup`.
+   wrong for this theme and the gutter belongs on `.signup`.
 3. **Register handoff.** Click through one Register button and confirm Rock's
    block receives the three IdKeys. This is the one path we cannot verify from
    SQL alone.

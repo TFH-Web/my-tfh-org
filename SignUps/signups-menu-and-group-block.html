@@ -176,33 +176,33 @@
     ORDER   BY MIN(fo.StartsAt)
 {% endsql %}
 
-<div class="tfh-signup">
+<div class="signup">
 
-  <header class="tfh-signup__head">
-    <h1 class="tfh-signup__title">Sign Up at TFH</h1>
-    <p class="tfh-signup__intro">Pick a sign-up below to see the upcoming dates, campuses and remaining spots. You can register for as many as you need.</p>
+  <header class="signup__head">
+    <h1 class="signup__title">Sign Up at TFH</h1>
+    <p class="signup__intro">Pick a sign-up below to see the upcoming dates, campuses and remaining spots. You can register for as many as you need.</p>
   </header>
 
   {%- if menuRows and menuRows != empty -%}
-  <div class="tfh-signup__grid">
+  <div class="signup__grid">
     {%- for row in menuRows -%}
-    <a class="tfh-signup-card" href="{{ menuUrl }}/{{ row.Slug }}">
+    <a class="signup-card" href="{{ menuUrl }}/{{ row.Slug }}">
       {%- comment -%} Design rule: no image => no photo band. Never an empty grey box. {%- endcomment -%}
       {%- if row.ImageGuid != '' -%}
-      <span class="tfh-signup-card__photo">
+      <span class="signup-card__photo">
         <img src="/GetImage.ashx?Guid={{ row.ImageGuid }}&w=900" alt="" loading="lazy">
       </span>
       {%- endif -%}
-      <span class="tfh-signup-card__body">
-        <span class="tfh-signup-card__name">{{ row.GroupName }}</span>
+      <span class="signup-card__body">
+        <span class="signup-card__name">{{ row.GroupName }}</span>
         {%- if row.Description != '' -%}
-        <span class="tfh-signup-card__desc">{{ row.Description | StripHtml | Truncate:220,'…' }}</span>
+        <span class="signup-card__desc">{{ row.Description | StripHtml | Truncate:220,'…' }}</span>
         {%- endif -%}
-        <span class="tfh-signup-card__foot">
-          <span class="tfh-signup-card__count">
+        <span class="signup-card__foot">
+          <span class="signup-card__count">
             {{ row.UpcomingCount }} upcoming date{% if row.UpcomingCount != 1 %}s{% endif %}
           </span>
-          <span class="tfh-signup-card__arrow" aria-hidden="true">
+          <span class="signup-card__arrow" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M13 6l6 6-6 6"/>
             </svg>
@@ -214,9 +214,9 @@
   </div>
   {%- else -%}
   {%- comment -%} Empty state — nothing open anywhere. {%- endcomment -%}
-  <div class="tfh-signup-empty">
-    <h2 class="tfh-signup-empty__title">Nothing Open Right Now</h2>
-    <p class="tfh-signup-empty__body">There are no sign-ups with upcoming dates today. New opportunities post regularly — check back soon, or reach your campus team at <a href="mailto:hello@tfh.org">hello@tfh.org</a>.</p>
+  <div class="signup-empty">
+    <h2 class="signup-empty__title">Nothing Open Right Now</h2>
+    <p class="signup-empty__body">There are no sign-ups with upcoming dates today. New opportunities post regularly — check back soon, or reach your campus team at <a href="mailto:hello@tfh.org">hello@tfh.org</a>.</p>
   </div>
   {%- endif -%}
 
@@ -370,42 +370,42 @@
     {%- endif -%}
   {%- endfor -%}
 
-<div class="tfh-signup">
+<div class="signup">
 
-  <a class="tfh-signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
+  <a class="signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
 
   {%- comment -%}
     The --nophoto modifier collapses the two-column header to one. It is emitted
     here rather than handled by :has() in the stylesheet, because the theme is
     compiled by dotless and :has() support there is not worth depending on.
   {%- endcomment -%}
-  <header class="tfh-signup-group{% if head.ImageGuid == '' %} tfh-signup-group--nophoto{% endif %}">
+  <header class="signup-group{% if head.ImageGuid == '' %} signup-group--nophoto{% endif %}">
     {%- if head.ImageGuid != '' -%}
-    <div class="tfh-signup-group__photo">
+    <div class="signup-group__photo">
       <img src="/GetImage.ashx?Guid={{ head.ImageGuid }}&w=1000" alt="">
     </div>
     {%- endif -%}
-    <div class="tfh-signup-group__text">
-      <p class="tfh-signup-group__eyebrow">Sign-Up Group</p>
-      <h1 class="tfh-signup__title">{{ head.GroupName }}</h1>
+    <div class="signup-group__text">
+      <p class="signup-group__eyebrow">Sign-Up Group</p>
+      <h1 class="signup__title">{{ head.GroupName }}</h1>
       {%- if head.Description != '' -%}
-      <div class="tfh-signup-group__desc">{{ head.Description }}</div>
+      <div class="signup-group__desc">{{ head.Description }}</div>
       {%- endif -%}
-      <div class="tfh-signup-group__meta">
-        <span class="tfh-signup-pill">{{ dateCount }} upcoming date{% if dateCount != 1 %}s{% endif %}</span>
+      <div class="signup-group__meta">
+        <span class="signup-pill">{{ dateCount }} upcoming date{% if dateCount != 1 %}s{% endif %}</span>
         {%- if campusCount > 0 -%}
-        <span class="tfh-signup-pill">{{ campusCount }} campus{% if campusCount != 1 %}es{% endif %}</span>
+        <span class="signup-pill">{{ campusCount }} campus{% if campusCount != 1 %}es{% endif %}</span>
         {%- endif -%}
       </div>
     </div>
   </header>
 
-  <div class="tfh-signup__sectionhead">
-    <h2 class="tfh-signup__sectiontitle">Upcoming Opportunities</h2>
-    <span class="tfh-signup__tz">Times shown in Pacific</span>
+  <div class="signup__sectionhead">
+    <h2 class="signup__sectiontitle">Upcoming Opportunities</h2>
+    <span class="signup__tz">Times shown in Pacific</span>
   </div>
 
-  <div class="tfh-signup__grid tfh-signup__grid--opps">
+  <div class="signup__grid signup__grid--opps">
     {%- for row in oppRows -%}
 
       {%- comment -%} ----- capacity state ----- {%- endcomment -%}
@@ -436,34 +436,34 @@
       {%- capture detailUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}{%- endcapture -%}
       {%- capture registerUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
 
-    <div class="tfh-signup-opp">
-      <p class="tfh-signup-opp__date">{{ row.StartsAt | Date:'dddd, MMM d' }}</p>
-      <p class="tfh-signup-opp__meta">
+    <div class="signup-opp">
+      <p class="signup-opp__date">{{ row.StartsAt | Date:'dddd, MMM d' }}</p>
+      <p class="signup-opp__meta">
         {{ row.StartsAt | Date:'h:mm tt' }}
         {%- if row.DurationMinutes and row.DurationMinutes >= 1 %} · {{ row.DurationMinutes }} min{% endif -%}
       </p>
       {%- if row.CampusName != '' -%}
-      <p class="tfh-signup-opp__meta">{{ row.CampusName }}{% if row.LocationName != '' %} · {{ row.LocationName }}{% endif %}</p>
+      <p class="signup-opp__meta">{{ row.CampusName }}{% if row.LocationName != '' %} · {{ row.LocationName }}{% endif %}</p>
       {%- elsif row.LocationName != '' -%}
-      <p class="tfh-signup-opp__meta">{{ row.LocationName }}</p>
+      <p class="signup-opp__meta">{{ row.LocationName }}</p>
       {%- endif -%}
 
-      <div class="tfh-signup-opp__cap">
+      <div class="signup-opp__cap">
         {%- if hasCap == false -%}
-          <p class="tfh-signup-opp__nolimit">Open sign-up — no limit</p>
+          <p class="signup-opp__nolimit">Open sign-up — no limit</p>
         {%- else -%}
           {%- if isFull -%}
-            <span class="tfh-signup-spots tfh-signup-spots--full">At Capacity</span>
+            <span class="signup-spots signup-spots--full">At Capacity</span>
           {%- elsif isLow -%}
-            <span class="tfh-signup-spots tfh-signup-spots--low">{{ spotsLeft }} spot{% if spotsLeft != 1 %}s{% endif %} left</span>
+            <span class="signup-spots signup-spots--low">{{ spotsLeft }} spot{% if spotsLeft != 1 %}s{% endif %} left</span>
           {%- else -%}
-            <span class="tfh-signup-spots">{{ spotsLeft }} spots left</span>
+            <span class="signup-spots">{{ spotsLeft }} spots left</span>
           {%- endif -%}
-          <span class="tfh-signup-bar"><span class="tfh-signup-bar__fill" style="width: {{ pct }}%"></span></span>
+          <span class="signup-bar"><span class="signup-bar__fill" style="width: {{ pct }}%"></span></span>
         {%- endif -%}
       </div>
 
-      <div class="tfh-signup-opp__actions">
+      <div class="signup-opp__actions">
         <a class="btn btn-default" href="{{ detailUrl }}">Details</a>
         {%- if isFull -%}
         <span class="btn btn-default disabled" aria-disabled="true">Sign-Ups Closed</span>
@@ -472,7 +472,7 @@
         {%- endif -%}
       </div>
       {%- if isFull -%}
-      <p class="tfh-signup-opp__note">This date reached capacity.</p>
+      <p class="signup-opp__note">This date reached capacity.</p>
       {%- endif -%}
     </div>
     {%- endfor -%}
@@ -482,14 +482,14 @@
 
 {%- else -%}
 {%- comment -%} Unmatched slug, or the group has no future dates. {%- endcomment -%}
-<div class="tfh-signup">
-  <a class="tfh-signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
-  <header class="tfh-signup__head">
-    <h1 class="tfh-signup__title">Sign Up at TFH</h1>
+<div class="signup">
+  <a class="signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
+  <header class="signup__head">
+    <h1 class="signup__title">Sign Up at TFH</h1>
   </header>
-  <div class="tfh-signup-empty">
-    <h2 class="tfh-signup-empty__title">Nothing Open Right Now</h2>
-    <p class="tfh-signup-empty__body">There are no sign-ups with upcoming dates today. New opportunities post regularly — check back soon, or reach your campus team at <a href="mailto:hello@tfh.org">hello@tfh.org</a>.</p>
+  <div class="signup-empty">
+    <h2 class="signup-empty__title">Nothing Open Right Now</h2>
+    <p class="signup-empty__body">There are no sign-ups with upcoming dates today. New opportunities post regularly — check back soon, or reach your campus team at <a href="mailto:hello@tfh.org">hello@tfh.org</a>.</p>
   </div>
 </div>
 {%- endif -%}

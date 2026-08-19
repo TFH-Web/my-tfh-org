@@ -21,7 +21,7 @@
        Enabled Lava Commands : Sql, RockEntity
        Cache Duration        : 0   (capacity must not be cached)
 
-     Styles live in tfh-signups.less, pasted into Theme Styler > CSS Overrides.
+     Styles live in signups.less, pasted into Theme Styler > CSS Overrides.
      See signups-menu-and-group-block.html for the full data-model notes —
      campus resolution by ancestor walk, iCal time parsing, IdKey requirement,
      and the absence of any waitlist concept on Sign-Up Groups.
@@ -40,11 +40,11 @@
 
 {%- if slug == empty or occurrence == empty -%}
 
-<div class="tfh-signup">
-  <a class="tfh-signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
-  <div class="tfh-signup-empty">
-    <h2 class="tfh-signup-empty__title">Sign-Up Not Found</h2>
-    <p class="tfh-signup-empty__body">That link doesn't point to a sign-up date we can find. Browse the <a href="{{ menuUrl }}">current sign-ups</a> instead.</p>
+<div class="signup">
+  <a class="signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
+  <div class="signup-empty">
+    <h2 class="signup-empty__title">Sign-Up Not Found</h2>
+    <p class="signup-empty__body">That link doesn't point to a sign-up date we can find. Browse the <a href="{{ menuUrl }}">current sign-ups</a> instead.</p>
   </div>
 </div>
 
@@ -160,9 +160,9 @@
   {%- assign groupIdKey = '' -%}
   {% group id:'{{ head.GroupId }}' %}{%- assign groupIdKey = group.IdKey -%}{% endgroup %}
 
-<div class="tfh-signup">
+<div class="signup">
 
-  <a class="tfh-signup__back" href="{{ menuUrl }}/{{ slug }}">&larr; {{ head.GroupName }}</a>
+  <a class="signup__back" href="{{ menuUrl }}/{{ slug }}">&larr; {{ head.GroupName }}</a>
 
   {%- for row in rows -%}
     {%- assign hasCap    = false -%}
@@ -188,53 +188,53 @@
     {% schedule id:'{{ row.ScheduleId }}' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
     {%- capture registerUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
 
-  <article class="tfh-signup-detail{% if head.ImageGuid == '' %} tfh-signup-detail--nophoto{% endif %}">
+  <article class="signup-detail{% if head.ImageGuid == '' %} signup-detail--nophoto{% endif %}">
     {%- if head.ImageGuid != '' -%}
-    <div class="tfh-signup-detail__photo">
+    <div class="signup-detail__photo">
       <img src="/GetImage.ashx?Guid={{ head.ImageGuid }}&w=1000" alt="">
     </div>
     {%- endif -%}
 
-    <div class="tfh-signup-detail__text">
-      <p class="tfh-signup-group__eyebrow">{{ head.GroupName }}</p>
-      <h1 class="tfh-signup__title">{{ row.StartsAt | Date:'dddd, MMMM d' }}</h1>
+    <div class="signup-detail__text">
+      <p class="signup-group__eyebrow">{{ head.GroupName }}</p>
+      <h1 class="signup__title">{{ row.StartsAt | Date:'dddd, MMMM d' }}</h1>
 
-      <div class="tfh-signup-group__meta">
-        <span class="tfh-signup-pill">{{ row.StartsAt | Date:'h:mm tt' }}</span>
+      <div class="signup-group__meta">
+        <span class="signup-pill">{{ row.StartsAt | Date:'h:mm tt' }}</span>
         {%- if row.DurationMinutes and row.DurationMinutes >= 1 -%}
-        <span class="tfh-signup-pill">{{ row.DurationMinutes }} min</span>
+        <span class="signup-pill">{{ row.DurationMinutes }} min</span>
         {%- endif -%}
         {%- if row.CampusName != '' -%}
-        <span class="tfh-signup-pill">{{ row.CampusName }}</span>
+        <span class="signup-pill">{{ row.CampusName }}</span>
         {%- endif -%}
         {%- if row.LocationName != '' -%}
-        <span class="tfh-signup-pill">{{ row.LocationName }}</span>
+        <span class="signup-pill">{{ row.LocationName }}</span>
         {%- endif -%}
       </div>
 
       {%- if head.Description != '' -%}
-      <div class="tfh-signup-detail__desc">{{ head.Description }}</div>
+      <div class="signup-detail__desc">{{ head.Description }}</div>
       {%- endif -%}
 
-      <div class="tfh-signup-opp__cap">
+      <div class="signup-opp__cap">
         {%- if hasCap == false -%}
-          <p class="tfh-signup-opp__nolimit">Open sign-up — no limit</p>
+          <p class="signup-opp__nolimit">Open sign-up — no limit</p>
         {%- else -%}
           {%- if isFull -%}
-            <span class="tfh-signup-spots tfh-signup-spots--full">At Capacity</span>
+            <span class="signup-spots signup-spots--full">At Capacity</span>
           {%- elsif isLow -%}
-            <span class="tfh-signup-spots tfh-signup-spots--low">{{ spotsLeft }} spot{% if spotsLeft != 1 %}s{% endif %} left</span>
+            <span class="signup-spots signup-spots--low">{{ spotsLeft }} spot{% if spotsLeft != 1 %}s{% endif %} left</span>
           {%- else -%}
-            <span class="tfh-signup-spots">{{ spotsLeft }} spots left</span>
+            <span class="signup-spots">{{ spotsLeft }} spots left</span>
           {%- endif -%}
-          <span class="tfh-signup-bar"><span class="tfh-signup-bar__fill" style="width: {{ pct }}%"></span></span>
+          <span class="signup-bar"><span class="signup-bar__fill" style="width: {{ pct }}%"></span></span>
         {%- endif -%}
       </div>
 
-      <div class="tfh-signup-opp__actions">
+      <div class="signup-opp__actions">
         {%- if isFull -%}
         <span class="btn btn-default disabled" aria-disabled="true">Sign-Ups Closed</span>
-        <p class="tfh-signup-opp__note">This date reached capacity.</p>
+        <p class="signup-opp__note">This date reached capacity.</p>
         {%- else -%}
         <a class="btn btn-primary" href="{{ registerUrl }}">Register</a>
         {%- endif -%}
@@ -246,11 +246,11 @@
 </div>
 
 {%- else -%}
-<div class="tfh-signup">
-  <a class="tfh-signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
-  <div class="tfh-signup-empty">
-    <h2 class="tfh-signup-empty__title">Sign-Up Not Found</h2>
-    <p class="tfh-signup-empty__body">That date is no longer available. Browse the <a href="{{ menuUrl }}">current sign-ups</a> instead.</p>
+<div class="signup">
+  <a class="signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
+  <div class="signup-empty">
+    <h2 class="signup-empty__title">Sign-Up Not Found</h2>
+    <p class="signup-empty__body">That date is no longer available. Browse the <a href="{{ menuUrl }}">current sign-ups</a> instead.</p>
   </div>
 </div>
 {%- endif -%}

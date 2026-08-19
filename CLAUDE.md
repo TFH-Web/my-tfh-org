@@ -150,7 +150,14 @@ tfh.org; headings weight 500, body 400, headline copy in Title Case.
 - **No outer padding or margin** on a block's outermost wrapper, at any breakpoint.
   Rock already pads every block; a second gutter insets the content from
   everything else on the page. Spacing *between* inner elements is fine.
-- **Class prefix `tfh-`** on every custom class.
+- **No vendor prefix on custom classes.** The `MyTFH-2021` theme is entirely
+  our own code — there is no Spark-shipped stylesheet of ours to collide with —
+  so classes are named for the feature (`.signup-card`, `.signup-opp`), not
+  prefixed. This differs from `../rock-frontend`, which layers on Spark's
+  internal theme and therefore does prefix `tfh-`.
+  **Still check a new name before using it.** Bootstrap 3 and Rock core are in
+  the cascade; grep the compiled `theme/Styles/theme.css` and `bootstrap.css`,
+  which is where those class names actually appear.
 - **Buttons: use native `btn btn-primary` / `btn btn-default`.** Do not write
   custom button styles, even when a mockup shows them — hover, focus and active
   states should come from the theme and match the rest of the site. A disabled
@@ -260,7 +267,7 @@ Two specifics once a file has been confirmed:
 
 ### Styles: pending consolidation
 
-`SignUps/tfh-signups.less` is currently a **standalone file**, deliberately not
+`theme/Styles/_css-overrides.less` section 22 is currently a **standalone file**, deliberately not
 merged into `mytfh.css`. `mytfh.css` is 7 years stale, so it must first be
 refreshed from what is actually live in Rock's Theme Styler → CSS Overrides.
 Once that baseline is committed, the sign-up styles should be appended into it
