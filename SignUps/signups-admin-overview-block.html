@@ -56,7 +56,6 @@
                 g.Name,
                 g.IsActive,
                 g.IsPublic,
-                g.ParentGroupId,
                 -- RAW name-slug. The caller applies the same strip the public
                 -- block applies, so both agree by construction.
                 LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
@@ -65,19 +64,20 @@
                 (SELECT COUNT(*) FROM Opps o WHERE o.GroupId = g.Id AND o.StartsAt >= GETDATE())     AS UpcomingOpps
         FROM    [Group] g
         WHERE   g.GroupTypeId = @groupTypeId
+          AND   g.ParentGroupId IS NOT NULL   -- exclude the root "Sign-Up Groups" container
     )
     -- Wrapped so the visibility verdict can read the computed counts.
     SELECT  b.*,
             CASE
-                WHEN b.IsActive = 0            THEN 'Group is inactive'
-                WHEN b.IsPublic = 0            THEN 'Group is not public'
-                WHEN b.ParentGroupId IS NULL   THEN 'Root container, not a sign-up'
-                WHEN b.UpcomingOpps = 0        THEN 'No upcoming dates'
+                WHEN b.IsActive = 0     THEN 'Group is inactive'
+                WHEN b.IsPublic = 0     THEN 'Group is not public'
+                WHEN b.UpcomingOpps = 0 THEN 'No upcoming dates'
                 ELSE ''
             END AS HiddenReason,
-            -- A URL resolves for any active, public, non-root group even with no
-            -- upcoming dates -- it just renders the empty state.
-            CASE WHEN b.IsActive = 1 AND b.IsPublic = 1 AND b.ParentGroupId IS NOT NULL
+            -- A URL resolves for any active, public group even with no upcoming
+            -- dates -- it just renders the empty state. The root container is
+            -- already excluded above, so it needs no test here.
+            CASE WHEN b.IsActive = 1 AND b.IsPublic = 1
                  THEN 1 ELSE 0 END AS UrlResolves
     FROM    Base b
     ORDER   BY CASE WHEN b.UpcomingOpps > 0 THEN 0 ELSE 1 END, b.Name
@@ -92,9 +92,10 @@
   <div class="panel-body">
 
     <p class="text-muted">
-      Every group on the Sign-Up group type, whether or not it has any dates.
-      Only rows marked <span class="label label-success">On /signups</span> appear
-      on the public menu.
+      Every sign-up group, whether or not it has any dates. The root
+      &ldquo;Sign-Up Groups&rdquo; container is excluded, as it is on the public
+      pages. Only rows marked
+      <span class="label label-success">On /signups</span> appear on the menu.
     </p>
 
     <div class="table-responsive">
