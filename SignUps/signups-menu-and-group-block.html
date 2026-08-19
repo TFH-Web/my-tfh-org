@@ -419,9 +419,18 @@
   <script>
   (function () {
     var root = document.querySelector('.signup[data-crumb-name]');
-    var list = document.querySelector('.breadcrumb');
-    if (!root || !list) { return; }
+    if (!root) { return; }
     var name = root.getAttribute('data-crumb-name');
+
+    // Set the document title FIRST. This page renders no breadcrumb at all, so
+    // gating the title on finding one meant it never updated here.
+    var t = document.title;
+    document.title = t.indexOf('|') > -1
+      ? name + ' |' + t.split('|').slice(1).join('|')
+      : name;
+
+    var list = document.querySelector('.breadcrumb');
+    if (!list) { return; }
 
     // The group is treated as the root of the trail, so every ancestor crumb is
     // dropped -- including this page's own, since the menu and the group share
@@ -436,11 +445,6 @@
     var current = items[0];
     current.textContent = name;
     current.className = 'active';
-
-    var t = document.title;
-    document.title = t.indexOf('|') > -1
-      ? name + ' |' + t.split('|').slice(1).join('|')
-      : name;
   })();
   </script>
 

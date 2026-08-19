@@ -49,7 +49,9 @@
           AND   CHARINDEX('DTSTART:', s.iCalendarContent) > 0
     ),
     Base AS (
-        -- LEFT JOIN, not JOIN: groups with zero opportunities must still appear.
+        -- Counts are correlated subqueries rather than a join, so a group with
+        -- zero opportunities still produces a row. The public block's inner join
+        -- is what hides those, and they are the case this table exists to surface.
         SELECT  g.Id,
                 g.Name,
                 g.IsActive,
@@ -60,16 +62,8 @@
                 LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
                     g.Name, '''', ''), '&', 'and'), '.', ''), ',', ''),
                     '/', '-'), ':', ''), ' ', '-')) AS NameSlug,
-                CASE WHEN ISNULL(imgav.Value, '') = '' THEN 0 ELSE 1 END AS HasImage,
-                (SELECT COUNT(*) FROM Opps o WHERE o.GroupId = g.Id)                                 AS TotalOpps,
-                (SELECT COUNT(*) FROM Opps o WHERE o.GroupId = g.Id AND o.StartsAt >= GETDATE())     AS UpcomingOpps,
-                (SELECT MIN(o.StartsAt) FROM Opps o WHERE o.GroupId = g.Id AND o.StartsAt >= GETDATE()) AS NextStartsAt,
-                (SELECT MAX(o.StartsAt) FROM Opps o WHERE o.GroupId = g.Id)                          AS LastStartsAt
+                (SELECT COUNT(*) FROM Opps o WHERE o.GroupId = g.Id AND o.StartsAt >= GETDATE())     AS UpcomingOpps
         FROM    [Group] g
-        LEFT    JOIN Attribute ia        ON ia.[Key] = 'ProjectImage'
-                                        AND ia.EntityTypeQualifierColumn = 'GroupTypeId'
-                                        AND ia.EntityTypeQualifierValue = CAST(@groupTypeId AS VARCHAR(10))
-        LEFT    JOIN AttributeValue imgav ON imgav.AttributeId = ia.Id AND imgav.EntityId = g.Id
         WHERE   g.GroupTypeId = @groupTypeId
     )
     -- Wrapped so the visibility verdict can read the computed counts.
@@ -89,7 +83,9 @@
     ORDER   BY CASE WHEN b.UpcomingOpps > 0 THEN 0 ELSE 1 END, b.Name
 {% endsql %}
 
-<div class="panel panel-block">
+{%- comment -%} margin-t-xl is Rock's own spacing utility, already in the theme --
+     no CSS needed to separate this from the cards above. {%- endcomment -%}
+<div class="panel panel-block margin-t-xl">
   <div class="panel-heading">
     <h4 class="panel-title"><i class="fa fa-list-ul"></i> Sign-Up Groups — Admin Overview</h4>
   </div>
@@ -108,10 +104,6 @@
             <th>Group</th>
             <th>Public URL</th>
             <th class="text-right">Upcoming</th>
-            <th class="text-right">Total dates</th>
-            <th>Next date</th>
-            <th>Last date</th>
-            <th>Image</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -139,20 +131,6 @@
               <span class="text-muted">0</span>
               {%- endif -%}
             </td>
-            <td class="text-right">{{ row.TotalOpps }}</td>
-            <td>
-              {%- if row.NextStartsAt -%}{{ row.NextStartsAt | Date:'ddd, MMM d yyyy h:mm tt' }}
-              {%- else -%}<span class="text-muted">—</span>{%- endif -%}
-            </td>
-            <td>
-              {%- if row.LastStartsAt -%}
-                <span class="text-muted">{{ row.LastStartsAt | Date:'MMM d yyyy' }}</span>
-              {%- else -%}<span class="text-muted">—</span>{%- endif -%}
-            </td>
-            <td>
-              {%- if row.HasImage == 1 -%}<i class="fa fa-check text-success"></i>
-              {%- else -%}<i class="fa fa-minus text-muted"></i>{%- endif -%}
-            </td>
             <td>
               {%- if row.HiddenReason == '' -%}
               <span class="label label-success">On /signups</span>
@@ -171,7 +149,7 @@
         A group with no upcoming dates still has a working URL — it renders the
         "Nothing Open Right Now" panel. Slugs are derived from the group name, so
         <strong>renaming a group changes its URL</strong> and any link already sent
-        out will break. "Total dates" counts opportunities on active schedules only.
+        out will break. Counts include opportunities on active schedules only.
       </small>
     </p>
 

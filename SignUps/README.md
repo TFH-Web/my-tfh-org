@@ -222,9 +222,14 @@ duplication is the point; the URL is the feature.
   page title and breadcrumbs, which the layout's container positions. The handoff
   specifies a 1200px content column — enforce it on the layout so every element on
   the page agrees.
-- **The group view still shows two H1s** — the layout's page title plus the
-  block's own. Either turn off *Display Page Title* on 3716, or rewrite it the way
-  the detail page now does.
+- **The group view is fine as-is** — verified live: page 3716 renders
+  `<h1 class="pagetitle">` empty, and `theme.less` hides it via
+  `h1.pagetitle:empty`. Only the detail page (3717) shows a real page title, and
+  the script rewrites that one to the group name.
+- **Page 3716 renders no breadcrumb at all** (also verified live), so the group
+  view's script updates the document title and then exits. The title update is
+  deliberately *ahead* of the breadcrumb lookup for that reason — moving it after
+  would silently stop the title working on that page.
 - **The eyebrow duplicates the page title on the detail page** now that the title
   says the group name. Worth dropping if the repetition reads badly.
 - The register page (3718) is Rock's own block; its breadcrumb and title are
