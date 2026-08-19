@@ -66,6 +66,11 @@ The parent `../CLAUDE.md` applies here too — scratch queries go in
 `_temporary-files/`, and every file pasted into Rock carries a GitHub permalink
 comment at the top.
 
+> ⚠️ **This repo's default branch is `master`, not `main`.** The parent rule says
+> to point permalinks at `main`, which is right for `rock-frontend` and
+> `rock-code` but 404s here. Source comments in this repo must use
+> `.../blob/master/...` unless and until the default branch is renamed.
+
 ---
 
 ## Environment
