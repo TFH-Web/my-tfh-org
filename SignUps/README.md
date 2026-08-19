@@ -138,6 +138,45 @@ It also excludes the `Other` catch-all campus (Online/No-Show), which matters:
 `Other` shares Location 14 with Vacaville, so without the filter that location
 would resolve ambiguously.
 
+## Navigation and breadcrumbs
+
+The group and detail views rewrite Rock's breadcrumb trail **client-side**.
+
+`<Rock:PageBreadCrumbs>` is a server-side control fed by the page hierarchy plus
+any crumbs a block contributes through `GetBreadCrumbs()`. HTML Content blocks
+contribute none, so the trail otherwise shows each page's static name regardless
+of the slug. Rock's own Sign-Up Detail block does this properly — that is what its
+`SetPageTitle` setting is for — but it is C# block behaviour an HTML block cannot
+reach.
+
+Resulting trails:
+
+| Page | Trail |
+|---|---|
+| `/signups/{slug}` | *Sign Ups* / **Kids Min Orientation** |
+| `/signups/{slug}/{occurrence}` | *Sign Ups* / *Kids Min Orientation* / **Thursday, August 27** |
+
+On the group view Rock renders only **one** crumb, because the menu and the group
+are the same page. The script turns that crumb back into a link to the menu and
+appends the group — without it, removing the "All Sign-Ups" link would leave no
+route back to the menu.
+
+Group names reach the script through a `data-` attribute rather than being
+interpolated into it, so a name containing an apostrophe cannot break it. Both
+scripts bail out silently if `.breadcrumb` is absent.
+
+Two known limits: there is a brief flash of the static name before the rewrite,
+and the server-rendered `<title>` is unchanged, so link previews still show the
+page name. Fixing either properly needs a custom C# block.
+
+### Page settings worth changing
+
+- **Display Page Title** — the layouts render `<h1 class="pagetitle">` from the
+  page name, which sits above the block's own H1 and produces two H1s per page.
+  Turn it off on 3716 and 3717, or drop the block's H1.
+- The register page (3718) is Rock's own block; its breadcrumb is untouched. The
+  same rewrite could go in the HTML Content block already on that page.
+
 ## Design deviations from the handoff
 
 These are deliberate, driven by what the data and platform actually support.

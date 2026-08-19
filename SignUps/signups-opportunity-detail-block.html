@@ -187,12 +187,61 @@
 
 {%- if rows and rows != empty -%}
   {%- assign head = rows | First -%}
+  {%- comment -%}
+  securityenabled:'false' is required. Rock's entity commands apply entity
+  security by default, so for an anonymous visitor the Location lookup returns
+  nothing and the Register link loses its LocationId. These lookups only ever
+  receive Ids that came from the filtered query above -- never a URL value -- so
+  bypassing the check cannot expose anything the page has not already selected.
+{%- endcomment -%}
   {%- assign groupIdKey = '' -%}
-  {% group id:'{{ head.GroupId }}' %}{%- assign groupIdKey = group.IdKey -%}{% endgroup %}
+  {% group id:'{{ head.GroupId }}' securityenabled:'false' %}{%- assign groupIdKey = group.IdKey -%}{% endgroup %}
 
-<div class="signup">
+<div class="signup"
+     data-crumb-name="{{ head.GroupName | Escape }}"
+     data-crumb-url="{{ menuUrl }}/{{ slug }}"
+     data-crumb-date="{{ head.StartsAt | Date:'dddd, MMMM d' }}">
 
-  <a class="signup__back" href="{{ menuUrl }}/{{ slug }}">&larr; {{ head.GroupName }}</a>
+  {%- comment -%}
+    Rock's breadcrumbs come from <Rock:PageBreadCrumbs>, a server-side control fed
+    by the page hierarchy plus any crumbs a block contributes via GetBreadCrumbs().
+    HTML Content blocks contribute none, so the trail shows this page's static name
+    no matter what the slug says. Rewriting it client-side is the only way to
+    reflect the group without abandoning Rock's control.
+
+    The group name arrives via a data attribute rather than interpolated into the
+    script, so a name containing an apostrophe cannot break it.
+  {%- endcomment -%}
+  <script>
+  (function () {
+    var root = document.querySelector('.signup[data-crumb-name]');
+    var list = document.querySelector('.breadcrumb');
+    if (!root || !list) { return; }
+    var crumbs = list.querySelectorAll('li');
+    if (!crumbs.length) { return; }
+    var name = root.getAttribute('data-crumb-name');
+    var date = root.getAttribute('data-crumb-date');
+
+    // Insert the group between the parent crumb and this page, then let the
+    // active crumb carry the date: Sign Ups / Kids Min Orientation / Thursday...
+    var current = crumbs[crumbs.length - 1];
+    var li = document.createElement('li');
+    var link = document.createElement('a');
+    link.href = root.getAttribute('data-crumb-url');
+    link.textContent = name;
+    li.appendChild(link);
+    list.insertBefore(li, current);
+
+    current.textContent = date;
+    current.className = 'active';
+
+    var t = document.title;
+    document.title = t.indexOf('|') > -1
+      ? name + ' |' + t.split('|').slice(1).join('|')
+      : name;
+  })();
+  </script>
+
 
   {%- for row in rows -%}
     {%- assign hasCap    = false -%}
@@ -214,8 +263,8 @@
 
     {%- assign locIdKey = '' -%}
     {%- assign schIdKey = '' -%}
-    {% location id:'{{ row.LocationId }}' %}{%- assign locIdKey = location.IdKey -%}{% endlocation %}
-    {% schedule id:'{{ row.ScheduleId }}' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
+    {% location id:'{{ row.LocationId }}' securityenabled:'false' %}{%- assign locIdKey = location.IdKey -%}{% endlocation %}
+    {% schedule id:'{{ row.ScheduleId }}' securityenabled:'false' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
     {%- capture registerUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
 
   <article class="signup-detail{% if head.ImageGuid == '' %} signup-detail--nophoto{% endif %}">

@@ -372,11 +372,18 @@
   {%- assign head = oppRows | First -%}
 
   {%- comment -%}
+  securityenabled:'false' is required. Rock's entity commands apply entity
+  security by default, so for an anonymous visitor the Location lookup returns
+  nothing and the Register link loses its LocationId. These lookups only ever
+  receive Ids that came from the filtered query above -- never a URL value -- so
+  bypassing the check cannot expose anything the page has not already selected.
+{%- endcomment -%}
+  {%- comment -%}
     Group IdKey is constant for the whole page, so it is resolved once here
     rather than per card. Location and Schedule IdKeys still vary per card.
   {%- endcomment -%}
   {%- assign groupIdKey = '' -%}
-  {% group id:'{{ head.GroupId }}' %}{%- assign groupIdKey = group.IdKey -%}{% endgroup %}
+  {% group id:'{{ head.GroupId }}' securityenabled:'false' %}{%- assign groupIdKey = group.IdKey -%}{% endgroup %}
 
   {%- comment -%}
     Meta pill values. The distinct campus count is accumulated with a string
@@ -396,9 +403,53 @@
     {%- endif -%}
   {%- endfor -%}
 
-<div class="signup">
+<div class="signup"
+     data-crumb-name="{{ head.GroupName | Escape }}"
+     data-crumb-menu="{{ menuUrl }}">
 
-  <a class="signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
+  {%- comment -%}
+    Rock's breadcrumbs come from <Rock:PageBreadCrumbs>, a server-side control fed
+    by the page hierarchy plus any crumbs a block contributes via GetBreadCrumbs().
+    HTML Content blocks contribute none, so the trail shows this page's static name
+    no matter what the slug says. Rewriting it client-side is the only way to
+    reflect the group without abandoning Rock's control.
+
+    The group name arrives via a data attribute rather than interpolated into the
+    script, so a name containing an apostrophe cannot break it.
+  {%- endcomment -%}
+  <script>
+  (function () {
+    var root = document.querySelector('.signup[data-crumb-name]');
+    var list = document.querySelector('.breadcrumb');
+    if (!root || !list) { return; }
+    var crumbs = list.querySelectorAll('li');
+    if (!crumbs.length) { return; }
+    var name = root.getAttribute('data-crumb-name');
+
+    // The menu and the group share one page, so Rock renders a single crumb.
+    // Turn it back into a link to the menu, then append the group as the active
+    // crumb -- otherwise removing the "All Sign-Ups" link leaves no way back.
+    var current = crumbs[crumbs.length - 1];
+    var label = (current.textContent || '').trim();
+    var link = document.createElement('a');
+    link.href = root.getAttribute('data-crumb-menu');
+    link.textContent = label;
+    current.textContent = '';
+    current.appendChild(link);
+    current.classList.remove('active');
+
+    var li = document.createElement('li');
+    li.className = 'active';
+    li.textContent = name;
+    list.appendChild(li);
+
+    var t = document.title;
+    document.title = t.indexOf('|') > -1
+      ? name + ' |' + t.split('|').slice(1).join('|')
+      : name;
+  })();
+  </script>
+
 
   {%- comment -%}
     The --nophoto modifier collapses the two-column header to one. It is emitted
@@ -456,8 +507,8 @@
       {%- comment -%} ----- IdKeys for Rock's Sign-Up Register block ----- {%- endcomment -%}
       {%- assign locIdKey = '' -%}
       {%- assign schIdKey = '' -%}
-      {% location id:'{{ row.LocationId }}' %}{%- assign locIdKey = location.IdKey -%}{% endlocation %}
-      {% schedule id:'{{ row.ScheduleId }}' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
+      {% location id:'{{ row.LocationId }}' securityenabled:'false' %}{%- assign locIdKey = location.IdKey -%}{% endlocation %}
+      {% schedule id:'{{ row.ScheduleId }}' securityenabled:'false' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
 
       {%- capture detailUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}{%- endcapture -%}
       {%- capture registerUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
