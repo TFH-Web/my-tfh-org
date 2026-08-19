@@ -249,6 +249,13 @@
       list.insertBefore(li, current);
     }
 
+    // The layout renders <h1 class="pagetitle"> from the page's static name
+    // ("Sign-up Detail"). Point it at the group instead, so the page reads
+    // Kids Min Orientation > Thursday, August 27 rather than leading with a
+    // label that tells the visitor nothing.
+    var heading = document.querySelector('h1.pagetitle');
+    if (heading) { heading.textContent = name; }
+
     var t = document.title;
     document.title = t.indexOf('|') > -1
       ? name + ' |' + t.split('|').slice(1).join('|')

@@ -1123,12 +1123,12 @@ table.table-clean>thead>tr>th{
 @signup-font-disp:  "neue-haas-grotesk-display", "Helvetica Neue", Helvetica, Arial, sans-serif;
 @signup-ease:       cubic-bezier(.4, 0, .2, 1);
 
-// No outer padding or margin -- Rock already pads the block, and a second
-// gutter would inset this content from everything else on the page.
+// No outer padding, margin or max-width. Rock already pads the block, and
+// constraining the width here made the content narrower than the page title and
+// breadcrumbs above it, which the layout's own container positions. Width belongs
+// at the page-layout level so every element on the page agrees -- the handoff's
+// 1200px content column is enforced there, not here.
 .signup {
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
     font-family: @signup-font;
     color: @signup-ink;
 }

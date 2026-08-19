@@ -174,13 +174,25 @@ Two known limits: there is a brief flash of the static name before the rewrite,
 and the server-rendered `<title>` is unchanged, so link previews still show the
 page name. Fixing either properly needs a custom C# block.
 
-### Page settings worth changing
+The detail page's `<h1 class="pagetitle">` is rewritten too — from the static
+"Sign-up Detail" to the group name — so the page reads **Kids Min Orientation** →
+*Thursday, August 27* instead of leading with a label that tells a visitor nothing.
 
-- **Display Page Title** — the layouts render `<h1 class="pagetitle">` from the
-  page name, which sits above the block's own H1 and produces two H1s per page.
-  Turn it off on 3716 and 3717, or drop the block's H1.
-- The register page (3718) is Rock's own block; its breadcrumb is untouched. The
-  same rewrite could go in the HTML Content block already on that page.
+### Layout and page settings
+
+- **Content width belongs to the layout, not the block.** `.signup` sets no
+  `max-width`: constraining it there made the content visibly narrower than the
+  page title and breadcrumbs, which the layout's container positions. The handoff
+  specifies a 1200px content column — enforce it on the layout so every element on
+  the page agrees.
+- **The group view still shows two H1s** — the layout's page title plus the
+  block's own. Either turn off *Display Page Title* on 3716, or rewrite it the way
+  the detail page now does.
+- **The eyebrow duplicates the page title on the detail page** now that the title
+  says the group name. Worth dropping if the repetition reads badly.
+- The register page (3718) is Rock's own block; its breadcrumb and title are
+  untouched. The same rewrite could go in the HTML Content block already on that
+  page.
 
 ## Design deviations from the handoff
 
