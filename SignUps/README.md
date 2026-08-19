@@ -7,6 +7,7 @@ Public, marketing-linkable views of Rock's Sign-Up feature on **my.tfh.org**
 |---|---|
 | `signups-menu-and-group-block.html` | HTML Content block on **page 3716** |
 | `signups-opportunity-detail-block.html` | HTML Content block on **page 3717** |
+| `signups-admin-overview-block.html` | Second HTML Content block on **page 3716**, admin-only |
 | *(styles)* | Merged into `theme/Styles/_css-overrides.less` as **section 22** |
 
 ## URL structure
@@ -62,6 +63,23 @@ query then fetches by integer group Id.
 taken by `signup/{OpportunityId}` on page 3377 (Interest List, a Connection
 Opportunity feature). Both are two-segment parameterised routes on the same
 site and cannot coexist — one would silently swallow the other.
+
+## Admin overview block
+
+`signups-admin-overview-block.html` is a second block on page 3716 that lists
+**every** sign-up group — including ones with no opportunities — with the slug its
+public URL actually uses, the upcoming and total date counts, and why a group is or
+is not appearing on `/signups`.
+
+> ⚠️ **Set the block's View permission to admins only.** Nothing in the Lava checks
+> permissions, and the block sits on a public page. Without that it exposes
+> inactive and non-public groups to anonymous visitors.
+
+Block settings: **Enabled Lava Commands = Sql**, **Cache Duration = 0**.
+
+The slug it displays is derived by the identical expression the public block uses —
+raw SQL chain plus the same `RegExReplace:'[^a-z0-9-]',''`. If you change one,
+change all of them, or the table will advertise URLs that do not resolve.
 
 ## Setup steps in Rock
 
