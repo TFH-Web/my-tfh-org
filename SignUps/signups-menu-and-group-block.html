@@ -305,6 +305,7 @@
             m.Name                              AS GroupName,
             m.Description                       AS Description,
             m.ImageGuid                         AS ImageGuid,
+            m.Slug                              AS Slug,
             l.Id                                AS LocationId,
             ISNULL(l.Name, '')                  AS LocationName,
             ISNULL(lc.CampusName, '')           AS CampusName,
