@@ -1,0 +1,130 @@
+// Counseling Dashboards formatting
+
+.counseling-dashboard {
+    .btn-primary, a.btn-primary {
+        color: #fff;
+        background-color: #3084C6;
+        border-color: #3084C6;
+    }
+    .btn-primary:hover, a.btn-primary:hover {
+        color: #3084C6;
+        background-color: #fff;
+    }
+    .btn-secondary, a.btn-secondary {
+        color: #3084C6;
+        background-color: #f4faff;
+        border-color: #f4faff;
+    }
+    .btn-secondary:hover, a.btn-secondary:hover {
+        color: #3084C6;
+        background-color: #ddecf8;
+    }
+
+
+    .card.session {
+        margin-top: 25px;
+        border-radius: 15px;
+        max-width: 90%;
+        box-shadow: 3px 3px 10px rgba(0,0,0,.1);
+    }
+    .client-profile {
+        display: flex;
+        align-items: stretch;
+    }
+    .client-profile .client-img {
+        width: 100px;
+        background-size: cover;
+        background-position: center center;
+    }
+    .client-profile .client-details {
+        padding: 15px;
+    }
+    .client-session-row {
+        display: flex;
+        align-items: center;
+    }
+    .client-session-icon {
+        color: rgba(0,0,0,0.2) !important;
+        font-size: 28px;
+        text-align: center;
+        opacity: .4;
+        width: 100px;
+    }
+    .client-session-icon, .client-session-details {
+        padding: 10px 15px;
+    }
+    .sidebar-img {
+        min-height: 1000px;
+        height: 100%;
+        width: 1000px;
+        max-width: 100%;
+        max-height: 80svh;
+        border-radius: 25px;
+        background-size: cover;
+        background-position: bottom center;
+    }
+
+    /* Note Workflow HTML entry block overrides */
+    .panel-heading.note-toolbar {
+        /* Reduce toolbar icon size */
+        .btn {
+            font-size: 12px;
+        }
+        /* Hide HTML code icon */
+        .note-btn-group.btn-group.note-source_group { display: none; }
+
+        /* Hide ? icons */
+        .note-btn-group.btn-group.note-plugins1 { display: none; }
+
+        /* Hide attachement icons */
+        .note-btn-group.btn-group.note-plugins2 { display: none; }
+    }
+    
+    /* set background color to white */
+    div.note-editing-area {
+        background-color: #fff;
+    }
+    /* minimum height */
+    div.note-editable {
+        min-height: 200px;
+    }
+
+    @media only screen and (max-width: 991px) {
+        .card.session {
+            max-width: 100%;
+        }
+        .sidebar-img {
+            min-height: 500px;
+            max-height: 500px;
+        }
+    }
+
+
+    @media only screen and (max-width: 768px) {
+        /* Note Workflow HTML entry block overrides */
+        .panel-heading.note-toolbar {
+            /* Reduce toolbar icon size */
+            .btn {
+                font-size: 14px;
+            }
+
+            /* Hide clear formatting icon */
+            .note-btn-group.btn-group.note-style_group3 { display: none; }
+
+            /* Hide paragraph formatting icon */
+            .note-btn-group.btn-group.note-para { display: none; }
+
+            /* Hide Paste icons */
+            .note-btn-group.btn-group.note-plugins3 { display: none; }
+
+            /* Hide undo - redue icons */
+            .note-btn-group.btn-group.note-style_group2 { display: none; }
+        }
+    }
+
+
+    @media only screen and (max-width: 580px) {}
+
+
+    @media only screen and (max-width: 480px) {}
+}

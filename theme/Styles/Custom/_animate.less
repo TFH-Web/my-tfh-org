@@ -1,0 +1,311 @@
+/* TABLE OF CONTENTS
+1. Zoom Out Fade Img
+2. Fade In
+3. Fly In Top
+4. Fly In Right
+5. Fly In Bottom
+6. Fly In Left
+7. Fade In Fly In Right
+8. Fade In Fly In Bottom
+*/
+
+
+
+/* -------------------------
+ZOOM OUT FADE IMG
+Add to the parent of an img to have 
+it zoom out and fade in on load.
+---------------------------*/
+@keyframes zoomoutfadeinimg {
+    0% {
+        transform: scale(1.05,1.05);
+        opacity:0;
+    }
+    100% {
+        transform: scale(1,1);
+        opacity:1;
+    }
+}
+
+.animate-zoomfade-img img {
+    animation: zoomoutfadeinimg 2s forwards;
+}
+
+/* -------------------------
+FADE IN
+Fades an element in over two
+seconds.
+---------------------------*/
+@keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+@-moz-keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+@-webkit-keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+@-o-keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+@-ms-keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+.animate-fade-in {
+    animation: fadeIn 2s;
+        -webkit-animation: fadeIn 2s;
+        -moz-animation: fadeIn 2s;
+        -o-animation: fadeIn 2s;
+        -ms-animation: fadeIn 2s;
+}
+
+/* -------------------------
+FLY IN TOP
+Fades an element in over two
+seconds.
+---------------------------*/
+@keyframes flyInTop {
+    0% {transform: translateY(-10px);}
+}
+
+@-moz-keyframes flyInTop {
+    0% {transform: translateY(-10px);}
+}
+
+@-webkit-keyframes flyInTop {
+    0% {transform: translateY(-10px);}
+}
+
+@-o-keyframes flyInTop {
+    0% {transform: translateY(-10px);}
+}
+
+@-ms-keyframes flyInTop {
+    0% {transform: translateY(-10px);}
+}
+
+.animate-fly-in-top {
+    animation: flyInTop 2s;
+        -webkit-animation: flyInTop 2s;
+        -moz-animation: flyInTop 2s;
+        -o-animation: flyInTop 2s;
+        -ms-animation: flyInTop 2s;
+}
+
+/* -------------------------
+FLY IN RIGHT
+Fades an element in over two
+seconds.
+---------------------------*/
+@keyframes flyInRight {
+    0% {transform: translateX(-10px);}
+}
+
+@-moz-keyframes flyInRight {
+    0% {transform: translateX(-10px);}
+}
+
+@-webkit-keyframes flyInRight {
+    0% {transform: translateX(-10px);}
+}
+
+@-o-keyframes flyInRight {
+    0% {transform: translateX(-10px);}
+}
+
+@-ms-keyframes flyInRight {
+    0% {transform: translateX(-10px);}
+}
+
+.animate-fly-in-right {
+    animation: flyInRight 2s;
+        -webkit-animation: flyInRight 2s;
+        -moz-animation: flyInRight 2s;
+        -o-animation: flyInRight 2s;
+        -ms-animation: flyInRight 2s;
+}
+
+/* -------------------------
+FLY IN BOTTOM
+Fades an element in over two
+seconds.
+---------------------------*/
+@keyframes flyInBottom {
+    0% {transform: translateY(10px);}
+}
+
+@-moz-keyframes flyInBottom {
+    0% {transform: translateY(10px);}
+}
+
+@-webkit-keyframes flyInBottom {
+    0% {transform: translateY(10px);}
+}
+
+@-o-keyframes flyInBottom {
+    0% {transform: translateY(10px);}
+}
+
+@-ms-keyframes flyInBottom {
+    0% {transform: translateY(10px);}
+}
+
+.animate-fly-in-bottom {
+    animation: flyInBottom 2s;
+        -webkit-animation: flyInBottom 2s;
+        -moz-animation: flyInBottom 2s;
+        -o-animation: flyInBottom 2s;
+        -ms-animation: flyInBottom 2s;
+}
+
+/* -------------------------
+FLY IN LEFT
+Fades an element in over two
+seconds.
+---------------------------*/
+@keyframes flyInLeft {
+    0% {transform: translateX(10px);}
+}
+
+@-moz-keyframes flyInLeft {
+    0% {transform: translateX(10px);}
+}
+
+@-webkit-keyframes flyInLeft {
+    0% {transform: translateX(10px);}
+}
+
+@-o-keyframes flyInLeft {
+    0% {transform: translateX(10px);}
+}
+
+@-ms-keyframes flyInLeft {
+    0% {transform: translateX(10px);}
+}
+
+.animate-fly-in-right {
+    animation: flyInLeft 2s;
+        -webkit-animation: flyInLeft 2s;
+        -moz-animation: flyInLeft 2s;
+        -o-animation: flyInLeft 2s;
+        -ms-animation: flyInLeft 2s;
+}
+
+
+/* -------------------------
+FADE IN FLY IN RIGHT
+Fades an element in over two
+seconds.
+---------------------------*/
+@keyframes fadeInFlyInRight {
+    0% {
+        opacity:0;
+        transform: translateX(-10px);
+    }
+    100% {
+        opacity:1;
+    }
+
+}
+
+@-moz-keyframes fadeInFlyInRight {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+@-webkit-keyframes fadeInFlyInRight {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+@-o-keyframes fadeInFlyInRight {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+@-ms-keyframes fadeInFlyInRight {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+.animate-fade-in-fly-in-right {
+    animation: fadeInFlyInRight 2s;
+        -webkit-animation: fadeInFlyInRight 2s;
+        -moz-animation: fadeInFlyInRight 2s;
+        -o-animation: fadeInFlyInRight 2s;
+        -ms-animation: fadeInFlyInRight 2s;
+}
+
+/* -------------------------
+FADE IN FLY IN BOTTOM
+Fades an element in over two
+seconds.
+---------------------------*/
+@keyframes fadeInFlyInBottom {
+    0% {
+        opacity:0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity:1;
+    }
+
+}
+
+@-moz-keyframes fadeInFlyInBottom {
+    0% {
+        opacity:0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+@-webkit-keyframes fadeInFlyInBottom {
+    0% {
+        opacity:0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+@-o-keyframes fadeInFlyInBottom {
+    0% {
+        opacity:0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+@-ms-keyframes fadeInFlyInBottom {
+    0% {
+        opacity:0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+.animate-fade-in-fly-in-bottom {
+    animation: fadeInFlyInBottom 2s;
+        -webkit-animation: fadeInFlyInBottom 2s;
+        -moz-animation: fadeInFlyInBottom 2s;
+        -o-animation: fadeInFlyInBottom 2s;
+        -ms-animation: fadeInFlyInBottom 2s;
+}

@@ -1,0 +1,5 @@
+{[ parallax image:'https://source.unsplash.com/phIFdC6lA4E/1920x1080' contentpadding:'20px' ]}
+    <h1>Hello World</h1>
+{[ endparallax ]}
+
+{[ round number:'2.6' ]}

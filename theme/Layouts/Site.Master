@@ -1,0 +1,242 @@
+<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<%@ Import Namespace="System.Web.Optimization" %>
+<!DOCTYPE html>
+
+<script runat="server">
+
+    // keep code below to call base class init method
+
+    /// <summary>
+    /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+    /// </summary>
+    /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+    protected override void OnInit( EventArgs e )
+    {
+        base.OnInit( e );
+    }
+
+</script>
+
+<html >
+<head runat="server">
+
+    <meta charset="utf-8">
+    <title></title>
+
+    <script src="<%# System.Web.Optimization.Scripts.Url("~/Scripts/Bundles/RockJQueryLatest" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+	<!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>"/>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+</head>
+<body runat="server" id="body" class="h-100">
+
+    <form id="form1" runat="server" class="h-100 d-flex flex-wrap justify-content-center">
+
+        <Rock:Lava ID="Brand" runat="server">
+            {% assign showPageLoader = CurrentPage | Attribute:'ShowPageLoader' %}
+            {% if showPageLoader == 'Yes' %}
+            <!-- If enabled on the page, show a page loading icon -->
+                <style>
+                    .loader-wrapper {
+                    width: 100%;
+                    height: 100svh;
+                    position: absolute;  /* fixed instead of absolute so it stays on screen */
+                    top: 0;
+                    left: 0;
+                    z-index: 100000;
+                    background-color: #fff;
+                    display: none; /* start hidden */
+                    justify-content: center;
+                    align-items: center;
+                    }
+                    .loader-wrapper.show-loader {
+                    display: flex;  /* only appears if JS adds .show */
+                    }
+                    .loader-img {
+                    max-width: 100px;
+                    }
+                </style>
+
+                <div class="loader-wrapper">
+                    <img class="loader-img" src="/content/ExternalSite/tfh-loading-css.svg" alt="Loading">
+                </div>
+            {% endif %}
+
+            {% assign showLogo = CurrentPage | Attribute:'ShowLogo' %}
+            {% if showLogo == 'Yes' %}
+            <div class="w-sm-100 container container-lg">
+                <div class="w-100 py-3 d-flex justify-content-between">
+                    {{ 'Global' | Attribute:'TFHLogo' }}
+                    <ul class="nav navbar-nav d-flex m-1">
+                        {% if CurrentPerson != null %}
+                            <li><a href="/Auth/Logout">Logout</a></li>
+                        {% else %}
+                            {% assign currentUrl = Global | Page:'Url' %}
+                            <li><a href="/login?returnurl={{ currentUrl | UrlEncode }}">Login</a></li>
+                        {% endif %}
+                        <li><a href="/help" class="pr-0 pl-1"><i class="fal fa-question-circle"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </Rock:Lava>
+        
+        <div class="page-wrapper w-100">
+            <!-- Page Header -->
+            <header class="w-100 mb-3 mb-md-0">
+                <Rock:Lava ID="noBorder" runat="server">
+                    {% assign hideNav = CurrentPage | Attribute:'HideNav' %}
+                    {% if hideNav == 'Yes' %}
+                        {% assign removeBorder = ' no-border' %}
+                    {% endif %}
+                    <div class="container container-lg{{ removeBorder }}">
+                </Rock:Lava>
+                    <div class="d-flex flex-wrap row">
+                        <div class="d-flex flex-wrap col-xs-12 justify-content-sm-center order-1 align-items-center w-100">
+                            <Rock:Lava ID="PreHeader" runat="server">
+                                {% assign hideHeader = CurrentPage | Attribute:'HideHeader' %}
+                                {% if hideHeader == 'Yes' %}
+                                    <div class="d-none">
+                                {% endif %}
+                            </Rock:Lava>
+                            <div class="d-inline-block">
+                                <Rock:Zone Name="Header" runat="server" />
+                            </div>
+                            <nav class="d-inline-flex align-items-center d-sm-none navbar p-0 m-0 ml-auto">
+                                <div class="px-0">
+                                    <div class="navbar-header">
+                                        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+                                            <svg  class="js-mobile-open" xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 36 24">
+                                                <path id="menu" d="M0,28V24H36v4ZM0,18V14H36v4ZM0,4H36V8H0Z" transform="translate(0 -4)"/>
+                                            </svg>
+                                            <svg class="js-mobile-close d-none" xmlns="http://www.w3.org/2000/svg" width="35" height="33.09" viewBox="0 0 35 33.09">
+                                                <path id="x" d="M40.954,8.139,38.643,5.954,23.454,20.314,8.267,5.955,5.955,8.141,21.143,22.5,5.954,36.859l2.311,2.185,15.189-14.36L38.641,39.043l2.311-2.185L25.765,22.5Z" transform="translate(-5.954 -5.954)"/>
+                                            </svg>
+
+                                        </button>
+                                    </div>
+                                </div>
+                            </nav>
+
+                            <Rock:Lava ID="PostHeader" runat="server">
+                                {% assign hideHeader = CurrentPage | Attribute:'HideHeader' %}
+                                {% if hideHeader == 'Yes' %}
+                                    </div>
+                                {% endif %}
+                            </Rock:Lava>
+                        </div>
+
+                        <Rock:Lava ID="TopNavOpen" runat="server">
+                            {% assign hideNav = CurrentPage | Attribute:'HideNav' %}
+                            {% if hideNav == 'Yes' %}
+                                <div class="d-none">
+                            {% endif %}
+                        </Rock:Lava>
+
+                        <div class="js-subnav col-sm-6 col-xs-12 order-3 order-sm-2">
+                            <Rock:Zone Name="SubNav" runat="server" />
+                        </div>
+
+                        <div class="js-login col-sm-6 order-2 order-sm-3">
+                            <Rock:Zone Name="Login" runat="server" />
+                        </div>
+
+                        <Rock:Lava ID="TopNavClose" runat="server">
+                            {% assign hideNav = CurrentPage | Attribute:'HideNav' %}
+                            {% if hideNav == 'Yes' %}
+                                </div>
+                            {% endif %}
+                        </Rock:Lava>
+                    </div>
+                </div>
+            </header>
+
+
+        <Rock:Lava ID="PreNav" runat="server">
+            {% assign hideNav = CurrentPage | Attribute:'HideNav' %}
+            {% if hideNav == 'Yes' %}
+                <div class="d-none">
+            {% endif %}
+        </Rock:Lava>
+        
+            <nav class="navbar navbar-static-top mt-4 w-100 js-static-top">
+                <div class="container container-lg px-0">
+                    <div id="menuSlider" class="navbar-collapse collapse mobile-hide js-menuslider">
+                        <!-- Main Navigation -->
+                        <Rock:Zone Name="Navigation" runat="server" />
+                    </div>
+                </div>
+            </nav>
+            
+        <Rock:Lava ID="PostNav" runat="server">
+            {% assign hideNav = CurrentPage | Attribute:'HideNav' %}
+            {% if hideNav == 'Yes' %}
+                </div>
+            {% endif %}
+
+            {% assign showPageLoader = CurrentPage | Attribute:'ShowPageLoader' %}
+            {% if showPageLoader == 'Yes' %}
+                <script>
+                $(function(){
+                    var $loader = $(".loader-wrapper");
+                    var delay = 400; // ms to wait before showing loader
+                    var showTimer = setTimeout(function(){
+                    $loader.addClass("show-loader");
+                    }, delay);
+
+                    $(window).on("load", function(){
+                    clearTimeout(showTimer);
+                    $loader.fadeOut("slow");
+                    });
+                });
+                </script>
+            {% endif %}
+        </Rock:Lava>
+
+
+        <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+
+        <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+
+        </div>
+
+	    <footer class="bg-black text-white text-center py-4 w-100 mt-auto">
+            <div class="container">
+
+                <div class="row">
+			        <div class="col-md-12">
+				        <Rock:Zone Name="Footer" runat="server" />
+			        </div>
+		        </div>
+
+            </div>
+            
+	    </footer>
+
+        <%-- controls for scriptmanager and update panel --%>
+        <asp:ScriptManager ID="sManager" runat="server"/>
+        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+		        <ProgressTemplate>
+		            <div class="updateprogress-status">
+                        <div class="spinner">
+                          <div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div>
+                        </div>
+                    </div>
+                    <div class="updateprogress-bg modal-backdrop"></div>
+		        </ProgressTemplate>
+        </asp:UpdateProgress>
+
+    </form>
+
+</body>
+
+</html>

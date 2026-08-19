@@ -1,0 +1,5 @@
+<header>
+    <div class="d-flex justify-content-center">
+        <img class="img-responsive my-4 mx-3" src="/Content/ExternalSite/Give/unstoppable-logo.svg" alt="NOW!" style="width: 100%; max-width: 450px;"/>
+    </div>
+</header>

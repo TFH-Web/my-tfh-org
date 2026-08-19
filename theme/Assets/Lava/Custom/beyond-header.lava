@@ -1,0 +1,5 @@
+<header>
+    <div class="d-flex justify-content-center">
+        <img class="img-responsive" src="https://s3.us-west-1.amazonaws.com/s3.tfh.org/rockrms/images/beyond/beyond-logo.png" alt="Beyond" />
+    </div>
+</header>

@@ -1,0 +1,98 @@
+{% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
+
+{% if eventItemOccurrenceCount == 0 %}
+<div class="panel panel-default margin-t-md">
+  <div class="margin-all-md"> There are no events in this time frame.</div>
+</div>
+{% endif %}
+
+{% for eventItemOccurrence in EventItemOccurrences %}
+<div class="card card-dark mb-4">
+    <div class="card-body">
+        <div class="icon pull-left mr-3 bg-secondary">
+            <span class="date">{{ eventItemOccurrence.Date | Date: 'M/d' }}</span>
+        </div>
+        <div>
+            <h6 class="card-title mt-0 mb-1">{{ eventItemOccurrence.Date | Date: 'dddd, MMMM d' }} at {{ eventItemOccurrence.Time }}</h6>
+            <p class="card-text small">{{ eventItemOccurrence.Location }}</p>
+        </div>
+        {% if eventItemOccurrence.DetailPage != null %}
+            <a class="btn btn-primary pull-right" href="{{ eventItemOccurrence.DetailPage }}">
+                View Details <i class="fa fa-chevron-right font-weight-light"></i>
+            </a>
+            {% else %}
+            <a class="btn btn-primary pull-right" href="{{ DetailsPage }}?EventOccurrenceId={{ eventItemOccurrence.EventItemOccurrence.Id }}">
+                View Details <i class="fa fa-chevron-right font-weight-light"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% comment %}
+<div class="panel panel-default margin-t-md">
+  <div class="panel-heading clearfix">
+    <h2 class="panel-title pull-left">
+      {{ eventItemOccurrence.Name }}
+    </h2>
+    <div class="pull-right">
+      {% if eventItemOccurrence.DetailPage != null %}
+      <a href="{{ eventItemOccurrence.DetailPage }}">
+        View Details <i class="fa fa-chevron-right"></i>
+      </a>
+      {% else %}
+      <a href="{{ DetailsPage }}?EventOccurrenceId={{ eventItemOccurrence.EventItemOccurrence.Id }}">
+          View Details <i class="fa fa-chevron-right"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="col-md-2">
+      <div class="row">
+        <strong>Date</strong>
+      </div>
+      <div class="row">
+        {% if eventItemOccurrence.EventItemOccurrence.Schedule.EffectiveStartDate != eventItemOccurrence.EventItemOccurrence.Schedule.EffectiveEndDate %}
+          {{ eventItemOccurrence.EventItemOccurrence.Schedule.EffectiveStartDate  | Date: 'MMM d' }} -  {{ eventItemOccurrence.EventItemOccurrence.Schedule.EffectiveEndDate  | Date: 'MMM d' }}
+        {% else %}
+          {{ eventItemOccurrence.Date | Date: 'MMM d' }}
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="row">
+        <strong>Time</strong>
+      </div>
+      <div class="row">
+        {{ eventItemOccurrence.Time }}
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="row">
+        <strong>Location</strong>
+      </div>
+      <div class="row">
+        {{ eventItemOccurrence.Location }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="row">
+        <strong>Summary</strong>
+      </div>
+      <div class="row">
+        {{ eventItemOccurrence.Summary }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endcomment %}
+
+{% endfor %}
+
+<script type="text/javascript">
+
+$( document ).ready(function() {
+$('.js-group-item').tooltip();
+});
+
+</script>

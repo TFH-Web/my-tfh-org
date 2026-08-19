@@ -1,0 +1,865 @@
+// Load Master Styles
+// -------------------------
+@import "../../../Styles/Bootstrap/variables.less";
+@import "../../../Styles/_rock-core.less";
+@import "../../../Styles/_store.less";
+@import "../../../Styles/_rock-variables.less";
+@import "_variables.less";
+@import "_variable-overrides.less";
+@import "_print.less";
+
+
+@import "/Global/_navigation.less";
+@import "/Global/_login.less";
+@import "/Global/_sidebar.less";
+@import "/Global/_footer.less";
+
+@import "/Custom/_video.less";
+@import "/Custom/_animate.less";
+@import "/Custom/_counseling.less";
+@import "/Custom/_login-2023.less";
+
+/*
+    Rock Theme Styles
+
+    1. HTML Overrides
+    2. Bootstrap Overrides
+    3. Theme Styling
+    4. Swiper Overrides
+    5. Grid, Table & Panel Overrides
+
+*/
+
+// 1. HTML Overrides
+// -------------------------
+html {
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+}
+
+hr {
+    border-color: #E6E6E6;
+}
+
+/* TP - Attempt to fix footer issue on some layouts
+main.container {
+  min-height: 100%;
+}
+*/
+
+.container {
+    &.inherit {
+        max-width: 1170px !important;
+    }
+}
+
+.max-container {
+    max-width: 1920px !important;
+}
+
+/* Override Bootstrap container -- v3 does not use max widths */
+.container {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width:750px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width:970px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width:1170px;
+    }
+}
+
+@media screen and (min-width:1480px){
+    .container {
+        max-width: 1440px;
+    }
+}
+
+@media screen and (min-width:1600px){
+    .container-lg {
+      max-width: 1570px;
+    }
+}
+
+h1,.h1,h2,.h2,h3,.h3 {
+    margin-top: 11px;
+}
+
+.tall {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+p.sub-heading {
+    margin-top: -5px;
+    font-weight: 600;
+}
+
+p.sub-section-heading {
+    font-size: 14px;
+    margin-bottom: 0;
+    color: #666666;
+}
+
+.hr-heading {
+    display: inline-block;
+}
+ 
+h1.hr-heading:after,
+h2.hr-heading:after,
+h3.hr-heading:after,
+h4.hr-heading:after,
+h5.hr-heading:after,
+h6.hr-heading:after {
+    content: '';
+    position: absolute;
+    width: 90%;
+    height: 3px;
+    background: @theme-1;
+    right: 15px;
+    z-index: -1;
+}
+
+h1.hr-heading:after{ margin-top:25px; }
+h2.hr-heading:after{ margin-top:10px; }
+h3.hr-heading:after{ margin-top:8px; }
+h4.hr-heading:after{ margin-top:8px; }
+h5.hr-heading:after{ margin-top:6px; }
+h6.hr-heading:after{ margin-top:6px; }
+
+
+@media screen and (min-width:1600px){
+  .container-lg {
+    width: 1570px !important;
+  }
+}
+
+@media screen and (min-width:1480px){
+    .container {
+        width: 1440px;
+    }
+}
+
+
+// Temporary Fix for Safari 13 Select Rendering Bug
+select {
+  text-rendering: auto;
+  -webkit-font-smoothing: none;
+}
+// End Temporary Fix
+
+
+.news-body a i {
+    font-size: 14px;
+}
+
+
+
+// 2. Bootstrap Overrides
+// -------------------------
+
+.navbar {
+  position: static; // default is relative which causes the dropdowns to go under the other navbars dispite having a higher z-index - JME 9/9/2013
+  // using fontawesome nav toggle button instead of the BS default
+  .navbar-toggle {
+    padding: 6px 10px;
+  }
+}
+
+a {
+    i {
+        transition: 100ms linear all;
+        /* right: 0;
+        position: relative; removed 9-2023 tp*/
+    }
+    &:hover {
+        text-decoration: none;
+        i {
+            transition: 100ms linear all;
+            right: -3px;
+        }
+    }
+    &.card:hover i,
+    &.menu-item:hover i {
+        /* right: 0 !important; trying to remove 9-2023 tp */
+    }
+}
+
+a:hover i.fs {
+  text-decoration: none;
+}
+
+.no-border {
+    border: 0 !important;
+}
+
+
+// 3. Theme Styling
+// -------------------------
+.rock-modal .modal-footer .btn-link {
+    margin-top: 10px;
+}
+
+.bg-secondary {
+  background-color: @gray-dark;
+}
+/* avoid global btn styles */
+.html-editor-container .btn-group .btn {
+    padding: 10px !important;
+    border-radius: 0;
+    border-color: #ccc;
+}
+
+.btn-login {
+  color: #000;
+  &:hover {
+    color: @theme-1;
+  }
+}
+
+.btn-action {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+}
+
+.btn-block {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+h1.pagetitle:empty { // hides the page title h1 tag if the page has the title hidden
+  display: none;
+}
+
+.page-icon {
+  display: none;
+}
+
+header {
+  .page-menu,
+  .login-status {
+    float: right;
+  }
+
+  .navbar {
+    background-color: inherit;
+    border: 0;
+  }
+}
+
+.opacity-80 {
+    opacity: 80%;
+}
+
+// homepage items
+#announcement-rotator {
+  margin: 0 -@grid-gutter-width/2 @spacing-lg-px;
+
+  .item {
+    img {
+      width: 100%;
+    }
+  }
+}
+
+.announcement-list {
+  .announcement {
+    max-width: 390px;
+    margin: 0 auto @spacing-lg-px;
+  }
+
+  .announcement-title {
+    margin: @spacing-sm-px 0;
+  }
+
+  img {
+    width: 100%;
+  }
+}
+
+.announcement-detail {
+  img {
+    width: 100%;
+  }
+}
+
+.nav-sub {
+  li {
+    border: 1px solid @gray-lighter;
+    border-radius: @border-radius-base;
+  }
+}
+
+footer {
+
+  .footer-message {
+    float: left;
+  }
+
+  .footer-address {
+    float: right;
+  }
+}
+
+#splash.error {
+  background-color: @gray-lighter;
+
+  #content {
+    padding: 20px;
+    margin-top: 20px;
+    background-color: @body-bg;
+    border-radius: @border-radius-base;
+  }
+}
+
+.not-found h2 {
+  font-size: 200px;
+  font-weight: @font-weight-bold;
+  line-height: 210px;
+  letter-spacing: -5px;
+
+  i {
+    position: relative;
+    top: -12px;
+    font-size: 210px;
+    color: #f03;
+  }
+}
+
+/* hide block panels */
+.panel.panel-block {
+  border: 0;
+  box-shadow: none;
+
+  & > .panel-heading,
+  & > .rock-panel-drawer {
+    display: none;
+  }
+
+  & > .panel-body {
+    padding: 0;
+
+    .grid.grid-panel {
+      margin: 0;
+    }
+  }
+}
+
+
+.panel-heading {
+  a {
+    border-bottom: 1px dotted @link-color;
+    &:hover {
+      border-bottom-style: solid;
+      text-decoration: none;
+    }
+  }
+
+  .panel-success & {
+    a {
+      color: @panel-success-text;
+      border-color: @panel-success-text;
+    }
+  }
+
+  .panel-warning & {
+    a {
+      color: @panel-warning-text;
+      border-color: @panel-warning-text;
+    }
+  }
+}
+
+// verticals
+.vertical {
+    a {
+        color: @gray-darker;
+        &:hover {
+            border-bottom: 3px solid;
+            margin-bottom: -3px;
+            svg {
+                fill: @theme-1;
+            }
+        }
+    }
+}
+
+
+// 4. Swiper Overrides
+// -------------------------
+:root {
+  --swiper-theme-color: #e1e469 !important;
+}
+
+.swiper-container {
+  overflow-x: hidden;
+  position:relative;
+  margin-left: 1em;
+  margin-right: 1em;
+  .swiper-slide {
+    height: auto !important;
+      .card {
+        height: 100% !important;
+      }
+  }
+  .swiper-button-next,
+  .swiper-button-prev {
+    height: 70px !important;
+    width: 70px !important;
+    background: #000;
+    color: #fff !important;
+    border-radius: 100%;
+    opacity: .25;
+    &.swiper-button-disabled,
+    &.swiper-button-disabled {
+      opacity: 0;
+    }
+  }
+  &:hover .swiper-button-prev, 
+  &:hover .swiper-button-next {
+    opacity: .35 !important;
+  }
+}
+
+@media screen and (max-width:767px){
+  .swiper-container {
+    margin-left: 3em;
+    margin-right: 3em;
+  }
+}
+.swiper-horizontal>.swiper-pagination-bullets, 
+.swiper-pagination-bullets.swiper-pagination-horizontal,
+.swiper-pagination-custom,
+.swiper-pagination-fraction {
+    display:none;
+}
+
+
+// 5. Grid, Table & Panel Overrides
+// -------------------------
+
+.table-striped>tbody>tr:nth-of-type(odd) {
+    background-color: #fff;
+}
+.table-striped>tbody>tr:nth-of-type(even) {
+    background-color: #f9f9f9;
+}
+
+.table>thead>tr>th {
+    color: inherit;
+    border-color: inherit;
+}
+
+.table-bordered>thead>tr>th {
+    border: 1px solid #ddd;
+}
+
+.grid {
+    .grid-table { 
+        border: 1px solid #fff;
+        th, 
+        th a {
+            color: #000 !important;
+        }
+        tr {
+            border-bottom: 1px solid #E6E6E6;
+            &:last-child {
+                border:0;
+            }
+        }
+        td {
+            border: none !important;
+        }
+        .grid-delete-button {
+            background: none !important;
+            color: #000 !important;
+            border-color: #000 !important;
+            max-width: 40px;
+            padding-left: 5px;
+            width: 100%;
+            padding-right: 5px;
+        }
+        /* Hide the action icons on the table by default */
+        td.grid-actions > a {
+            display: none;
+            padding: 5px 10px;
+        }
+        
+    }
+    .grid-filter {
+        .btn-filter-toggle {
+            background: none;
+            color: #000;
+            font-weight: 700;
+            border-bottom: 1px solid #000;
+            border-radius: 0;
+            font-size: 14px;
+        }
+    }
+    
+    .grid-filter-overview {
+        background: #f5f5f5;
+    }
+    
+    .grid-filter fieldset, 
+    .grid-filter-overview fieldset {
+        color: #000;
+        font-size: 14px;
+        padding-top: 4em;
+    }
+    
+    .grid-filter-overview h4 {
+        font-size: 14px;
+    }
+    
+    .grid-columncommand .btn {
+        width: 35px !important;
+        height: 35px !important;
+        padding: 0 !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+/* wrap table to show the ADD action icon */
+.show-table-icon-add {
+  .grid {
+    .grid-table { 
+      td.grid-actions > a.btn-grid-action.btn-add {
+        display: inline-block;
+      }
+    }
+  }
+}
+
+/* wrap table to show the MERGE TEMPLATE action icon */
+.show-table-icon-merge {
+  .grid {
+    .grid-table { 
+      td.grid-actions > a.btn-grid-action.btn-merge-template {
+        display: inline-block;
+      }
+    }
+  }
+}
+/* wrap table to show the EXCEL EXPORT action icon */
+.show-table-icon-export {
+  .grid {
+    .grid-table { 
+      td.grid-actions > a.btn-grid-action.btn-excelexport {
+        display: inline-block;
+      }
+    }
+  }
+}
+/* wrap table to show the LAUNCH WORKFLOW action icon */
+.show-table-icon-launch {
+  .grid {
+    .grid-table { 
+      td.grid-actions > a.btn-grid-action.btn-launch-workflow {
+        display: inline-block;
+      }
+    }
+  }
+}
+
+/* wrap table to show the COMMUNICATE action icon */
+.show-table-icon-communicate {
+  .grid {
+    .grid-table { 
+      td.grid-actions > a.btn-grid-action.btn-custom-action {
+        display: inline-block;
+      }
+    }
+  }
+}
+
+.grid-actions .btn-grid-action {
+    color: #333;
+    background-color: #ffffff;
+    border-color: #e0e0e0;
+}
+.pagination>.active>a, 
+.pagination>.active>span, 
+.pagination>.active>a:hover, 
+.pagination>.active>span:hover, 
+.pagination>.active>a:focus, 
+.pagination>.active>span:focus {
+    background-color: #000000;
+    border-color: #000000;
+}
+.pagination>li>a, 
+.pagination>li>span {
+    color: #000;
+}
+
+.nav-tabs {
+    border-bottom: 1px solid #fff;
+}
+.nav-tabs.margin-v-lg {
+    margin-bottom: 0 !important;
+}
+
+.nav-tabs>li.active>a, 
+.nav-tabs>li.active>a:hover, 
+.nav-tabs>li.active>a:focus {
+    background-color: #f5f5f5;    
+    border: 1px solid #ddd;
+    border-bottom-color: #f5f5f5;
+    padding-left: 3rem;
+    padding-right: 3rem;
+}
+
+.nav-tabs>li a {
+    padding-left: 3rem;
+    padding-right: 3rem;
+    color: #000;
+    margin-right: 0;
+    border-radius: 0;
+}
+.nav-tabs>li>a {
+    border: 1px solid #f5f5f5;
+}
+
+.nav>li>a:hover, 
+.nav>li>a:focus {
+    background-color: #ddd;
+    border: 1px solid #ddd;
+    border-bottom: 0;
+}
+
+.grid .grid-table {
+    background: #f5f5f5;
+}
+
+
+
+/* Group Schedule Toolbox tab styling */
+.group-schedule-toolbox {
+    .panel-body {
+        div[id*="_pnlMySchedule"],
+        div[id*="_pnlPreferences"],
+        div[id*="_pnlSignup"]{
+            background: #f8f8f8;
+            padding: 1em;
+            border: 1px solid #ddd;
+            margin:0;
+        }
+        .margin-b-md:first-of-type {
+            margin-bottom: 0 !important;
+        }
+    }
+    .nav-pills {
+        li {
+            &.active {
+                a {
+                    background-color: #f5f5f5;
+                    border: 1px solid #ddd;
+                    &:hover {
+                        color: #000;
+                    }
+                    
+                }
+            }
+            a {
+                padding-left: 3rem;
+                padding-right: 3rem;
+                border: 1px solid #f5f5f5;
+                border-bottom-color: #f5f5f5;
+                color: #000;
+                border-radius: 0;
+            }
+        }
+    }
+} 
+
+
+.bg-gray-lighter {
+    & .nav-tabs>li.active>a, 
+    & .nav-tabs>li.active>a:hover, 
+    & .nav-tabs>li.active>a:focus {
+        background-color: #fff !important;
+        border-color: #fff !important;
+    }
+    .grid .grid-table,
+    .grid .grid-filter-overview,
+    .table-striped>tbody>tr:nth-of-type(odd),
+    .table-striped>tbody>tr:nth-of-type(even) {
+        background: #fff;
+    }
+    .nav-tabs>li>a {
+        border: 1px solid #fff;
+    }
+    
+    
+    
+    .group-schedule-toolbox {
+        .panel-body {
+            div[id*="_pnlMySchedule"],
+            div[id*="_pnlPreferences"],
+            div[id*="_pnlSignup"]{
+                background: #fff;
+                border: 1px solid #fff;
+            }
+            .margin-b-md:first-of-type {
+                background: @gray-lighter;
+            }
+        }
+        .nav-pills {
+            li {
+                &.active {
+                    a {
+                        background-color: #fff;
+                        border: 1px solid #fff;
+                        &:hover {
+                            color: #000;
+                        }
+                        
+                    }
+                }
+                a {
+                    border-bottom-color: #fff;
+                    color: #000;
+                }
+            }
+        }
+    } 
+}
+
+// 6. Checkboxes and Radios
+// -------------------------
+.radio input[type="radio"], 
+.radio-inline input[type="radio"], 
+.checkbox input[type="checkbox"], 
+.checkbox-inline input[type="checkbox"] {
+    transform: scale(1.5);
+}
+.checkbox-inline span.label-text {
+    margin-left: 4px;
+}
+.toggle-checkboxes {
+    .radio input[type="radio"], 
+    .radio-inline input[type="radio"], 
+    .checkbox input[type="checkbox"], 
+    .checkbox-inline input[type="checkbox"] {
+        transform: scale(1);
+    }
+    
+    .checkbox input[type="checkbox"], 
+    .checkbox-inline input[type="checkbox"] {
+        margin-left: 12px;
+    }
+    
+    .checkbox label {
+        padding-left: 40px;
+    }
+    
+    
+    /* Toggle Button */
+    input[type=checkbox] {
+    	border: 0;
+    	cursor: pointer;
+    	margin: 0;
+    	width: 1px;
+    	height: auto;
+    	display: block;
+    	left: 0;
+    	top: -3px;
+    	background: rgb(255, 255, 255);
+    	outline: none;    
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+    
+    /* Contents before checkbox to create toggle handle */
+    .input[type=checkbox] {
+    	
+    }
+    /* To create surface of toggle button */
+    input[type=checkbox]:after {
+    	content: '';
+    	width: 20px;
+    	height: 20px;
+    	display: inherit;
+    	background: #FFFFFF;
+    	border-radius: 0;
+    	clear: both;
+    	right: 0;
+    	top: 0;
+    	position: absolute;
+    	border: 1px solid #E6E6E6;
+    }
+    
+    
+    /* Shift the handle to left on check event */
+    input[type=checkbox]:checked:before, input[type=checkbox]:checked:after {
+    	box-shadow: none;
+    	border-color: #75B564;
+    }
+    /* Background color when toggle button will be active */
+    input[type=checkbox]:checked:after {
+    	background: #75B564;
+    }
+    
+    input[type=checkbox]:checked {
+    }
+    
+    input[type=checkbox]:before {
+        content: '';
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        background: rgba(196, 195, 195, 0.55);
+        border-radius: 0;
+        clear: both;
+        left: 0;
+        top: 0;
+        border: 1px solid #E6E6E6;
+    }
+    
+    input[type=checkbox]:checked:before {background: #fff;}
+    .checkbox-inline:first-child {
+        padding-left: 40px;
+    }
+}
+.rockcheckboxlist-horizontal {
+        margin-top: 15px;
+    }
+// 6. Responsive Overrides
+// -------------------------
+
+// default styling should be for phones 767px or less
+
+// Small devices (tablets, 768px and up)
+@media (min-width: @screen-sm-min) {
+  #announcement-rotator {
+    margin: 0;
+  }
+}
+
+// Medium devices (desktops, 992px and up)
+@media (min-width: @screen-md-min) {
+}
+
+// Large devices (large desktops, 1200px and up)
+@media (min-width: @screen-lg-min) {
+}
+
+
+@import "_css-overrides.less";
+
+
+
+

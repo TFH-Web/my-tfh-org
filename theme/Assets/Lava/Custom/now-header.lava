@@ -1,0 +1,5 @@
+<header>
+    <div class="d-flex justify-content-center">
+        <img class="img-responsive my-3 mx-5" src="/Content/ExternalSite/Give/now-logo.svg" alt="NOW!" style="width: 100%; max-width: 450px;"/>
+    </div>
+</header>

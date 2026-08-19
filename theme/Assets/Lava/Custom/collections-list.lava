@@ -1,0 +1,44 @@
+<style>
+    .card .card-body .icon { font-size: 25px; }
+</style>
+<div class="py-5" id="leadership-resources">
+    <h3>Collections</h3>
+    <hr>
+
+    <div class="domainlist">
+        <div class="card-grid">
+            {% for item in Items %}
+
+                {% assign itemType = item | Attribute:'ContentType' %}
+                {% if itemType == 'Mixed' %} {% assign itemType = 'Item' %}{% endif %}
+                {% assign itemIcon = item | Attribute:'FontAwesomeIcon' %}
+                {% assign itemDescription = item | Attribute:'Description' %}
+
+                {% for childitems in item.ChildItems %}
+                    {% assign itemQuantity = forloop.length %}
+                    {% break %}
+                {% endfor %}
+
+                <a href="/group-resources/collection/{{ item.PrimarySlug }}" class="card card-accent card-dark">
+                    <div class="card-body">
+                        <div class="icon bg-primary">
+                            {% if itemIcon != '' %}
+                                <i class="{{ itemIcon }}"></i>
+                            {% else %}
+                                <i class="fas fa-info"></i>
+                            {% endif %}
+                        </div>
+                        <h3 class="card-title mt-3">{{ item.Title }}</h3>
+                        <p class="card-text leading-relaxed">{{ itemDescription }}</p>
+
+                    </div>
+                    <div class="card-footer">
+                        <span class="pull-left">
+                            <span class="badge font-weight-normal  px-3">{{ itemQuantity }} {{ itemType | PluralizeForQuantity:itemQuantity }}</span>
+                        </span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>

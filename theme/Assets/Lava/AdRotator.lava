@@ -1,0 +1,78 @@
+{% assign itemCount = Items | Size %}
+
+<div id="announcement-rotator" class="carousel slide mx-2 mx-sm-0" data-ride="carousel">
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner">
+    {%- for item in Items -%}
+      {%- assign content = item | Attribute:'Body' -%}
+      {% comment %}
+      {%- assign itemPrimarySlug = item.PrimarySlug | Trim -%}
+      {%- if LinkedPages.DetailPage contains '{Slug}' and itemPrimarySlug != '' -%}
+        {%- assign itemLink = LinkedPages.DetailPage | Replace:'{Slug}',item.PrimarySlug | Prepend:'/' -%}
+      {%- else -%}
+        {%- if LinkedPages.DetailPage contains '{Slug}' -%}
+          {%- assign itemLink = LinkedPages.DetailPage | Replace:'{Slug}',item.Id | Prepend:'/' -%}
+        {%- else -%}
+          {%- capture itemLink -%}{{ LinkedPages.DetailPage }}?Item={{ item.Id }}{%- endcapture -%}
+        {%- endif -%}
+      {%- endif -%}
+      {% endcomment %}
+
+      {%- assign showtext = item | Attribute:'ShowTextBox' -%}
+      {%- assign buttontext = item | Attribute:'ButtonText' -%}
+      {%- assign buttonurl = item | Attribute:'ButtonUrl' -%}
+      {%- assign buttoncolor = item | Attribute:'ButtonColor' -%}
+      {%- assign textlocation = item | Attribute:'TextBoxLocation' -%}
+      
+      {%- if textlocation == 'Top-Left' -%}
+        {% assign textlocation = 'top-0 left-0 mt-5 ml-5' %}
+      {%- elseif textlocation == 'Top-Right' -%}
+        {% assign textlocation = 'top-0 right-0 mt-5 mr-5' %}
+      {%- elseif textlocation == 'Bottom-Left' -%}
+        {% assign textlocation = 'bottom-0 left-0 mb-5 ml-5' %}
+      {%- else -%}
+        {% assign textlocation = 'bottom-0 right-0 mb-5 mr-5' %}
+      {%- endif -%}
+
+    {%- if forloop.index == 1 -%}
+    <div class="item active">
+      {%- else -%}
+      <div class="item">
+        {%- endif -%}
+        <a href="{{ buttonurl }}">
+            
+                <div class="card bg-white text-color p-4 position-absolute {{ textlocation }} {% if showtext == 'No' %}d-md-none{% endif %}">
+                    <h2 class="mt-0">{{ item.Title }}</h2>
+                    <p class="mb-3">{{ content }}</p>
+                    {% if buttontext != empty %}<button type="button" class="btn btn-primary mb-3" style="{% if buttoncolor != empty %}background-color: {{ buttoncolor }};{% endif %}" %}>{{ buttontext }}</button>{% endif %}
+                </div>
+            
+            {% assign imgRaw = item | Attribute:'Image','RawValue' %}
+            {% assign imgPath = imgRaw | Prepend:'/GetImage.ashx?Guid=' | Append:'&W=1570&H=883&mode=crop' %}
+            <img src="{{ imgPath }}" alt="" />
+        </a>
+      </div>
+      {%- endfor -%}
+      
+      {% if itemCount > 1 %}
+          {%- for item in Items -%}
+              {% if forloop.first %}
+                <ol class="carousel-indicators">
+              {% endif %}
+                <li data-target="#announcement-rotator" data-slide-to="{{ forloop.index0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+              {% if forloop.last %} 
+                </ol>
+              {% endif %}
+          {%- endfor -%}
+      {% endif %}
+    </div>
+
+    <!-- Controls 
+    <a class="left carousel-control" href="#announcement-rotator" data-slide="prev">
+      <span class="fa fa-chevron-left"></span>
+    </a>
+    <a class="right carousel-control" href="#announcement-rotator" data-slide="next">
+      <span class="fa fa-chevron-right"></span>
+    </a>
+    -->
+</div>

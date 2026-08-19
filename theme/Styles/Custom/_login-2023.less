@@ -1,0 +1,158 @@
+body.login-page {
+    
+    .login-page-grid {
+        width: 100%;
+        
+        .col-1 {
+            width: 100%;
+        
+            .login-page-main {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+        
+        .col-2 {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    }
+
+
+    // Grid Layout
+    .login-page-nav, .login-page-main {
+        padding: 10px;
+    }
+
+    // Nav Section
+    .login-nav {
+        display: flex;
+        justify-content: space-between;
+        /*padding: 24px; */
+
+        .logo {
+            max-height: 50px;
+        }
+
+        .links a {
+            color: #707070;
+        }
+    }
+
+    // Feature Section
+    .login-page-feature {
+        
+    }
+
+    .feature-img {
+        background-size: cover;
+        background-position: center center;
+        padding: 10px;
+        /*display: flex;
+        flex-direction: column;
+        justify-content: end;*/
+        transition: background .5s;
+    }
+
+} /* End body.login-page Mobile*/
+
+@media only screen and (max-height: 1000px) and (max-width: 991px) {
+    body.login-page {
+    
+        .login-page-grid {
+            
+            .col-2 {
+                display: none;
+            }
+            
+        }
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    body.login-page {
+        
+        // Grid Layout
+        .login-page-nav, .login-page-main {
+            padding: 24px;
+        }
+    
+        // Feature Section
+        .feature-img {
+            
+        }
+        .feature-wrapper {
+            /*margin-top: 100px;*/
+        }
+
+    } /* End body.login-page */
+}/* End media query for 768px */
+
+@media only screen and (min-width: 992px) {
+    body.login-page {
+        
+        .login-page-grid {
+            display: flex;
+            /*min-height: 100vh;*/
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left:0;
+            right: 0;
+            
+            .col-1 {
+                max-width: 500px;
+            
+                .login-page-main {
+                    height: 100%;
+                }
+            }
+        
+            .col-2 {
+                position: unset;
+                width: 100%;
+            }
+        }
+
+        // Nav Section
+        .login-nav {
+            .links {
+                position: absolute;
+                top: 25px;
+                right: 25px;
+                z-index: 2;
+            }
+            .links a {
+                color: #fff;
+            }
+        }
+        
+        // Feature Section
+        .login-page-feature {
+            height: 100%;
+            position: relative;
+        }
+
+        .feature-img {
+            background-image: url(https://s3.us-west-1.amazonaws.com/s3.tfh.org/rockrms/ExternalSite/img/login/login-01.jpg);
+            padding: 25px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+    } /* End body.login-page*/
+}/* End media query for 992px */
+
+@media only screen and (min-width: 2000px) {
+    body.login-page {
+        .login-page-grid .col-1 {
+            max-width: 25%;
+        }
+    }
+}/* End media query for 2000px */

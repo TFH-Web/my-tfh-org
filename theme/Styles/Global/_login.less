@@ -1,0 +1,64 @@
+.login {
+  padding-top: 8em;
+  padding-bottom: 8em;
+  max-width: 450px;
+  margin: 0 auto;
+  legend {
+    font-size: 0;
+    &:after {
+      content: 'Sign In';
+      font-size: 36px;
+      font-weight: 700;
+      text-align: center;
+      width: 100%;
+      position: relative;
+      left: 0;
+      right: 0;
+      display: block;
+    }
+  }
+  input[value="Login"].btn, 
+  input[value="Register"].btn {
+    padding: 16px 25px;  
+  }
+  input[value="Forgot Account"].btn {
+    display: block;
+    clear: both;
+    color: #000;
+    margin: 1em auto 0;
+  }
+  input.btn:first-of-type {
+    margin-left: ~"calc(100% - 205px - 50%)";
+    margin-right: 15px;
+  }
+  .form-control {
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+    height: 60px;
+  }
+  span.label-text {
+    font-size: 14px;
+    vertical-align: top;
+    display: block;
+    margin-bottom: 1em;
+  }
+}
+
+@media(max-width: 500px) {
+    .login {
+        padding-top: 6%;
+        padding-bottom: 6%;
+        
+        input.btn:first-of-type {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            max-width:100%;
+            margin-bottom: 10px;
+        }
+    }
+}

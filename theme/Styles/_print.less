@@ -1,0 +1,47 @@
+@media print {
+  @page {
+    margin: .5in;
+  }
+  
+  // Remove unnecessary sections
+  header, footer, aside, nav, form, iframe, .menu, .hero, .adslot {
+      display: none !important;
+    }
+
+  // default sidebar navs on most pages
+  .nav-sub {
+    display: none;
+  }
+
+  // admin bar on bottom right
+  #cms-admin-footer {
+    display: none;
+  }
+
+  // dont show URLs after links
+  a[href]:after {
+    content: "" !important;
+  }
+  
+  // Limit the size of images
+  img {
+      max-width: 150px !important;
+  }
+  
+  // page break settings
+  table, img, svg, p {
+      break-inside: avoid;
+    }
+  
+  // HRs
+  hr {
+      padding: 0;
+      margin: 5px 0;
+  }
+  
+  p {
+      margin: 0 0 5px 0;
+  }
+  
+}
+
