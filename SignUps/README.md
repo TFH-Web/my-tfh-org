@@ -1,0 +1,150 @@
+# my.tfh.org Public Sign-Up Pages
+
+Public, marketing-linkable views of Rock's Sign-Up feature on **my.tfh.org**
+(site 17, theme `MyTFH-2021`).
+
+| File | Goes where |
+|---|---|
+| `signups-menu-and-group-block.html` | HTML Content block on **page 3716** |
+| `signups-opportunity-detail-block.html` | HTML Content block on **page 3717** |
+| `tfh-signups.less` | Theme Styler → **CSS Overrides** on theme `MyTFH-2021` |
+
+## URL structure
+
+```
+/signups                                     page 3716   menu of sign-up groups
+/signups/{Slug}                              page 3716   one group + its opportunities
+/signups/{Slug}/{Occurrence}                 page 3717   one opportunity
+/signups/{Slug}/{Occurrence}/register        page 3718   Rock's Sign-Up Register block
+```
+
+`Slug` = the group's `PublicSlug` attribute (falls back to a name-derived slug).
+`Occurrence` = the raw integer Schedule Id.
+
+**Plural `signups`, not `signup`.** The singular two-segment slot is already
+taken by `signup/{OpportunityId}` on page 3377 (Interest List, a Connection
+Opportunity feature). Both are two-segment parameterised routes on the same
+site and cannot coexist — one would silently swallow the other.
+
+## Setup steps in Rock
+
+### 1. Add the `PublicSlug` group attribute
+Admin → General Settings → Group Types → **Sign-Up Group** (id 176) → Group Attributes
+
+- Key `PublicSlug`, type **Text**
+- Populate for each group you want a clean URL for, e.g. `kids-min-orientation`
+
+Optional — links work before this exists, because the block falls back to a
+slug derived from the group name (`Kids Min Orientation` → `kids-min-orientation`).
+Set it explicitly for anything marketing is handing out, so a group rename
+doesn't break a printed link.
+
+### 2. Routes
+
+| Page | Add route | Remove |
+|---|---|---|
+| 3716 | `signups` and `signups/{Slug}` | keep `signup` (harmless, lands on the menu) |
+| 3717 | `signups/{Slug}/{Occurrence}` | `signup/detail` once nothing links to it |
+| 3718 | `signups/{Slug}/{Occurrence}/register` | keep `signup/register` |
+
+> **Do not name the third segment `ScheduleId`.** Rock's `PageParameter`
+> resolves route values ahead of query-string values. The register page
+> carries `?ScheduleId=<IdKey>` for Rock's own block; a route segment of the
+> same name holding a raw integer shadows it and breaks registration with no
+> visible error.
+
+### 3. Swap the blocks
+- **Page 3716** — remove the Sign-Up Finder block (7907), add an HTML Content block
+- **Page 3717** — remove the Sign-Up Detail block (7908), add an HTML Content block
+- **Page 3718** — leave exactly as it is. Rock's Sign-Up Register block stays.
+
+On both new HTML Content blocks:
+
+| Setting | Value |
+|---|---|
+| Enabled Lava Commands | **Sql, RockEntity** (both required) |
+| Cache Duration | **0** — capacity must never be cached |
+
+### 4. Styles
+Paste the whole of `tfh-signups.less` into
+Admin → CMS → Themes → **MyTFH-2021** → Theme Styler → **CSS Overrides**, and save.
+Rock recompiles the theme on save.
+
+`MyTFH-2021` is a **v1 theme, so the override field is compiled by dotless.**
+The file is written accordingly:
+
+- LESS variables (`@tfh-su-*`) rather than CSS custom properties
+- no `:has()` — the Lava emits `--nophoto` modifier classes instead
+- no `grid-column: 1 / -1`, which dotless evaluates as arithmetic
+
+If the theme fails to compile, Rock reports it on save — the whole override
+field is rejected, so nothing renders half-styled.
+
+Adobe Fonts is already loaded site-wide on MyTFH (kit `dpm1txa`). Confirm that
+kit publishes `neue-haas-grotesk-text` (400/500) and `neue-haas-grotesk-display`,
+and that `my.tfh.org` is listed in the kit's domains — the faces fail silently
+otherwise and the pages fall back to Helvetica.
+
+## Adjustable config
+
+Both blocks open with an identical config section. **Keep them in step.**
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `campusTypeGuid` | Physical | Campus Type allowed publicly |
+| `campusStatusGuid` | Open | Campus Status allowed publicly |
+| `signUpGroupTypeId` | `176` | Sign-Up Group type |
+| `lowSpotThreshold` | `5` | At or below this, the pill switches to the low style |
+| `menuUrl` | `/signups` | Menu location, used by back links |
+
+Physical + Open currently resolves to **Vacaville, Napa, East Bay, Roseville,
+Los Gatos**. That is two campuses wider than the old Finder allowlist, which
+covered only the first three — Roseville and Los Gatos were previously hidden.
+
+It also excludes the `Other` catch-all campus (Online/No-Show), which matters:
+`Other` shares Location 14 with Vacaville, so without the filter that location
+would resolve ambiguously.
+
+## Design deviations from the handoff
+
+These are deliberate, driven by what the data and platform actually support.
+
+| Handoff says | Built as | Why |
+|---|---|---|
+| Five capacity states incl. "Join Waitlist" | Four states | Sign-Up Groups have **no waitlist**. Every `%Wait%` column is on `Registration*` tables. At-capacity is simply closed. |
+| Custom black/inverting buttons | `btn btn-primary` / `btn btn-default` | Requested: native theme buttons so states match the rest of the site. Nothing in the CSS touches `.btn`. |
+| One action per opportunity card | Two — Details + Register | Requested, to reach the new opportunity detail page. |
+| Duration pill on every card | Only when > 0 minutes | Most schedules have `DTEND = DTSTART + 1 second`, i.e. no duration was set. The pill would read "0 min". |
+| Group photo band | Omitted when absent | As specified — never an empty grey box. Note **6 of 8 groups have no `ProjectImage`**, including both groups with upcoming dates. |
+
+## Content gaps worth fixing
+
+- **`ProjectImage` is empty on both groups that currently have upcoming dates**
+  (Kids Min Orientation, Guest Services Training), so the menu renders two
+  photo-less cards. The two images that do exist are a logo and a slide frame,
+  not the documentary photography the design calls for.
+- **Kids Min Orientation has no description** — its card and header render
+  without body copy.
+- Only capacity states 1 and 2 are reachable with today's data. States 3 (low)
+  and 4 (at capacity) can't be seen live until a date fills up.
+
+## Verify first, on the very first paste
+
+0. **Lava is Fluid on this install, not DotLiquid.** It is a stricter parser —
+   string literals reject invalid escape sequences (`'[^a-z0-9\-]'` fails;
+   `'[^a-z0-9-]'` is correct). Errors read
+   `Lava Error: End of tag '%}' was expected at (line:col)` and the column
+   points at the real offender.
+
+1. **`{% sql %}` named parameters.** These blocks use the bound form
+   (`{% sql slug:'{{ slug }}' %}` → `@slug`) rather than interpolating the URL
+   segment into the query. If your Rock build doesn't support it the query will
+   error immediately and visibly. The slug is *also* stripped to `[a-z0-9-]` in
+   Lava, so that sanitising is a second layer, not the only one.
+2. **Outer spacing.** Per the project rule these blocks add no outer padding or
+   margin, on the assumption Rock already pads blocks on MyTFH as it does
+   elsewhere. If the content sits flush to the viewport edge, that assumption is
+   wrong for this theme and the gutter belongs on `.tfh-signup`.
+3. **Register handoff.** Click through one Register button and confirm Rock's
+   block receives the three IdKeys. This is the one path we cannot verify from
+   SQL alone.

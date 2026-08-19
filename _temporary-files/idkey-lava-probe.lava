@@ -1,0 +1,57 @@
+{#-
+  Purpose: Determine whether Rock's IdKey (the obfuscated id used in Sign-Up
+  Register URLs, e.g. ProjectId=bg31BgMbYo) is reachable from Lava.
+
+  Context: the Sign-Up Finder generates
+    /page/3718?ProjectId=<IdKey>&LocationId=<IdKey>&ScheduleId=<IdKey>
+  IdKey is computed in C# and cannot be produced by SQL. If raw integer ids
+  are NOT accepted by the Sign-Up Register block, the public sign-up pages
+  must obtain IdKey through RockEntity Lava instead.
+
+  HOW TO RUN: paste into any HTML Content block on a page you can view, and
+  set the block's "Enabled Lava Commands" to include RockEntity.
+  Delete the block afterwards — this is a scratch probe.
+
+  WHAT TO REPORT BACK: the rendered output of all four tests below.
+
+  Test data = Kids Min Orientation, 8/27 opportunity:
+    GroupId 345104 | LocationId 36682 | ScheduleId 3912
+  Expected IdKeys if this works: ProjectId=bg31BgMbYo (group 345104)
+-#}
+
+<h3>IdKey Lava Probe</h3>
+
+<h4>Test 1 — Group by id (singular form)</h4>
+{% group id:'345104' %}
+  Name: {{ group.Name }}<br>
+  Id: {{ group.Id }}<br>
+  IdKey: <strong>{{ group.IdKey }}</strong><br>
+  (expected IdKey: bg31BgMbYo)
+{% endgroup %}
+
+<h4>Test 2 — Group by where (collection form)</h4>
+{% group where:'Id == 345104' %}
+  {% for g in groupItems %}
+    Name: {{ g.Name }} | Id: {{ g.Id }} | IdKey: <strong>{{ g.IdKey }}</strong><br>
+  {% endfor %}
+{% endgroup %}
+
+<h4>Test 3 — Location</h4>
+{% location id:'36682' %}
+  Name: {{ location.Name }}<br>
+  Id: {{ location.Id }}<br>
+  IdKey: <strong>{{ location.IdKey }}</strong><br>
+  (expected IdKey: Vm3W4JoY7r)
+{% endlocation %}
+
+<h4>Test 4 — Schedule</h4>
+{% schedule id:'3912' %}
+  Id: {{ schedule.Id }}<br>
+  IdKey: <strong>{{ schedule.IdKey }}</strong><br>
+  (expected IdKey: z0YnJDwYXo)
+{% endschedule %}
+
+<hr>
+<p><em>If IdKey renders empty or blank in every test, it is not exposed to Lava
+and the Register link must be built another way (e.g. keeping the stock Finder's
+generated URLs, or a lightweight lookup block).</em></p>

@@ -1,0 +1,258 @@
+<!-- Source: https://github.com/TFH-Web/my-tfh-org/blob/main/SignUps/signups-opportunity-detail-block.html -->
+<!-- ================================================================
+     TFH my.tfh.org — Public Sign-Ups: Opportunity Detail
+     HTML Content Block (fragment — no html/head/body tags)
+     Page 3717 (MyTFH, site 17)
+
+     ROUTE
+       /signups/{Slug}/{Occurrence}
+         Slug       — the group's PublicSlug (or name-derived fallback)
+         Occurrence — the raw integer Schedule Id of one opportunity
+
+     !! DO NOT name the second route parameter `ScheduleId` !!
+       Rock's PageParameter resolves ROUTE values ahead of QUERY-STRING values.
+       The Register page carries `?ScheduleId=<IdKey>` for Rock's own block; a
+       route segment of the same name holding a raw integer would shadow it and
+       break registration with no visible error. `Occurrence` avoids the clash.
+       The register route has the same constraint:
+         /signups/{Slug}/{Occurrence}/register
+
+     BLOCK SETTINGS REQUIRED
+       Enabled Lava Commands : Sql, RockEntity
+       Cache Duration        : 0   (capacity must not be cached)
+
+     Styles live in tfh-signups.less, pasted into Theme Styler > CSS Overrides.
+     See signups-menu-and-group-block.html for the full data-model notes —
+     campus resolution by ancestor walk, iCal time parsing, IdKey requirement,
+     and the absence of any waitlist concept on Sign-Up Groups.
+================================================================= -->
+
+{%- comment -%} ---------- ADJUSTABLE CONFIG (keep in step with the menu block) ---------- {%- endcomment -%}
+{%- assign campusTypeGuid    = '5A61507B-79CB-4DA2-AF43-6F82260203B3' -%}{%- comment -%} Campus Type: Physical {%- endcomment -%}
+{%- assign campusStatusGuid  = '10696FD8-D0C7-486F-B736-5FB3F5D69F1A' -%}{%- comment -%} Campus Status: Open {%- endcomment -%}
+{%- assign signUpGroupTypeId = '176' -%}
+{%- assign lowSpotThreshold  = 5 -%}
+{%- assign menuUrl           = '/signups' -%}
+
+{%- comment -%} ---------- ROUTE PARAMS (sanitised) ---------- {%- endcomment -%}
+{%- assign slug      = PageParameter.Slug | Downcase | RegExReplace:'[^a-z0-9-]','' -%}
+{%- assign occurrence = PageParameter.Occurrence | RegExReplace:'[^0-9]','' -%}
+
+{%- if slug == empty or occurrence == empty -%}
+
+<div class="tfh-signup">
+  <a class="tfh-signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
+  <div class="tfh-signup-empty">
+    <h2 class="tfh-signup-empty__title">Sign-Up Not Found</h2>
+    <p class="tfh-signup-empty__body">That link doesn't point to a sign-up date we can find. Browse the <a href="{{ menuUrl }}">current sign-ups</a> instead.</p>
+  </div>
+</div>
+
+{%- else -%}
+
+{% sql return:'rows' slug:'{{ slug }}' scheduleId:'{{ occurrence }}' groupTypeId:'{{ signUpGroupTypeId }}' campusType:'{{ campusTypeGuid }}' campusStatus:'{{ campusStatusGuid }}' %}
+    ;WITH AllowedCampus AS (
+        SELECT c.Id, c.Name, c.LocationId
+        FROM   Campus c
+        JOIN   DefinedValue dvt ON dvt.Id = c.CampusTypeValueId
+                               AND dvt.Guid = CAST(@campusType AS UNIQUEIDENTIFIER)
+        JOIN   DefinedValue dvs ON dvs.Id = c.CampusStatusValueId
+                               AND dvs.Guid = CAST(@campusStatus AS UNIQUEIDENTIFIER)
+        WHERE  c.IsActive = 1
+    ),
+    LocSeed AS (
+        SELECT DISTINCT gl.LocationId
+        FROM   GroupLocation gl
+        JOIN   [Group] g ON g.Id = gl.GroupId
+        WHERE  g.GroupTypeId = @groupTypeId
+    ),
+    LocWalk AS (
+        SELECT s.LocationId, s.LocationId AS AncestorId, l.ParentLocationId, 0 AS Depth
+        FROM   LocSeed s
+        JOIN   Location l ON l.Id = s.LocationId
+        UNION ALL
+        SELECT w.LocationId, p.Id, p.ParentLocationId, w.Depth + 1
+        FROM   LocWalk w
+        JOIN   Location p ON p.Id = w.ParentLocationId
+        WHERE  w.Depth < 10
+    ),
+    LocCampus AS (
+        SELECT w.LocationId, ac.Name AS CampusName,
+               ROW_NUMBER() OVER (PARTITION BY w.LocationId ORDER BY w.Depth, ac.Id) AS rn
+        FROM   LocWalk w
+        JOIN   AllowedCampus ac ON ac.LocationId = w.AncestorId
+    ),
+    Matched AS (
+        SELECT TOP 1 g.Id, g.Name, ISNULL(g.Description, '') AS Description,
+               ISNULL(imgav.Value, '') AS ImageGuid
+        FROM   [Group] g
+        LEFT   JOIN Attribute a       ON a.[Key] = 'PublicSlug'
+                                     AND a.EntityTypeQualifierColumn = 'GroupTypeId'
+                                     AND a.EntityTypeQualifierValue = CAST(@groupTypeId AS VARCHAR(10))
+        LEFT   JOIN AttributeValue av ON av.AttributeId = a.Id AND av.EntityId = g.Id
+        LEFT   JOIN Attribute ia      ON ia.[Key] = 'ProjectImage'
+                                     AND ia.EntityTypeQualifierColumn = 'GroupTypeId'
+                                     AND ia.EntityTypeQualifierValue = CAST(@groupTypeId AS VARCHAR(10))
+        LEFT   JOIN AttributeValue imgav ON imgav.AttributeId = ia.Id AND imgav.EntityId = g.Id
+        WHERE  g.GroupTypeId = @groupTypeId
+          AND  g.IsActive = 1
+          AND  g.IsPublic = 1
+          AND  (
+                LOWER(av.Value) = @slug
+                OR LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                       g.Name, '''', ''), '&', 'and'), '.', ''), ',', ''),
+                       '/', '-'), ':', ''), ' ', '-')) = @slug
+               )
+        ORDER BY CASE WHEN LOWER(av.Value) = @slug THEN 0 ELSE 1 END, g.Id
+    )
+    -- A Schedule is expected to map to exactly one location within a group, but a
+    -- shared NAMED schedule could legitimately map to several. Every match is
+    -- returned rather than assuming one, so the page degrades gracefully.
+    SELECT  m.Id                                AS GroupId,
+            m.Name                              AS GroupName,
+            m.Description                       AS Description,
+            m.ImageGuid                         AS ImageGuid,
+            l.Id                                AS LocationId,
+            ISNULL(l.Name, '')                  AS LocationName,
+            ISNULL(lc.CampusName, '')           AS CampusName,
+            s.Id                                AS ScheduleId,
+            TRY_CONVERT(datetime,
+                LEFT(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 8) + ' ' +
+                SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 10, 2) + ':' +
+                SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 12, 2) + ':' +
+                SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 14, 2)
+            )                                   AS StartsAt,
+            DATEDIFF(MINUTE,
+                TRY_CONVERT(datetime,
+                    LEFT(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 8) + ' ' +
+                    SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 10, 2) + ':' +
+                    SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 12, 2) + ':' +
+                    SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTSTART:', s.iCalendarContent) + 8, 15), 14, 2)),
+                TRY_CONVERT(datetime,
+                    LEFT(SUBSTRING(s.iCalendarContent, CHARINDEX('DTEND:', s.iCalendarContent) + 6, 15), 8) + ' ' +
+                    SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTEND:', s.iCalendarContent) + 6, 15), 10, 2) + ':' +
+                    SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTEND:', s.iCalendarContent) + 6, 15), 12, 2) + ':' +
+                    SUBSTRING(SUBSTRING(s.iCalendarContent, CHARINDEX('DTEND:', s.iCalendarContent) + 6, 15), 14, 2))
+            )                                   AS DurationMinutes,
+            glsc.MaximumCapacity                AS Capacity,
+            (SELECT COUNT(*)
+             FROM   GroupMemberAssignment gma
+             JOIN   GroupMember gm ON gm.Id = gma.GroupMemberId
+             WHERE  gm.GroupId = m.Id
+               AND  gma.LocationId = l.Id
+               AND  gma.ScheduleId = s.Id
+               AND  gm.GroupMemberStatus = 1)   AS Taken
+    FROM    Matched m
+    JOIN    GroupLocation gl          ON gl.GroupId = m.Id
+    JOIN    Location l                ON l.Id = gl.LocationId
+    JOIN    GroupLocationSchedule gls ON gls.GroupLocationId = gl.Id
+    JOIN    Schedule s                ON s.Id = gls.ScheduleId
+    LEFT    JOIN GroupLocationScheduleConfig glsc
+                   ON glsc.GroupLocationId = gl.Id AND glsc.ScheduleId = s.Id
+    LEFT    JOIN LocCampus lc ON lc.LocationId = l.Id AND lc.rn = 1
+    WHERE   s.Id = @scheduleId
+      AND   s.IsActive = 1
+      AND   CHARINDEX('DTSTART:', s.iCalendarContent) > 0
+{% endsql %}
+
+{%- if rows and rows != empty -%}
+  {%- assign head = rows | First -%}
+  {%- assign groupIdKey = '' -%}
+  {% group id:'{{ head.GroupId }}' %}{%- assign groupIdKey = group.IdKey -%}{% endgroup %}
+
+<div class="tfh-signup">
+
+  <a class="tfh-signup__back" href="{{ menuUrl }}/{{ slug }}">&larr; {{ head.GroupName }}</a>
+
+  {%- for row in rows -%}
+    {%- assign hasCap    = false -%}
+    {%- assign isFull    = false -%}
+    {%- assign isLow     = false -%}
+    {%- assign spotsLeft = 0 -%}
+    {%- assign pct       = 0 -%}
+    {%- if row.Capacity and row.Capacity != empty and row.Capacity > 0 -%}
+      {%- assign hasCap    = true -%}
+      {%- assign spotsLeft = row.Capacity | Minus: row.Taken -%}
+      {%- assign pct       = row.Taken | Times: 100 | DividedBy: row.Capacity -%}
+      {%- if pct > 100 -%}{%- assign pct = 100 -%}{%- endif -%}
+      {%- if spotsLeft <= 0 -%}
+        {%- assign isFull = true -%}{%- assign spotsLeft = 0 -%}
+      {%- elsif spotsLeft <= lowSpotThreshold -%}
+        {%- assign isLow = true -%}
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- assign locIdKey = '' -%}
+    {%- assign schIdKey = '' -%}
+    {% location id:'{{ row.LocationId }}' %}{%- assign locIdKey = location.IdKey -%}{% endlocation %}
+    {% schedule id:'{{ row.ScheduleId }}' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
+    {%- capture registerUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
+
+  <article class="tfh-signup-detail{% if head.ImageGuid == '' %} tfh-signup-detail--nophoto{% endif %}">
+    {%- if head.ImageGuid != '' -%}
+    <div class="tfh-signup-detail__photo">
+      <img src="/GetImage.ashx?Guid={{ head.ImageGuid }}&w=1000" alt="">
+    </div>
+    {%- endif -%}
+
+    <div class="tfh-signup-detail__text">
+      <p class="tfh-signup-group__eyebrow">{{ head.GroupName }}</p>
+      <h1 class="tfh-signup__title">{{ row.StartsAt | Date:'dddd, MMMM d' }}</h1>
+
+      <div class="tfh-signup-group__meta">
+        <span class="tfh-signup-pill">{{ row.StartsAt | Date:'h:mm tt' }}</span>
+        {%- if row.DurationMinutes and row.DurationMinutes >= 1 -%}
+        <span class="tfh-signup-pill">{{ row.DurationMinutes }} min</span>
+        {%- endif -%}
+        {%- if row.CampusName != '' -%}
+        <span class="tfh-signup-pill">{{ row.CampusName }}</span>
+        {%- endif -%}
+        {%- if row.LocationName != '' -%}
+        <span class="tfh-signup-pill">{{ row.LocationName }}</span>
+        {%- endif -%}
+      </div>
+
+      {%- if head.Description != '' -%}
+      <div class="tfh-signup-detail__desc">{{ head.Description }}</div>
+      {%- endif -%}
+
+      <div class="tfh-signup-opp__cap">
+        {%- if hasCap == false -%}
+          <p class="tfh-signup-opp__nolimit">Open sign-up — no limit</p>
+        {%- else -%}
+          {%- if isFull -%}
+            <span class="tfh-signup-spots tfh-signup-spots--full">At Capacity</span>
+          {%- elsif isLow -%}
+            <span class="tfh-signup-spots tfh-signup-spots--low">{{ spotsLeft }} spot{% if spotsLeft != 1 %}s{% endif %} left</span>
+          {%- else -%}
+            <span class="tfh-signup-spots">{{ spotsLeft }} spots left</span>
+          {%- endif -%}
+          <span class="tfh-signup-bar"><span class="tfh-signup-bar__fill" style="width: {{ pct }}%"></span></span>
+        {%- endif -%}
+      </div>
+
+      <div class="tfh-signup-opp__actions">
+        {%- if isFull -%}
+        <span class="btn btn-default disabled" aria-disabled="true">Sign-Ups Closed</span>
+        <p class="tfh-signup-opp__note">This date reached capacity.</p>
+        {%- else -%}
+        <a class="btn btn-primary" href="{{ registerUrl }}">Register</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </article>
+  {%- endfor -%}
+
+</div>
+
+{%- else -%}
+<div class="tfh-signup">
+  <a class="tfh-signup__back" href="{{ menuUrl }}">&larr; All Sign-Ups</a>
+  <div class="tfh-signup-empty">
+    <h2 class="tfh-signup-empty__title">Sign-Up Not Found</h2>
+    <p class="tfh-signup-empty__body">That date is no longer available. Browse the <a href="{{ menuUrl }}">current sign-ups</a> instead.</p>
+  </div>
+</div>
+{%- endif -%}
+
+{%- endif -%}

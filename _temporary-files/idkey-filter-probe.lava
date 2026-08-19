@@ -1,0 +1,42 @@
+{#-
+  Purpose: OPTIONAL follow-up probe. We already know IdKey works via RockEntity
+  entity lookups ({% schedule id:'3912' %}{{ schedule.IdKey }}{% endschedule %}).
+  This checks whether a Lava FILTER can convert a raw integer id straight to an
+  IdKey, which would remove the need for per-card entity lookups entirely.
+
+  Known-good values to match against:
+    Group    345104 -> bg31BgMbYo
+    Location 36682  -> Vm3W4JoY7r
+    Schedule 3912   -> z0YnJDwYXo
+
+  HOW TO RUN: paste into an HTML Content block with RockEntity in
+  "Enabled Lava Commands". Unknown filters render blank rather than erroring,
+  so this is safe. Delete the block afterwards.
+
+  WHAT TO REPORT: the rendered output. Any line showing a 10-character hash
+  is a win; all-blank means no such filter and we use entity lookups.
+-#}
+
+<h3>Part A — candidate filter names (Schedule 3912, want z0YnJDwYXo)</h3>
+<pre>
+IdToKey (typed):   [{{ 3912 | IdToKey:'Rock.Model.Schedule' }}]
+IdToKey (bare):    [{{ 3912 | IdToKey }}]
+ToIdKey (typed):   [{{ 3912 | ToIdKey:'Rock.Model.Schedule' }}]
+ToIdKey (bare):    [{{ 3912 | ToIdKey }}]
+IdKey:             [{{ 3912 | IdKey }}]
+HashId:            [{{ 3912 | HashId }}]
+EntityIdToKey:     [{{ 3912 | EntityIdToKey:'Rock.Model.Schedule' }}]
+</pre>
+
+<h3>Part B — is the hash global, or per entity type?</h3>
+{#- If the same integer yields the SAME hash across different entity types,
+    the hasher is id-only. That means one lookup table works for everything,
+    and it also tells us a typed filter argument is unnecessary. -#}
+<pre>
+Group    14: [{% group    id:'14' %}{{ group.IdKey }}{% endgroup %}]
+Location 14: [{% location id:'14' %}{{ location.IdKey }}{% endlocation %}]
+Schedule 14: [{% schedule id:'14' %}{{ schedule.IdKey }}{% endschedule %}]
+Campus   14: [{% campus   id:'14' %}{{ campus.IdKey }}{% endcampus %}]
+</pre>
+<p><em>All identical => hasher is global/id-only. Different => hash is salted per
+entity type, and any lookup must be done against the correct type.</em></p>

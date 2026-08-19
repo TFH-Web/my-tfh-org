@@ -1,0 +1,487 @@
+/* ================================================================
+   TFH my.tfh.org — Public Sign-Up Pages
+   Source: https://github.com/TFH-Web/my-tfh-org/blob/main/SignUps/tfh-signups.less
+
+   PASTE INTO
+     Admin > CMS > Themes > MyTFH-2021 > Theme Styler > CSS Overrides
+
+   WHY LESS, NOT PLAIN CSS
+     my.tfh.org runs on Rock v17 with a v1 theme, so the Theme Styler override
+     field is compiled by dotless. Plain CSS is valid LESS, but this file uses
+     LESS variables rather than CSS custom properties and avoids :has(),
+     because dotless support for both is not worth depending on.
+
+   SCOPE
+     Everything is namespaced under .tfh-signup* so nothing here can reach the
+     rest of MyTFH.
+
+   DESIGN SYSTEM
+     These are the my.tfh.org PUBLIC tokens from the design handoff. They are
+     deliberately NOT the internal rock.tfh.org tokens (@brand-color #36454f,
+     10px radii, system font stack) — separate design system, do not mix.
+
+   BUTTONS
+     Register / Details / Sign-Ups Closed use native theme classes
+     (btn btn-primary, btn btn-default, btn btn-default disabled) so their
+     states match the rest of the site. Nothing here styles .btn — only the
+     row that lays them out.
+================================================================= */
+
+/* ---------- Tokens ---------- */
+@tfh-su-ink:        #000000;
+@tfh-su-ink-2:      #707378;  /* secondary text */
+@tfh-su-ink-off:    #A9AEB2;  /* disabled ink */
+@tfh-su-panel:      #F1F1F1;  /* cards, panels, pills */
+@tfh-su-track:      #E2E3E6;  /* bar track, at-capacity pill */
+@tfh-su-rule:       #C3C8CC;  /* hairline rules */
+@tfh-su-link:       #2D5BFF;
+@tfh-su-green:      #5D6F54;  /* bar fill, low-capacity pill */
+@tfh-su-green-soft: #B1C1A9;  /* available pill */
+@tfh-su-green-ink:  #21291F;  /* ink on the soft green pill */
+
+@tfh-su-radius:     20px;
+@tfh-su-pill:       99999px;
+@tfh-su-gap:        20px;
+
+@tfh-su-font:       "neue-haas-grotesk-text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+@tfh-su-font-disp:  "neue-haas-grotesk-display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+@tfh-su-ease:       cubic-bezier(.4, 0, .2, 1);
+
+.tfh-signup {
+  /* No outer padding or margin — Rock already pads the block, and a second
+     gutter here would inset this content from everything else on the page.
+     Horizontal auto-centering only. */
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: @tfh-su-font;
+  color: @tfh-su-ink;
+}
+
+/* ---------- Page head ---------- */
+.tfh-signup__head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 760px;
+  margin-bottom: 32px;
+}
+
+.tfh-signup__title {
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -1.6px;
+  margin: 0;
+  color: @tfh-su-ink;
+}
+
+.tfh-signup__intro {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: -0.6px;
+  color: @tfh-su-ink-2;
+  margin: 0;
+}
+
+.tfh-signup__back {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 400;
+  color: @tfh-su-link;
+  text-decoration: none;
+  margin-bottom: 24px;
+
+  &:hover,
+  &:focus {
+    color: @tfh-su-link;
+    text-decoration: underline;
+  }
+}
+
+/* ---------- Grids ---------- */
+.tfh-signup__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: @tfh-su-gap;
+}
+
+.tfh-signup__grid--opps {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* ---------- Group card (menu) ---------- */
+.tfh-signup-card {
+  display: flex;
+  flex-direction: column;
+  background: @tfh-su-panel;
+  border-radius: @tfh-su-radius;
+  overflow: hidden;
+  text-decoration: none;
+  color: @tfh-su-ink;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  transition: outline-color 160ms @tfh-su-ease;
+
+  &:hover,
+  &:focus {
+    outline-color: @tfh-su-ink;
+    text-decoration: none;
+    color: @tfh-su-ink;
+  }
+}
+
+.tfh-signup-card__photo {
+  display: block;
+  width: 100%;
+  height: 200px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.tfh-signup-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  flex: 1 1 auto;
+}
+
+.tfh-signup-card__name {
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+
+.tfh-signup-card__desc {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: -0.6px;
+  color: @tfh-su-ink-2;
+}
+
+.tfh-signup-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  margin-top: auto;
+}
+
+.tfh-signup-card__count {
+  font-size: 16px;
+  font-weight: 400;
+  color: @tfh-su-ink-2;
+}
+
+.tfh-signup-card__arrow {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: @tfh-su-pill;
+  background: @tfh-su-ink;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 160ms @tfh-su-ease;
+}
+
+.tfh-signup-card:hover .tfh-signup-card__arrow,
+.tfh-signup-card:focus .tfh-signup-card__arrow {
+  background: @tfh-su-link;
+}
+
+/* ---------- Group header ----------
+   The --nophoto modifier is emitted by the Lava when the group has no
+   ProjectImage. It replaces a :has() selector so dotless has nothing
+   exotic to compile. */
+.tfh-signup-group {
+  display: grid;
+  grid-template-columns: minmax(280px, 440px) 1fr;
+  gap: 40px;
+  align-items: start;
+  margin-bottom: 40px;
+}
+
+.tfh-signup-group--nophoto {
+  grid-template-columns: 1fr;
+}
+
+.tfh-signup-group__photo {
+  img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: @tfh-su-radius;
+    display: block;
+  }
+}
+
+.tfh-signup-group__text {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tfh-signup-group__eyebrow {
+  font-family: @tfh-su-font-disp;
+  font-size: 14px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: @tfh-su-ink-2;
+  margin: 0;
+}
+
+.tfh-signup-group__desc {
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.6px;
+  color: @tfh-su-ink-2;
+  max-width: 620px;
+
+  p:last-child { margin-bottom: 0; }
+}
+
+.tfh-signup-group__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tfh-signup-pill {
+  font-size: 16px;
+  font-weight: 400;
+  color: @tfh-su-ink;
+  background: @tfh-su-panel;
+  border-radius: @tfh-su-pill;
+  padding: 10px 16px;
+}
+
+/* ---------- Section head ---------- */
+.tfh-signup__sectionhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid @tfh-su-rule;
+  padding-bottom: 16px;
+  margin-bottom: @tfh-su-gap;
+}
+
+.tfh-signup__sectiontitle {
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -1px;
+  margin: 0;
+}
+
+.tfh-signup__tz {
+  font-size: 16px;
+  font-weight: 400;
+  color: @tfh-su-ink-2;
+}
+
+/* ---------- Opportunity card ---------- */
+.tfh-signup-opp {
+  display: flex;
+  flex-direction: column;
+  gap: @tfh-su-gap;
+  background: @tfh-su-panel;
+  border-radius: @tfh-su-radius;
+  padding: 24px;
+  min-height: 250px;
+}
+
+.tfh-signup-opp__date {
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.8px;
+  margin: 0;
+}
+
+.tfh-signup-opp__meta {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 400;
+  letter-spacing: -0.6px;
+  color: @tfh-su-ink-2;
+  margin: 0;
+}
+
+/* Cards use gap, so pull the stacked meta lines back together. */
+.tfh-signup-opp__date + .tfh-signup-opp__meta,
+.tfh-signup-opp__meta + .tfh-signup-opp__meta {
+  margin-top: -12px;
+}
+
+.tfh-signup-opp__cap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tfh-signup-opp__nolimit {
+  font-size: 16px;
+  font-weight: 400;
+  color: @tfh-su-ink-2;
+  margin: 0;
+}
+
+.tfh-signup-opp__note {
+  font-size: 16px;
+  line-height: 1.3;
+  color: @tfh-su-ink-2;
+  margin: 8px 0 0;
+}
+
+/* Layout only — the buttons themselves are native theme buttons. */
+.tfh-signup-opp__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+}
+
+/* ---------- Capacity pills + progress bar ---------- */
+.tfh-signup-spots {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: @tfh-su-pill;
+  padding: 8px 14px;
+  background: @tfh-su-green-soft;
+  color: @tfh-su-green-ink;
+}
+
+.tfh-signup-spots--low {
+  background: @tfh-su-green;
+  color: #FFFFFF;
+}
+
+.tfh-signup-spots--full {
+  background: @tfh-su-track;
+  color: @tfh-su-ink-2;
+}
+
+.tfh-signup-bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: @tfh-su-pill;
+  background: @tfh-su-track;
+  overflow: hidden;
+}
+
+.tfh-signup-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: @tfh-su-pill;
+  background: @tfh-su-green;
+}
+
+/* ---------- Opportunity detail ---------- */
+.tfh-signup-detail {
+  display: grid;
+  grid-template-columns: minmax(280px, 440px) 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.tfh-signup-detail--nophoto {
+  grid-template-columns: 1fr;
+}
+
+.tfh-signup-detail__photo {
+  img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: @tfh-su-radius;
+    display: block;
+  }
+}
+
+.tfh-signup-detail__text {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tfh-signup-detail__desc {
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.6px;
+  color: @tfh-su-ink-2;
+  max-width: 620px;
+
+  p:last-child { margin-bottom: 0; }
+}
+
+/* ---------- Empty state ---------- */
+.tfh-signup-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  background: @tfh-su-panel;
+  border-radius: @tfh-su-radius;
+  padding: 64px 40px;
+}
+
+.tfh-signup-empty__title {
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -1px;
+  margin: 0;
+}
+
+.tfh-signup-empty__body {
+  font-size: 18px;
+  line-height: 1.4;
+  color: @tfh-su-ink-2;
+  max-width: 520px;
+  margin: 0;
+}
+
+/* ---------- Responsive ----------
+   Both grids are auto-fill minmax(), so they collapse on their own. Only the
+   two-column header layouts need an explicit stack. */
+@media (max-width: 720px) {
+  .tfh-signup-group,
+  .tfh-signup-detail {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .tfh-signup__title {
+    font-size: 32px;
+    letter-spacing: -1.2px;
+  }
+
+  .tfh-signup__grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Keep tap targets comfortable when the actions wrap. */
+  .tfh-signup-opp__actions .btn {
+    min-height: 44px;
+  }
+}
