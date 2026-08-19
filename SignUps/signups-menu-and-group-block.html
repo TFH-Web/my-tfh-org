@@ -78,25 +78,11 @@
 
 {%- comment -%} ---------- ROUTE PARAM ---------- {%- endcomment -%}
 {%- comment -%}
-  Strip everything that is not a lowercase letter, digit or hyphen. This
-  neutralises injection on its own; the bound @slug parameter is a second layer.
+  Normalise the inbound slug to [a-z0-9-]. This is the same strip applied to the
+  SQL-derived name-slug on the generation side, which is what keeps the two
+  symmetrical -- see the resolution block in the group view below.
 {%- endcomment -%}
 {%- assign slug = PageParameter.Slug | Downcase | RegExReplace:'[^a-z0-9-]','' -%}
-{%- comment -%}
-  Pull the trailing integer off the slug. The menu always appends the group Id
-  (`kids-min-orientation-345104`), so this is the normal resolution path.
-
-  The greedy `^.*-` strips everything up to the LAST hyphen, so a group whose
-  name itself ends in digits still resolves correctly:
-      serve-day-2024-345104  ->  345104
-
-  If a URL arrives with no trailing integer at all, this yields nothing and the
-  group cannot be resolved -- which is correct, since the Id is the only key.
-  '0' is used rather than an empty string because TRY_CAST('' AS INT) is 0 in
-  SQL Server, and no group has Id 0.
-{%- endcomment -%}
-{%- assign slugGroupId = slug | RegExReplace:'^.*-','' | RegExReplace:'[^0-9]','' -%}
-{%- if slugGroupId == empty -%}{%- assign slugGroupId = '0' -%}{%- endif -%}
 
 
 
@@ -168,17 +154,12 @@
     SELECT  g.Id                                   AS GroupId,
             g.Name                                 AS GroupName,
             ISNULL(g.Description, '')              AS Description,
-            -- Slug derived from the group name with the group Id appended.
-            -- GENERATION ONLY -- resolution matches on the trailing integer Id
-            -- alone (see the Matched CTE below), never on this string. That is
-            -- what makes the name half safe: punctuation a group name happens to
-            -- contain cannot break the link, and two groups sharing a name cannot
-            -- collide and silently serve the wrong one.
+            -- RAW name-slug. Callers must pipe it through the same
+            -- RegExReplace:'[^a-z0-9-]','' used on the inbound slug, so the
+            -- generated link and the match normalise identically.
             LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
                        g.Name, '''', ''), '&', 'and'), '.', ''), ',', ''),
-                       '/', '-'), ':', ''), ' ', '-'))
-                   + '-' + CAST(g.Id AS VARCHAR(10))
-                                                   AS Slug,
+                       '/', '-'), ':', ''), ' ', '-')) AS NameSlug,
             ISNULL(imgav.Value, '')                AS ImageGuid,
             COUNT(*)                               AS UpcomingCount,
             COUNT(DISTINCT lc.CampusName)          AS CampusCount,
@@ -204,7 +185,7 @@
   {%- if menuRows and menuRows != empty -%}
   <div class="signup__grid">
     {%- for row in menuRows -%}
-    <a class="signup-card" href="{{ menuUrl }}/{{ row.Slug }}">
+    <a class="signup-card" href="{{ menuUrl }}/{{ row.NameSlug | RegExReplace:'[^a-z0-9-]','' }}">
       {%- comment -%} Design rule: no image => no photo band. Never an empty grey box. {%- endcomment -%}
       {%- if row.ImageGuid != '' -%}
       <span class="signup-card__photo">
@@ -247,7 +228,45 @@
      One group's header plus a card per upcoming opportunity.
 ================================================================= {%- endcomment -%}
 
-{% sql return:'oppRows' slugGroupId:'{{ slugGroupId }}' groupTypeId:'{{ signUpGroupTypeId }}' campusType:'{{ campusTypeGuid }}' campusStatus:'{{ campusStatusGuid }}' %}
+{%- comment -%}
+  Resolve the slug to a group Id.
+
+  The slug is the group name only -- no Id -- so matching is by string, and the
+  two sides MUST normalise identically. They do, by construction: SQL supplies a
+  raw name-slug, and both this match and the link generation pipe it through the
+  same `RegExReplace:'[^a-z0-9-]',''`. Whatever characters the SQL REPLACE chain
+  leaves behind, the same input produces the same output on both sides, so a
+  group name containing parentheses or a curly apostrophe cannot break the link.
+
+  That final strip is why the normalisation happens in Lava rather than in SQL:
+  SQL has no regex replace, so it cannot enumerate every character safely.
+
+  The candidate list is every eligible sign-up group -- currently 8 rows -- so
+  looping it in Lava is cheaper than the join it replaces.
+
+  '0' is the sentinel for "no match": TRY_CAST('' AS INT) is 0 in SQL Server and
+  no group has Id 0.
+{%- endcomment -%}
+{% sql return:'candidates' groupTypeId:'{{ signUpGroupTypeId }}' %}
+    SELECT  g.Id    AS GroupId,
+            LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                       g.Name, '''', ''), '&', 'and'), '.', ''), ',', ''),
+                       '/', '-'), ':', ''), ' ', '-')) AS NameSlug
+    FROM    [Group] g
+    WHERE   g.GroupTypeId = @groupTypeId
+      AND   g.IsActive = 1
+      AND   g.IsPublic = 1
+      AND   g.ParentGroupId IS NOT NULL   -- exclude the root "Sign-Up Groups" container
+{% endsql %}
+{%- assign matchedGroupId = '0' -%}
+{%- for c in candidates -%}
+  {%- assign cSlug = c.NameSlug | RegExReplace:'[^a-z0-9-]','' -%}
+  {%- if matchedGroupId == '0' and cSlug == slug -%}
+    {%- assign matchedGroupId = c.GroupId -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{% sql return:'oppRows' groupId:'{{ matchedGroupId }}' groupTypeId:'{{ signUpGroupTypeId }}' campusType:'{{ campusTypeGuid }}' campusStatus:'{{ campusStatusGuid }}' %}
     ;WITH AllowedCampus AS (
         SELECT c.Id, c.Name, c.LocationId
         FROM   Campus c
@@ -282,14 +301,7 @@
     Matched AS (
         -- Resolve to exactly one group by the trailing Id from the URL.
         SELECT TOP 1 g.Id, g.Name, ISNULL(g.Description, '') AS Description,
-               ISNULL(imgav.Value, '') AS ImageGuid,
-               -- Canonical slug for the links this page renders, so a stale or
-               -- hand-edited name half is normalised on the way back out.
-               -- Generation only, exactly as in the menu query above.
-               LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-                       g.Name, '''', ''), '&', 'and'), '.', ''), ',', ''),
-                       '/', '-'), ':', ''), ' ', '-'))
-               + '-' + CAST(g.Id AS VARCHAR(10)) AS Slug
+               ISNULL(imgav.Value, '') AS ImageGuid
         FROM   [Group] g
         LEFT   JOIN Attribute ia       ON ia.[Key] = 'ProjectImage'
                                       AND ia.EntityTypeQualifierColumn = 'GroupTypeId'
@@ -299,13 +311,12 @@
           AND  g.IsActive = 1
           AND  g.IsPublic = 1
           AND  g.ParentGroupId IS NOT NULL   -- exclude the root "Sign-Up Groups" container
-          AND  g.Id = TRY_CAST(@slugGroupId AS INT)
+          AND  g.Id = TRY_CAST(@groupId AS INT)
     )
     SELECT  m.Id                                AS GroupId,
             m.Name                              AS GroupName,
             m.Description                       AS Description,
             m.ImageGuid                         AS ImageGuid,
-            m.Slug                              AS Slug,
             l.Id                                AS LocationId,
             ISNULL(l.Name, '')                  AS LocationName,
             ISNULL(lc.CampusName, '')           AS CampusName,
@@ -448,8 +459,8 @@
       {% location id:'{{ row.LocationId }}' %}{%- assign locIdKey = location.IdKey -%}{% endlocation %}
       {% schedule id:'{{ row.ScheduleId }}' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
 
-      {%- capture detailUrl -%}{{ menuUrl }}/{{ head.Slug }}/{{ row.ScheduleId }}{%- endcapture -%}
-      {%- capture registerUrl -%}{{ menuUrl }}/{{ head.Slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
+      {%- capture detailUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}{%- endcapture -%}
+      {%- capture registerUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
 
     <div class="signup-opp">
       <p class="signup-opp__date">{{ row.StartsAt | Date:'dddd, MMM d' }}</p>

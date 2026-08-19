@@ -202,10 +202,15 @@ one silently swallows the other.
 query-string values. Never name a route segment the same as a query parameter
 a Rock block needs, or the route value shadows it and the block fails silently.
 
-**Public URL slugs:** slugs are derived from the entity name with its Id
-appended (`kids-min-orientation-345104`) and are resolved by that **integer**,
-never by the name. No admin-editable slug field — the URL is a pure function of
-data already in Rock. Two reasons: names collide (annual repeats, per-campus duplicates) and
+**Public URL slugs:** derived from the entity name, with no Id and no
+admin-editable override — the URL is a pure function of data already in Rock.
+Because that makes resolution a string match, **normalise in Lava, not SQL.**
+SQL has no regex replace, so a SQL-side slug can only enumerate characters and
+will always miss some; have SQL emit a raw slug and pipe it through the same
+`RegExReplace:'[^a-z0-9-]',''` on *both* the generation and matching sides, so
+they agree by construction. Matching a SQL-derived slug against a
+Lava-sanitised inbound one is two different normalisations and silently breaks
+links for any name containing punctuation. Two reasons: names collide (annual repeats, per-campus duplicates) and
 would otherwise silently resolve to whichever row sorts first; and an inbound
 URL segment must be sanitised to `[a-z0-9-]`, so any name-derived string
 containing other characters — `(`, `?`, `#`, a curly apostrophe `’` — cannot

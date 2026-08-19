@@ -18,35 +18,45 @@ Public, marketing-linkable views of Rock's Sign-Up feature on **my.tfh.org**
 /signups/{Slug}/{Occurrence}/register        page 3718   Rock's Sign-Up Register block
 ```
 
-`Slug` = the group name, slugified, **with the group Id appended** —
-`kids-min-orientation-345104`. Generated entirely from data already in Rock;
-there is no attribute to create and nothing for an admin to fill in.
+`Slug` = the slugified group name — `kids-min-orientation`. Derived entirely
+from data already in Rock; there is no attribute to create and nothing for an
+admin to fill in.
 `Occurrence` = the raw integer Schedule Id.
 
-### Why the Id is in the slug
+### Why the slug is normalised in Lava, not SQL
 
-Resolution matches on that **trailing integer**, not on the name. Two
-consequences, both deliberate:
+The slug is a name with no Id, so resolution is a **string match** — and the two
+sides have to normalise identically or links break. They do, by construction:
 
-- **Collisions are impossible.** Two groups sharing a name — an annual repeat, or
-  the same sign-up run at two campuses — would previously derive the same slug,
-  and the resolver's `TOP 1 ... ORDER BY g.Id` would silently serve the older one
-  while the newer became unreachable. No error, no hint.
-- **Group names can contain anything.** Because nothing is matched by string, the
-  name half of the slug never has to survive a round trip. That matters: the
-  inbound slug is sanitised to `[a-z0-9-]`, so before this change any character
-  the SQL derivation left in place — `(`, `)`, `?`, `!`, `+`, `#`, a curly
-  apostrophe `’` — appeared in the generated link, was stripped on the way back
-  in, and failed to match. A group named `Pastor’s Lunch` would 404. Now the name
-  half is cosmetic and cannot break anything.
+1. SQL derives a **raw** name-slug (the `REPLACE` chain). Its output may still
+   contain odd characters; that is fine and deliberate.
+2. **Both** the link generation and the match then pipe that raw value through
+   the same `RegExReplace:'[^a-z0-9-]',''`.
 
-A useful consequence: **renaming a group does not break existing links.** The
-name half of the slug changes, but the trailing Id still resolves, so anything
-already printed or emailed keeps working and simply shows the new name.
+Same input, same chain, same strip on both sides — so they are equal whatever the
+chain leaves behind. A group named `Pastor's Lunch` with a curly apostrophe, or
+`Serve Day (Napa)` with parentheses, resolves correctly without the chain having
+to know about those characters.
 
-There is deliberately **no admin-editable slug override**. Custom slugs would be
-another field to maintain, another thing to get wrong, and another way for a
-printed URL to stop matching. The trade is that every URL carries a number.
+That final strip is why normalisation lives in Lava. SQL has no regex replace, so
+a SQL-side derivation can only enumerate characters one at a time and will always
+be incomplete. The earlier version matched the SQL chain's output directly against
+the Lava-sanitised inbound slug — two *different* normalisations — and any
+character the chain missed produced a dead link.
+
+Resolution therefore runs in two steps: a small query returns every eligible
+group with its raw slug (currently 8 rows), Lava finds the match, and the main
+query then fetches by integer group Id.
+
+### Two things this costs
+
+- **Name collisions are possible.** Two groups deriving the same slug — an annual
+  repeat, or the same sign-up at two campuses — resolve to whichever the loop
+  reaches first, and the other becomes unreachable with no error. Accepted as an
+  admin-side concern: keep public sign-up group names distinct.
+- **Renaming a group breaks existing links.** The slug is the name, so a rename
+  changes the URL and anything already printed or emailed 404s. Rename before
+  publicising a link, not after.
 
 **Plural `signups`, not `signup`.** The singular two-segment slot is already
 taken by `signup/{OpportunityId}` on page 3377 (Interest List, a Connection
@@ -138,7 +148,7 @@ These are deliberate, driven by what the data and platform actually support.
 | Custom black/inverting buttons | `btn btn-primary` / `btn btn-default` | Requested: native theme buttons so states match the rest of the site. Nothing in the CSS touches `.btn`. |
 | One action per opportunity card | Two — Details + Register | Requested, to reach the new opportunity detail page. |
 | Duration pill on every card | Only when > 0 minutes | Most schedules have `DTEND = DTSTART + 1 second`, i.e. no duration was set. The pill would read "0 min". |
-| `PublicSlug` group attribute as the URL key | Slug derived from the name + group Id | The handoff advised an attribute and warned against Ids in the URL. Rejected: an optional field an admin must remember is a worse failure mode than a number in the URL, and resolving on the Id is what makes the name half safe to derive. |
+| `PublicSlug` group attribute as the URL key | Slug derived from the group name | The handoff advised an attribute; rejected because an optional field an admin must remember to fill in is a worse failure mode than deriving the URL from data already present. Its other advice — don't put Ids in the URL — is followed. |
 | Group photo band | Omitted when absent | As specified — never an empty grey box. Note **6 of 8 groups have no `ProjectImage`**, including both groups with upcoming dates. |
 
 ## Content gaps worth fixing
