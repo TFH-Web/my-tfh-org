@@ -18,8 +18,31 @@ Public, marketing-linkable views of Rock's Sign-Up feature on **my.tfh.org**
 /signups/{Slug}/{Occurrence}/register        page 3718   Rock's Sign-Up Register block
 ```
 
-`Slug` = the group's `PublicSlug` attribute (falls back to a name-derived slug).
+`Slug` = the group's `PublicSlug` attribute if set, otherwise a name-derived
+slug **with the group Id appended** — `kids-min-orientation-345104`.
 `Occurrence` = the raw integer Schedule Id.
+
+### Why the Id is in the slug
+
+Resolution matches on that **trailing integer**, not on the name. Two
+consequences, both deliberate:
+
+- **Collisions are impossible.** Two groups sharing a name — an annual repeat, or
+  the same sign-up run at two campuses — would previously derive the same slug,
+  and the resolver's `TOP 1 ... ORDER BY g.Id` would silently serve the older one
+  while the newer became unreachable. No error, no hint.
+- **Group names can contain anything.** Because nothing is matched by string, the
+  name half of the slug never has to survive a round trip. That matters: the
+  inbound slug is sanitised to `[a-z0-9-]`, so before this change any character
+  the SQL derivation left in place — `(`, `)`, `?`, `!`, `+`, `#`, a curly
+  apostrophe `’` — appeared in the generated link, was stripped on the way back
+  in, and failed to match. A group named `Pastor’s Lunch` would 404. Now the name
+  half is cosmetic and cannot break anything.
+
+`PublicSlug` remains the way to get a clean vanity URL with no number in it
+(`/signups/kids-min-orientation`), which is what marketing should be handed for
+anything printed. It is matched by plain equality on the stored value — nothing
+is derived — so it is immune to the same problem.
 
 **Plural `signups`, not `signup`.** The singular two-segment slot is already
 taken by `signup/{OpportunityId}` on page 3377 (Interest List, a Connection
@@ -34,10 +57,16 @@ Admin → General Settings → Group Types → **Sign-Up Group** (id 176) → Gr
 - Key `PublicSlug`, type **Text**
 - Populate for each group you want a clean URL for, e.g. `kids-min-orientation`
 
-Optional — links work before this exists, because the block falls back to a
-slug derived from the group name (`Kids Min Orientation` → `kids-min-orientation`).
-Set it explicitly for anything marketing is handing out, so a group rename
-doesn't break a printed link.
+**Optional.** Links work before this attribute exists at all — the queries reach
+it via `LEFT JOIN`, so with no attribute defined `av.Value` is NULL and the
+derived `name-id` slug is used instead. Verified: as of Aug 2026 only
+`ProjectImage` exists on GroupType 176, so the derived form is what is live.
+
+Set `PublicSlug` when you want a clean URL with no number
+(`/signups/kids-min-orientation`) — worth doing for anything printed or emailed,
+since it also survives a group rename. The derived slug does not: rename the
+group and its name half changes, though the trailing Id still resolves, so old
+links keep working.
 
 ### 2. Routes
 

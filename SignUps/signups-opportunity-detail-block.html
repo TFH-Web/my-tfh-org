@@ -37,6 +37,21 @@
 {%- comment -%} ---------- ROUTE PARAMS (sanitised) ---------- {%- endcomment -%}
 {%- assign slug      = PageParameter.Slug | Downcase | RegExReplace:'[^a-z0-9-]','' -%}
 {%- assign occurrence = PageParameter.Occurrence | RegExReplace:'[^0-9]','' -%}
+{%- comment -%}
+  Pull the trailing integer off the slug. The menu always appends the group Id
+  (`kids-min-orientation-345104`), so this is the normal resolution path.
+
+  The greedy `^.*-` strips everything up to the LAST hyphen, so a group whose
+  name itself ends in digits still resolves correctly:
+      serve-day-2024-345104  ->  345104
+
+  A PublicSlug vanity URL carries no Id, so this yields nothing and we fall back
+  to matching the stored attribute value. '0' is used rather than an empty string
+  because TRY_CAST('' AS INT) is 0 in SQL Server, and no group has Id 0.
+{%- endcomment -%}
+{%- assign slugGroupId = slug | RegExReplace:'^.*-','' | RegExReplace:'[^0-9]','' -%}
+{%- if slugGroupId == empty -%}{%- assign slugGroupId = '0' -%}{%- endif -%}
+
 
 {%- if slug == empty or occurrence == empty -%}
 
@@ -50,7 +65,7 @@
 
 {%- else -%}
 
-{% sql return:'rows' slug:'{{ slug }}' scheduleId:'{{ occurrence }}' groupTypeId:'{{ signUpGroupTypeId }}' campusType:'{{ campusTypeGuid }}' campusStatus:'{{ campusStatusGuid }}' %}
+{% sql return:'rows' slug:'{{ slug }}' slugGroupId:'{{ slugGroupId }}' scheduleId:'{{ occurrence }}' groupTypeId:'{{ signUpGroupTypeId }}' campusType:'{{ campusTypeGuid }}' campusStatus:'{{ campusStatusGuid }}' %}
     ;WITH AllowedCampus AS (
         SELECT c.Id, c.Name, c.LocationId
         FROM   Campus c
@@ -97,13 +112,18 @@
         WHERE  g.GroupTypeId = @groupTypeId
           AND  g.IsActive = 1
           AND  g.IsPublic = 1
+          AND  g.ParentGroupId IS NOT NULL   -- exclude the root "Sign-Up Groups" container
           AND  (
-                LOWER(av.Value) = @slug
-                OR LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-                       g.Name, '''', ''), '&', 'and'), '.', ''), ',', ''),
-                       '/', '-'), ':', ''), ' ', '-')) = @slug
+                -- Primary: the trailing integer Id the menu always appends. Matching
+                -- on an Id rather than a derived name means no string has to survive
+                -- a round trip through the URL, so punctuation in a group name
+                -- cannot break the link.
+                g.Id = TRY_CAST(@slugGroupId AS INT)
+                -- Fallback: a PublicSlug vanity URL, which carries no Id. Plain
+                -- equality on the stored value -- nothing is derived.
+                OR LOWER(av.Value) = @slug
                )
-        ORDER BY CASE WHEN LOWER(av.Value) = @slug THEN 0 ELSE 1 END, g.Id
+        ORDER BY CASE WHEN g.Id = TRY_CAST(@slugGroupId AS INT) THEN 0 ELSE 1 END, g.Id
     )
     -- A Schedule is expected to map to exactly one location within a group, but a
     -- shared NAMED schedule could legitimately map to several. Every match is

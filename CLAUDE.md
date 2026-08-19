@@ -197,6 +197,14 @@ one silently swallows the other.
 query-string values. Never name a route segment the same as a query parameter
 a Rock block needs, or the route value shadows it and the block fails silently.
 
+**Public URL slugs:** derived slugs carry the entity Id on the end
+(`kids-min-orientation-345104`) and are resolved by that **integer**, never by
+the name. Two reasons: names collide (annual repeats, per-campus duplicates) and
+would otherwise silently resolve to whichever row sorts first; and an inbound
+URL segment must be sanitised to `[a-z0-9-]`, so any name-derived string
+containing other characters — `(`, `?`, `#`, a curly apostrophe `’` — cannot
+survive the round trip. Keep the name half cosmetic.
+
 ---
 
 ## Rock Sign-Up feature — verified constraints
