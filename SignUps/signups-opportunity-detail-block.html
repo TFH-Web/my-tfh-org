@@ -6,7 +6,8 @@
 
      ROUTE
        /signups/{Slug}/{Occurrence}
-         Slug       — the group's PublicSlug (or name-derived fallback)
+         Slug       — group name slug + group Id (e.g. kids-min-orientation-345104);
+                      only the trailing Id is used to resolve the group
          Occurrence — the raw integer Schedule Id of one opportunity
 
      !! DO NOT name the second route parameter `ScheduleId` !!
@@ -45,9 +46,10 @@
   name itself ends in digits still resolves correctly:
       serve-day-2024-345104  ->  345104
 
-  A PublicSlug vanity URL carries no Id, so this yields nothing and we fall back
-  to matching the stored attribute value. '0' is used rather than an empty string
-  because TRY_CAST('' AS INT) is 0 in SQL Server, and no group has Id 0.
+  If a URL arrives with no trailing integer at all, this yields nothing and the
+  group cannot be resolved -- which is correct, since the Id is the only key.
+  '0' is used rather than an empty string because TRY_CAST('' AS INT) is 0 in
+  SQL Server, and no group has Id 0.
 {%- endcomment -%}
 {%- assign slugGroupId = slug | RegExReplace:'^.*-','' | RegExReplace:'[^0-9]','' -%}
 {%- if slugGroupId == empty -%}{%- assign slugGroupId = '0' -%}{%- endif -%}
@@ -65,7 +67,7 @@
 
 {%- else -%}
 
-{% sql return:'rows' slug:'{{ slug }}' slugGroupId:'{{ slugGroupId }}' scheduleId:'{{ occurrence }}' groupTypeId:'{{ signUpGroupTypeId }}' campusType:'{{ campusTypeGuid }}' campusStatus:'{{ campusStatusGuid }}' %}
+{% sql return:'rows' slugGroupId:'{{ slugGroupId }}' scheduleId:'{{ occurrence }}' groupTypeId:'{{ signUpGroupTypeId }}' campusType:'{{ campusTypeGuid }}' campusStatus:'{{ campusStatusGuid }}' %}
     ;WITH AllowedCampus AS (
         SELECT c.Id, c.Name, c.LocationId
         FROM   Campus c
@@ -99,12 +101,15 @@
     ),
     Matched AS (
         SELECT TOP 1 g.Id, g.Name, ISNULL(g.Description, '') AS Description,
-               ISNULL(imgav.Value, '') AS ImageGuid
+               ISNULL(imgav.Value, '') AS ImageGuid,
+               -- Canonical slug for the links this page renders, so a stale or
+               -- hand-edited name half is normalised on the way back out.
+               -- Generation only, exactly as in the menu query above.
+               LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                       g.Name, '''', ''), '&', 'and'), '.', ''), ',', ''),
+                       '/', '-'), ':', ''), ' ', '-'))
+               + '-' + CAST(g.Id AS VARCHAR(10)) AS Slug
         FROM   [Group] g
-        LEFT   JOIN Attribute a       ON a.[Key] = 'PublicSlug'
-                                     AND a.EntityTypeQualifierColumn = 'GroupTypeId'
-                                     AND a.EntityTypeQualifierValue = CAST(@groupTypeId AS VARCHAR(10))
-        LEFT   JOIN AttributeValue av ON av.AttributeId = a.Id AND av.EntityId = g.Id
         LEFT   JOIN Attribute ia      ON ia.[Key] = 'ProjectImage'
                                      AND ia.EntityTypeQualifierColumn = 'GroupTypeId'
                                      AND ia.EntityTypeQualifierValue = CAST(@groupTypeId AS VARCHAR(10))
@@ -113,17 +118,7 @@
           AND  g.IsActive = 1
           AND  g.IsPublic = 1
           AND  g.ParentGroupId IS NOT NULL   -- exclude the root "Sign-Up Groups" container
-          AND  (
-                -- Primary: the trailing integer Id the menu always appends. Matching
-                -- on an Id rather than a derived name means no string has to survive
-                -- a round trip through the URL, so punctuation in a group name
-                -- cannot break the link.
-                g.Id = TRY_CAST(@slugGroupId AS INT)
-                -- Fallback: a PublicSlug vanity URL, which carries no Id. Plain
-                -- equality on the stored value -- nothing is derived.
-                OR LOWER(av.Value) = @slug
-               )
-        ORDER BY CASE WHEN g.Id = TRY_CAST(@slugGroupId AS INT) THEN 0 ELSE 1 END, g.Id
+          AND  g.Id = TRY_CAST(@slugGroupId AS INT)
     )
     -- A Schedule is expected to map to exactly one location within a group, but a
     -- shared NAMED schedule could legitimately map to several. Every match is
@@ -182,7 +177,7 @@
 
 <div class="signup">
 
-  <a class="signup__back" href="{{ menuUrl }}/{{ slug }}">&larr; {{ head.GroupName }}</a>
+  <a class="signup__back" href="{{ menuUrl }}/{{ head.Slug }}">&larr; {{ head.GroupName }}</a>
 
   {%- for row in rows -%}
     {%- assign hasCap    = false -%}
@@ -206,7 +201,7 @@
     {%- assign schIdKey = '' -%}
     {% location id:'{{ row.LocationId }}' %}{%- assign locIdKey = location.IdKey -%}{% endlocation %}
     {% schedule id:'{{ row.ScheduleId }}' %}{%- assign schIdKey = schedule.IdKey -%}{% endschedule %}
-    {%- capture registerUrl -%}{{ menuUrl }}/{{ slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
+    {%- capture registerUrl -%}{{ menuUrl }}/{{ head.Slug }}/{{ row.ScheduleId }}/register?ProjectId={{ groupIdKey }}&LocationId={{ locIdKey }}&ScheduleId={{ schIdKey }}{%- endcapture -%}
 
   <article class="signup-detail{% if head.ImageGuid == '' %} signup-detail--nophoto{% endif %}">
     {%- if head.ImageGuid != '' -%}

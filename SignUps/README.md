@@ -18,8 +18,9 @@ Public, marketing-linkable views of Rock's Sign-Up feature on **my.tfh.org**
 /signups/{Slug}/{Occurrence}/register        page 3718   Rock's Sign-Up Register block
 ```
 
-`Slug` = the group's `PublicSlug` attribute if set, otherwise a name-derived
-slug **with the group Id appended** — `kids-min-orientation-345104`.
+`Slug` = the group name, slugified, **with the group Id appended** —
+`kids-min-orientation-345104`. Generated entirely from data already in Rock;
+there is no attribute to create and nothing for an admin to fill in.
 `Occurrence` = the raw integer Schedule Id.
 
 ### Why the Id is in the slug
@@ -39,10 +40,13 @@ consequences, both deliberate:
   in, and failed to match. A group named `Pastor’s Lunch` would 404. Now the name
   half is cosmetic and cannot break anything.
 
-`PublicSlug` remains the way to get a clean vanity URL with no number in it
-(`/signups/kids-min-orientation`), which is what marketing should be handed for
-anything printed. It is matched by plain equality on the stored value — nothing
-is derived — so it is immune to the same problem.
+A useful consequence: **renaming a group does not break existing links.** The
+name half of the slug changes, but the trailing Id still resolves, so anything
+already printed or emailed keeps working and simply shows the new name.
+
+There is deliberately **no admin-editable slug override**. Custom slugs would be
+another field to maintain, another thing to get wrong, and another way for a
+printed URL to stop matching. The trade is that every URL carries a number.
 
 **Plural `signups`, not `signup`.** The singular two-segment slot is already
 taken by `signup/{OpportunityId}` on page 3377 (Interest List, a Connection
@@ -51,24 +55,7 @@ site and cannot coexist — one would silently swallow the other.
 
 ## Setup steps in Rock
 
-### 1. Add the `PublicSlug` group attribute
-Admin → General Settings → Group Types → **Sign-Up Group** (id 176) → Group Attributes
-
-- Key `PublicSlug`, type **Text**
-- Populate for each group you want a clean URL for, e.g. `kids-min-orientation`
-
-**Optional.** Links work before this attribute exists at all — the queries reach
-it via `LEFT JOIN`, so with no attribute defined `av.Value` is NULL and the
-derived `name-id` slug is used instead. Verified: as of Aug 2026 only
-`ProjectImage` exists on GroupType 176, so the derived form is what is live.
-
-Set `PublicSlug` when you want a clean URL with no number
-(`/signups/kids-min-orientation`) — worth doing for anything printed or emailed,
-since it also survives a group rename. The derived slug does not: rename the
-group and its name half changes, though the trailing Id still resolves, so old
-links keep working.
-
-### 2. Routes
+### 1. Routes
 
 | Page | Add route | Remove |
 |---|---|---|
@@ -82,7 +69,7 @@ links keep working.
 > same name holding a raw integer shadows it and breaks registration with no
 > visible error.
 
-### 3. Swap the blocks
+### 2. Swap the blocks
 - **Page 3716** — remove the Sign-Up Finder block (7907), add an HTML Content block
 - **Page 3717** — remove the Sign-Up Detail block (7908), add an HTML Content block
 - **Page 3718** — leave exactly as it is. Rock's Sign-Up Register block stays.
@@ -94,7 +81,7 @@ On both new HTML Content blocks:
 | Enabled Lava Commands | **Sql, RockEntity** (both required) |
 | Cache Duration | **0** — capacity must never be cached |
 
-### 4. Styles
+### 3. Styles
 Styles live in **`theme/Styles/_css-overrides.less`, section 22** — the file
 `theme.less` imports at line 861, which is what backs
 Admin → CMS → Themes → **MyTFH-2021** → Theme Styler → **CSS Overrides**.
@@ -151,6 +138,7 @@ These are deliberate, driven by what the data and platform actually support.
 | Custom black/inverting buttons | `btn btn-primary` / `btn btn-default` | Requested: native theme buttons so states match the rest of the site. Nothing in the CSS touches `.btn`. |
 | One action per opportunity card | Two — Details + Register | Requested, to reach the new opportunity detail page. |
 | Duration pill on every card | Only when > 0 minutes | Most schedules have `DTEND = DTSTART + 1 second`, i.e. no duration was set. The pill would read "0 min". |
+| `PublicSlug` group attribute as the URL key | Slug derived from the name + group Id | The handoff advised an attribute and warned against Ids in the URL. Rejected: an optional field an admin must remember is a worse failure mode than a number in the URL, and resolving on the Id is what makes the name half safe to derive. |
 | Group photo band | Omitted when absent | As specified — never an empty grey box. Note **6 of 8 groups have no `ProjectImage`**, including both groups with upcoming dates. |
 
 ## Content gaps worth fixing
