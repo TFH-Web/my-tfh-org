@@ -1,0 +1,1084 @@
+// Table of Contents
+// -------------------------
+// 0. Variables
+// 1. Buttons & Links
+// 2. Background Colors
+// 3. Alerts
+// 4. Rotator
+// 5. Header
+// 6. Cards
+// 7. Panels
+// 8. Control Gallery & Forms
+// 9. Registrations
+// 10. hr tags
+// 11. Profile Image Fixes
+// 12. Grids
+// 13. Animations
+// 14. Update Panel Dialoge Modal
+// 15. Dark Mode (In Development)
+// 16. Progress Breadcrum Overrides
+// 17. HTML Note Entry Block hide options
+// 18. Specific Page Styles
+//      18.1 Groups Resource Pages
+// 19. Pledge Toolbox Components
+// 20. Timeline Layout
+// 21. Tables
+
+
+
+
+
+// 0. VARIABLES
+// -------------------------
+
+@screen-sm-min: 768px;  // Tablets
+@screen-md-min: 992px;  // Medium Desktops
+@screen-lg-min: 1200px; // Large and Desktop
+@screen-xl-min: 1480px; // Extra large devices
+
+
+
+
+// 1. Buttons & Links
+// -------------------------
+main {
+  .well {
+    border-radius: 0;
+  }
+  .btn {
+    padding: 10px 25px;
+    font-weight: 400;
+    width: 100%;
+    max-width: 200px;
+    font-size: 14px;
+    &.btn-lg {
+      border-radius: @border-radius-base;
+      width: 100%;
+      max-width: 250px;
+      padding: @padding-vertical 0;
+    }
+    &.btn-sm {
+      border-radius: @border-radius-sm;
+      padding: @padding-vertical-sm @padding-horizontal-sm;
+      width: auto;
+      max-width: inherit;
+    }
+
+    &.btn-xs {
+      border-radius: @border-radius-xs;
+      padding: @padding-vertical-xs @padding-horizontal-xs;
+      width: auto;
+      max-width: inherit;
+    }
+    &.btn-link {
+      padding: 0;
+      width: auto;
+      vertical-align: middle;
+      font-weight: 400;
+      font-size: 16px;
+      i {
+        vertical-align: middle;
+      }
+    }
+  }
+  .btn-danger {
+      color: #fff !important;
+      background-color: #c85f53 !important;
+      border-color: #c24d40 !important;
+      &:hover {
+          color: #fff !important;
+          background-color: #b04438 !important;
+          border-color: #953a30 !important;
+      }
+    }
+    .link:hover {
+      text-decoration: underline;
+    }
+    input.btn.btn-link {
+        padding: 10px 25px;
+        font-size: 14px;
+    }
+    
+    //Intercession Ministry Buttons
+    .btn-intercession, .intercession a.btn-primary {
+        color:#fff;
+        background-color:#383D36;
+        border-color:#383D36;
+    }
+    .btn-intercession:hover, .intercession a.btn-primary:hover {
+        background-color: #7f7f7e;
+    }
+    .btn-intercession-fasting, .intercession-fasting a.btn-primary {
+        color:#fff;
+        background-color:#73669e;
+        border-color:#887AB5;
+    }
+    .btn-intercession-fasting:hover, .intercession-fasting a.btn-primary:hover {
+        background-color: #c3b8e9;
+    }
+}
+
+// 2. Background Colors
+// -------------------------
+main {
+  .bg-gray {
+    background-color:@gray;
+  }
+  .bg-gray-light {
+    background-color:@gray-light;
+  }
+  .bg-gray-lighter {
+    background-color:@gray-lighter;
+  }
+  .bg-gray-dark {
+    background-color:@gray-dark;
+  }
+  .bg-gray-darker {
+    background-color:@gray-darker;
+  }
+}
+
+// 3. Alerts
+// -------------------------
+main {
+  .alert {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    padding: 15px 30px;
+    border: 1px solid #EEEEEE;
+    color: @gray-dark;
+    a,
+    a:not([class]) {
+      border-bottom: 0;
+    }
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 9px;
+      height: 100%;
+
+    }
+    &.alert-primary {
+      &:after {
+        background: @brand-primary;
+        color: @gray-dark;
+      }
+      strong {
+        display:block;
+        color: @brand-primary;
+      }
+      a {
+        color: @brand-primary;
+      }
+    }
+    &.alert-success {
+      &:after {
+        background: @brand-success;
+        color: @gray-dark;
+      }
+      strong {
+        display:block;
+        color: @brand-success;
+      }
+      a {
+        color: @brand-success;
+      }
+    }
+    &.alert-warning {
+      &:after {
+        background: @brand-warning;
+        color: @gray-dark;
+      }
+      strong {
+        display:block;
+        color: @brand-warning;
+      }
+      a {
+        color: @brand-warning;
+      }
+    }
+    &.alert-danger {
+      &:after {
+        background: @brand-danger;
+        color: @gray-dark;
+      }
+      strong {
+        display:block;
+        color: @brand-danger;
+      }
+      a {
+        color: @brand-danger;
+      }
+    }
+    &.alert-info {
+      &:after {
+        background: @brand-info;
+        color: @gray-dark;
+      }
+      strong {
+        display:block;
+        color: @brand-info;
+      }
+      a {
+        color: @brand-info;
+      }
+    }
+  }
+
+}
+
+// 4. Rotator
+// -------------------------
+#announcement-rotator {
+  border-radius: 20px;
+  overflow: hidden;
+  .card {
+    @media screen and (min-width: 992px){
+    max-width: 448px;
+    }
+    border-radius: 0;
+    @media screen and (max-width: 991px){
+     border: 0;
+    }
+  }
+  .item {
+    overflow: hidden;
+    a {
+      @media screen and (max-width: 991px){
+        display: flex;
+        flex-wrap: wrap;
+      }
+      div {
+        @media screen and (max-width: 991px){
+          position: relative !important;
+          left: 0;
+          right: 0;
+          order: 2;
+          width: 100%;
+          max-width: inherit;
+          margin: 0 auto !important;
+        }
+      }
+    }
+  }
+}
+
+.carousel-indicators {
+  @media screen and (max-width:991px){
+    bottom: -15px;
+  }
+  li {
+    width: 50px;
+    height: 8px;
+    border-radius: 10px;
+    border: 0;
+    margin: 0 3px;
+    @media screen and (min-width:991px){
+    background-color: #fff;
+    }
+    background-color: #EEEEEE;
+    &.active {
+      background: @brand-primary;
+      width: 50px;
+      height: 8px;
+      border-radius: 10px;
+      border: 0;
+      margin: 0 3px;
+    }
+  }
+}
+
+
+// 5. Header
+// -------------------------
+
+header {
+  .container {
+    border-bottom: 1px solid #000;
+  }
+}
+.navbar-header {
+  width: 100%;
+  text-align: center;
+}
+
+.navigation {
+  width: 100%;
+  ul {
+    justify-content: space-between;
+    width: 100%;
+    display: flex;
+    background: #f5f5f5;
+    text-align: center;
+    border-radius: 10px;
+    li {
+      i {
+        font-size: 24px;
+      }
+      a {
+        padding: 24px 10px;
+        color: #000 !important;
+        font-size: 14px;
+        &:hover {
+          background: @nav-bg-hover;
+          i {
+            color: lighten(#000, 10%); ;
+          }
+        }
+      }
+    }
+    .nav {
+      .navbar-nav {
+        margin-top: 30px;
+      }
+    }
+  }
+}
+
+.navbar {
+    .nav {
+        li.active a.menu-item::after {
+            content: '';
+            background-color: @brand-primary;
+            width: 4px;
+            border-radius: 2px;
+            display: block;
+            position: absolute;
+            top: 10%;
+            bottom: 10%;
+            left: -14px;
+        }
+        @media only screen and (min-width: 768px) {
+            li.active a.menu-item::after {
+                width: 100%;
+                max-width: 75px;
+                top: auto;
+                bottom: 20px;
+                left: 50%;
+                height: 4px;
+                transform: translate(-50%,0);
+            }
+        }
+    }
+}
+
+
+
+// 6. Cards
+// -------------------------
+.card-grid {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem,1fr));
+}
+
+.card-grid-md {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(20rem,1fr));
+}
+
+.card {
+  border-radius: 0 !important;
+  border: 0;
+  position: relative;
+  .card-img,
+  .card-img-top {
+    border-radius: 0 !important;
+    .fa {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+    }
+  }
+  .badge {
+      span {
+      width: 12px;
+      display: inline-flex;
+      height: 12px;
+      color: #000;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+  .card-header {
+    background-color: unset;
+  }
+  .card-footer {
+    padding-bottom: 1.25rem;
+  }
+  .card-body {
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      font-size: 36px;
+      color: #fff;
+      background-position: 100% 0;
+      background-size: 140%;
+      border-radius: 50%;
+      .date {
+        font-size: 18px;
+      }
+    }
+  }
+
+  .card-footer {
+    border-top: 0;
+    background-color: transparent;
+    .badge {
+      display: inline-block;
+      min-width: 10px;
+      padding: 3px 7px;
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1;
+      color: @gray-darker;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      background-color: @brand-primary;
+      border-radius: 10px;      
+    }
+  }
+  &.card-dark {
+    background: #FAFAFC;
+  }
+  &.card-accent {
+    border: 0;
+    border-top: 3px solid @brand-primary;
+    border-radius: 2px;
+    .icon {
+
+    }
+  }
+  &.card-landscape{
+    .card-column {
+      .icon {
+        width: 40px;
+        height: 40px;
+        font-size: 28px;
+      }
+      svg {
+        width: 100%;
+        height: auto;
+        max-width: 40px;
+      }
+      i {
+        font-size: 40px;
+      }
+    }
+  }
+  &.featured {
+    &::after {
+        color: #fff;
+        background-color: #000000a3;
+        font-size: .7rem;
+        text-transform: uppercase;
+        border: 1px solid #807c7c;
+        border-radius: 2px;
+        padding: .05rem .3rem;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+    }
+    &.start-here::after {
+        content: 'Start Here';
+    }
+    &.new::after {
+        content: 'New';
+    }
+  }
+}
+
+a.card {
+  color: #000;
+  text-decoration: none;
+  transition: 200ms linear all;
+  &:hover {
+    transition: 200ms linear all;
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(0,0,0,.15);
+  }
+}
+
+.inactive {
+  .card {
+      background-color:#eaeaea;;
+  }
+}
+
+.card-list {
+    display:flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    .card {
+        height: 100%;
+    }
+}
+
+// -------------------------
+// 7. Panels
+// -------------------------
+
+.list-group .list-group-item:first-child {
+    border-top-left-radius: 9px !important;
+    border-top-right-radius: 9px !important;
+}
+
+.list-group .list-group-item:last-child {
+    border-bottom-left-radius: 9px !important;
+    border-bottom-right-radius: 9px !important;
+}
+
+
+// 8. Content Tabs
+// -------------------------
+
+.page-menu {
+    .content-tabs {
+        li {
+            margin: 0 5px;
+            a {
+                font-size: 16px;
+                border: 0;
+                &:hover{
+                    border-radius: 5px;
+                }
+            }
+            &.active a {
+                background: @gray-dark;
+                border-radius: 5px;
+                color: #fff;
+                &:hover {
+                    background: lighten(@gray-dark, 5%);    
+                    border-radius: 5px;
+                    color: #fff;
+                    border: 0;
+                }
+            }
+        }
+    }
+}
+
+
+// 8. Control Gallery & Forms
+// ---------------------------
+
+main {
+    .block-instance { 
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .control-label {
+            font-size: 14px;
+            color: #404040;
+            font-weight: 400;
+        }
+        .control-label-description {
+            font-size: 14px;
+            color: #747474;
+            margin-top: -5px;
+            line-height: 1.1;
+        }
+        label.checkbox-inline {
+            margin-bottom: 15px;
+        }
+        .form-control {
+            border-color: #D1D1D1;
+            background-color: #fff;
+            border-radius: 5px;
+            color: #000000;
+            &::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+              color: #000000;
+            }
+            &::-moz-placeholder { /* Firefox 19+ */
+              color: #000000;
+            }
+            &:-ms-input-placeholder { /* IE 10+ */
+              color: #000000;
+            }
+            &:-moz-placeholder { /* Firefox 18- */
+              color: #000000;
+            }
+        }
+        .form-control:focus {
+            border-color: @theme-1;
+            background-color: lighten(@theme-1,38%);
+        }
+        .form-group {
+            .input-group {
+                display: flex;
+                /* flex-direction: row; */
+                span {
+                    order: 2;
+                    border-top-left-radius: 0;
+                    border-bottom-left-radius: 0;
+                    border-top-right-radius: 5px;
+                    border-bottom-right-radius: 5px;
+                    border: 1px solid;
+                    width: auto;
+                    border-left: 0;
+                    justify-content: center;
+                    align-items: center;
+                    display: flex;
+                    background: #fdfdfd;
+                    a,
+                    span,
+                    .add-on {
+                        border: 0;
+                    }
+                }
+                input{
+                    order: 1;
+                    border-top-left-radius: 5px !important;
+                    border-bottom-left-radius: 5px !important;
+                    border-top-right-radius: 0;
+                    border-bottom-right-radius: 0;
+                    margin-right: 0;
+                }
+            }
+        }
+        .progress {
+            background: #EEEEEE;
+            box-shadow: none;
+            border-radius: 6px;
+            .progress-bar {
+                border-radius: 5px;
+            }
+        }
+    }
+    .btn-group>.btn, 
+    .btn-group-vertical>.btn {
+        width: auto;
+        padding: 6px 12px;
+    }
+    
+    .btn-toggle .btn-lg, 
+    .btn-group-lg>.btn {
+        padding: 10px 16px !important;
+        width: auto;
+    }
+    
+    .btn-toggle .btn-sm, 
+    .btn-group-sm>.btn {
+        padding: 5px 10px !important;
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+    }
+    
+    .btn-toggle .btn-xs, 
+    .btn-group-xs>.btn {
+        padding: 1px 5px;
+        font-size: 12px;
+    }
+    .chosen-single.chosen-default span {
+        border: 0 !important;
+    }
+    select {
+        -webkit-font-smoothing: auto;
+    }
+}
+.form-well {
+    background-color: #f4f4f4;
+    margin-top: 40px;
+    margin-right: -10px;
+    margin-bottom: 40px;
+    margin-left: -10px;
+    padding: 20px 20px 30px 20px;
+    border-radius: 20px;
+    
+    .text-muted {
+        color: #747474 !important;
+    }
+}
+// Override Person Fields in WF Forms with narrow container
+.person-form-full-width {
+    .col-md-6 {
+        width: 100%;
+    }
+}
+
+
+
+
+// -----------------------
+// 9. Registrations
+// -----------------------
+
+.registration-overrides h1 {
+    font-size: 26px;
+}
+
+
+#EventDetails .card ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+#EventDetails .card ul li::after {
+    content: " ";
+    display: block;
+    margin: .3em;
+    border-top: 1px solid #e6e6e6;
+}
+
+#EventDetails .card li:first-child {
+    margin-top: 20px;
+}
+
+#EventDetails .card li:last-child:after {
+    border:none;
+}
+
+
+// -----------------------
+// 10. hr Tags
+// -----------------------
+hr.hr-primary {
+    border-top: 3px solid @brand-primary;
+}
+
+// -----------------------
+// 11. Profile Image Fixes
+// -----------------------
+.fluidbox-wrap {
+  z-index: auto;
+}
+
+
+// -----------------------
+// 12. Grids
+// -----------------------
+
+.well-grid-md {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem,1fr));
+}
+.grid-col-3 {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(1,1fr);
+}
+@media only screen and (min-width: 768) {
+    .grid-col-3 {
+        grid-template-columns: repeat(2,1fr);
+    }
+}
+@media only screen and (min-width: @screen-md-min) {
+    .grid-col-3 {
+        grid-template-columns: repeat(3,1fr);
+    }
+}
+.grid-col-4 {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(1,1fr);
+}
+@media only screen and (min-width: @screen-sm-min) {
+    .grid-col-4 {
+        grid-template-columns: repeat(2,1fr);
+    }
+}
+@media only screen and (min-width: @screen-md-min) {
+    .grid-col-4 {
+        grid-template-columns: repeat(3,1fr);
+    }
+}
+@media only screen and (min-width: @screen-xl-min) {
+    .grid-col-4 {
+        grid-template-columns: repeat(4,1fr);
+    }
+}
+.grid-col-5 {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(1,1fr);
+}
+@media only screen and (min-width: @screen-sm-min) {
+    .grid-col-5 {
+        grid-template-columns: repeat(2,1fr);
+    }
+}
+@media only screen and (min-width: @screen-md-min) {
+    .grid-col-5 {
+        grid-template-columns: repeat(3,1fr);
+    }
+}
+@media only screen and (min-width: @screen-lg-min) {
+    .grid-col-5 {
+        grid-template-columns: repeat(4,1fr);
+    }
+}
+@media only screen and (min-width: @screen-xl-min) {
+    .grid-col-5 {
+        grid-template-columns: repeat(5,1fr);
+    }
+}
+
+
+// -----------------------
+// 13. Animations
+// -----------------------
+
+// FADE IN
+    .animation-fade-in-fast {
+      animation: fadeIn 500ms;
+      -webkit-animation: fadeIn 500ms;
+      -moz-animation: fadeIn 500ms;
+      -o-animation: fadeIn 500ms;
+      -ms-animation: fadeIn 500ms;
+    }
+    .animation-fade-in-med {
+      animation: fadeIn 1s;
+      -webkit-animation: fadeIn 1s;
+      -moz-animation: fadeIn 1s;
+      -o-animation: fadeIn 1s;
+      -ms-animation: fadeIn 1s;
+    }
+    .animation-fade-in-slow {
+      animation: fadeIn 2s;
+      -webkit-animation: fadeIn 2s;
+      -moz-animation: fadeIn 2s;
+      -o-animation: fadeIn 2s;
+      -ms-animation: fadeIn 2s;
+    }
+    
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    @-moz-keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    @-webkit-keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    @-o-keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    @-ms-keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+// NUDGE
+    .animation-nudge-up-slow {
+        animation: nudge 3s ease;
+    }
+    @keyframes nudge {
+        0% { transform: translate(0,10px); }
+        100% { transform: translate(0, 0); }
+    }
+
+
+
+// 14. Update Panel Dialoge Modal
+// -------------------------------
+#updatePanelDialog {
+    .modal-content {
+
+        // Change the background colors
+        .modal-content.rock-modal .modal-header, .rock-modal .modal-content .modal-header {
+            background-color: #2f4b6a;
+        }
+
+    }
+}
+
+
+// 15. Dark Mode (In Development)
+// Very basic dark mode that can be applied using a page body class: dark-mode
+// ---------------------------------
+body.dark-mode {
+    background-color: #151515;
+    color: #e5e5e5;
+
+    header .container {
+        border-bottom: 1px solid #999;
+    }
+
+    .text-black {
+        color: #999 !important;
+    }
+
+    .navbar-nav li a {
+        color: #ccc !important;
+    }
+
+
+    .navigation ul {
+        background: #272727;
+    }
+    .navigation ul li a {
+        color: #ccc !important;
+    }
+
+    .bg-white {
+        background-color: #151515 !important;
+    }
+
+}
+
+
+// 16. Progress Breadcrum Overrides
+// -------------------------
+.progress-step {
+  min-width: 100px;
+}
+
+
+
+// 17. HTML Note entry block - Hide options
+// -------------------------
+.html-entry-toolbar-hidden {
+  .note-editor .note-toolbar {
+    .note-btn-group {
+      display: none;
+    }
+  }
+}
+.html-entry-toolbar-limited {
+  .note-editor .note-toolbar {
+    .note-btn-group.btn-group.note-para { display: none; }
+    .note-btn-group.btn-group.note-style_group { display: none; }
+    .note-btn-group.btn-group.note-style_group2 { display: none; }
+    .note-btn-group.btn-group.note-style_group3 { display: none; }
+    .note-btn-group.btn-group.note-plugins1 { display: none; }
+    .note-btn-group.btn-group.note-plugins2 { display: none; }
+    .note-btn-group.btn-group.note-plugins3 { display: none; }
+  }
+}
+
+// 18. Specific Page Styles
+// -------------------------
+
+//------18.1 Groups Resource Pages
+.group-resources {
+    
+}
+
+
+
+// 19. PLEDGE TOOLBOX COMPONENTS
+// -------------------------
+
+//Pledge Toolbox Sub-Nav
+.pledge-subnav {
+  display: flex;
+  justify-content: center;
+}
+.pledge-subnav__list {
+  display: flex;
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+.pledge-subnav__list li {
+  margin: 0 5px;
+}
+.pledge-subnav__list li.active a {
+  background-color: #333;
+  color: #fff;
+}
+.pledge-subnav__list li a {
+  font-size: 16px;
+  border: 0;
+  margin-right: 2px;
+  padding-right: 1.5rem;
+  padding-left: 1.5rem;
+}
+@media only screen and (max-width: 580px) {
+  .pledge-subnav__list {
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+
+// 20. Timeline Layout
+// ------------------------
+@tl-profile-size: 2em;
+@tl-profile-gap: 0.3em;
+@tl-margin: 1.75em;
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+}
+.timeline__item {
+    position: relative;
+    padding-bottom: @tl-margin;
+}
+.timeline__content {
+    display: flex;
+    align-items: center;
+    column-gap: 0.5em;
+}
+.timeline__profile {
+    border-radius: 50%;
+    width: @tl-profile-size;
+    height: @tl-profile-size;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: @gray-lighter;
+}
+.timeline__circle {
+    color: @gray-dark;
+}
+.timeline__profile-img {
+    display: block;
+    object-position: initial;
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+}
+.timeline__item-date {
+    color: @gray-light;
+    margin-left: 0.25rem;
+}
+.timeline__more-content {
+    margin-left: ~"calc(@{tl-profile-size} + 0.5em)";
+}
+.timeline__item-body {
+    margin-bottom: 0;
+}
+.timeline__line {
+    position: absolute;
+    top: ~"calc(@{tl-profile-size} + @{tl-profile-gap})";
+    left: ~"calc((@{tl-profile-size} / 2) - 1px)";
+    width: 2px;
+    height: ~"calc(100% - (@{tl-profile-size} + @{tl-profile-gap} + @{tl-profile-gap}))";
+    background-color: @gray-lighter;
+}
+
+
+
+
+
+// 21. Tables
+// ---------------------
+table.table-clean>thead>tr>th,
+table.table-clean>tbody>tr>td {
+    vertical-align: middle;
+}
+table.table-clean>thead>tr>th{
+    background-color: #f5f5f5;
+    font-weight: unset;
+}
