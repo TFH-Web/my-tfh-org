@@ -217,23 +217,37 @@
     var root = document.querySelector('.signup[data-crumb-name]');
     var list = document.querySelector('.breadcrumb');
     if (!root || !list) { return; }
-    var crumbs = list.querySelectorAll('li');
-    if (!crumbs.length) { return; }
     var name = root.getAttribute('data-crumb-name');
     var date = root.getAttribute('data-crumb-date');
 
-    // Insert the group between the parent crumb and this page, then let the
-    // active crumb carry the date: Sign Ups / Kids Min Orientation / Thursday...
-    var current = crumbs[crumbs.length - 1];
-    var li = document.createElement('li');
+    // The group is treated as the root of the trail, so ancestor crumbs above it
+    // are dropped. Target: Kids Min Orientation / Thursday, August 27
+    var items = Array.prototype.slice.call(list.querySelectorAll('li'));
+    if (!items.length) { return; }
+    while (items.length > 2) {
+      var first = items.shift();
+      if (first.parentNode) { first.parentNode.removeChild(first); }
+    }
+
+    var current = items[items.length - 1];
+    current.textContent = date;
+    current.className = 'active';
+
     var link = document.createElement('a');
     link.href = root.getAttribute('data-crumb-url');
     link.textContent = name;
-    li.appendChild(link);
-    list.insertBefore(li, current);
 
-    current.textContent = date;
-    current.className = 'active';
+    if (items.length > 1) {
+      var parent = items[0];
+      parent.textContent = '';
+      parent.className = '';
+      parent.appendChild(link);
+    } else {
+      // Only the current page had a crumb -- add the group ahead of it.
+      var li = document.createElement('li');
+      li.appendChild(link);
+      list.insertBefore(li, current);
+    }
 
     var t = document.title;
     document.title = t.indexOf('|') > -1

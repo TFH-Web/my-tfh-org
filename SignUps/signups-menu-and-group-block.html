@@ -404,8 +404,7 @@
   {%- endfor -%}
 
 <div class="signup"
-     data-crumb-name="{{ head.GroupName | Escape }}"
-     data-crumb-menu="{{ menuUrl }}">
+     data-crumb-name="{{ head.GroupName | Escape }}">
 
   {%- comment -%}
     Rock's breadcrumbs come from <Rock:PageBreadCrumbs>, a server-side control fed
@@ -422,26 +421,21 @@
     var root = document.querySelector('.signup[data-crumb-name]');
     var list = document.querySelector('.breadcrumb');
     if (!root || !list) { return; }
-    var crumbs = list.querySelectorAll('li');
-    if (!crumbs.length) { return; }
     var name = root.getAttribute('data-crumb-name');
 
-    // The menu and the group share one page, so Rock renders a single crumb.
-    // Turn it back into a link to the menu, then append the group as the active
-    // crumb -- otherwise removing the "All Sign-Ups" link leaves no way back.
-    var current = crumbs[crumbs.length - 1];
-    var label = (current.textContent || '').trim();
-    var link = document.createElement('a');
-    link.href = root.getAttribute('data-crumb-menu');
-    link.textContent = label;
-    current.textContent = '';
-    current.appendChild(link);
-    current.classList.remove('active');
+    // The group is treated as the root of the trail, so every ancestor crumb is
+    // dropped -- including this page's own, since the menu and the group share
+    // one page. Result: a single crumb reading the group name.
+    var items = Array.prototype.slice.call(list.querySelectorAll('li'));
+    if (!items.length) { return; }
+    while (items.length > 1) {
+      var first = items.shift();
+      if (first.parentNode) { first.parentNode.removeChild(first); }
+    }
 
-    var li = document.createElement('li');
-    li.className = 'active';
-    li.textContent = name;
-    list.appendChild(li);
+    var current = items[0];
+    current.textContent = name;
+    current.className = 'active';
 
     var t = document.title;
     document.title = t.indexOf('|') > -1

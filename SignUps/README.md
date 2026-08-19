@@ -153,13 +153,18 @@ Resulting trails:
 
 | Page | Trail |
 |---|---|
-| `/signups/{slug}` | *Sign Ups* / **Kids Min Orientation** |
-| `/signups/{slug}/{occurrence}` | *Sign Ups* / *Kids Min Orientation* / **Thursday, August 27** |
+| `/signups/{slug}` | **Kids Min Orientation** |
+| `/signups/{slug}/{occurrence}` | *Kids Min Orientation* / **Thursday, August 27** |
 
-On the group view Rock renders only **one** crumb, because the menu and the group
-are the same page. The script turns that crumb back into a link to the menu and
-appends the group — without it, removing the "All Sign-Ups" link would leave no
-route back to the menu.
+**The group is treated as the root of the trail**, even though it is not the root
+page — the ancestor crumb for the sign-up menu is removed. The scripts drop every
+crumb above the group rather than assuming a fixed depth, so a change to the page
+hierarchy will not leave a stray crumb behind.
+
+Consequence to be aware of: **there is no longer any link from a group page back
+to `/signups`.** That is deliberate — deep links go straight to a group, and the
+menu is not presented as its parent — but it does mean the menu is only reachable
+by typing the URL.
 
 Group names reach the script through a `data-` attribute rather than being
 interpolated into it, so a name containing an apostrophe cannot break it. Both
