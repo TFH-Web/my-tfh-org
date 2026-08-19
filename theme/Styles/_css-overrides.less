@@ -1,6 +1,7 @@
 // Table of Contents
 // -------------------------
 // 0. Variables
+// 0.1 MyTFH Public Design Tokens
 // 1. Buttons & Links
 // 2. Background Colors
 // 3. Alerts
@@ -24,6 +25,7 @@
 // 20. Timeline Layout
 // 21. Tables
 // 22. Sign-Up Pages
+// 23. Serve Team Picker
 
 
 
@@ -36,6 +38,40 @@
 @screen-md-min: 992px;  // Medium Desktops
 @screen-lg-min: 1200px; // Large and Desktop
 @screen-xl-min: 1480px; // Extra large devices
+
+
+// 0.1 MyTFH Public Design Tokens
+// -------------------------
+// The my.tfh.org PUBLIC design system, from the design handoff in
+// _reference-design-handoff/. Shared by every public-facing feature on this
+// site -- sign-ups (section 22), the serve team picker (section 23), and
+// whatever comes next. Declared once here so a palette change is one edit.
+//
+// These are NOT the internal rock.tfh.org tokens. That site is a different
+// theme with a different design system (#36454f brand, 10px radii, system
+// font); nothing from it belongs here and nothing here belongs there.
+
+@mytfh-ink:        #000000;  // primary text, buttons, footer
+@mytfh-ink-2:      #707378;  // secondary text
+@mytfh-ink-off:    #A9AEB2;  // disabled ink
+@mytfh-panel:      #F1F1F1;  // cards, panels, pills
+@mytfh-track:      #E2E3E6;  // progress track, at-capacity pill, disabled ring
+@mytfh-rule:       #C3C8CC;  // hairline rules
+@mytfh-link:       #2D5BFF;  // links, arrow-button hover
+@mytfh-green:      #5D6F54;  // progress fill, low-capacity pill
+@mytfh-green-soft: #B1C1A9;  // available pill
+@mytfh-green-ink:  #21291F;  // ink on the soft green pill
+
+@mytfh-radius:     20px;     // cards and panels
+@mytfh-radius-btn: 8px;      // medium buttons
+@mytfh-pill:       99999px;
+@mytfh-gap:        20px;     // grid gap
+
+@mytfh-font:       "neue-haas-grotesk-text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+@mytfh-font-disp:  "neue-haas-grotesk-display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+@mytfh-ease:       cubic-bezier(.4, 0, .2, 1);
+
+// Shadows: none, anywhere. There is deliberately no shadow token.
 
 
 
@@ -1094,34 +1130,37 @@ table.table-clean>thead>tr>th{
 // in SignUps/ in this repo -- see SignUps/README.md for the Rock page, route
 // and block setup.
 //
-// These tokens are the my.tfh.org PUBLIC design system from the design
-// handoff. They are deliberately feature-scoped, not shared theme tokens:
-// nothing outside .signup* should use them, and they are NOT the internal
-// rock.tfh.org tokens.
+// The tokens below are now ALIASES of the shared @mytfh-* public design
+// tokens in section 0.1. They were feature-scoped when sign-ups were the only
+// public feature in this file; the serve team picker (section 23) needs the
+// same palette, so the values were promoted rather than duplicated. The alias
+// layer is kept so none of section 22's rules had to change.
+//
+// Change a colour in section 0.1, not here.
 //
 // Written mobile-first so the multi-column layouts switch on at
 // @screen-sm-min, matching the min-width idiom used elsewhere in this file.
 // The --nophoto modifiers are emitted by the Lava instead of using :has(),
 // which dotless cannot be relied on to compile.
 
-@signup-ink:        #000000;  // primary text, buttons
-@signup-ink-2:      #707378;  // secondary text
-@signup-ink-off:    #A9AEB2;  // disabled ink
-@signup-panel:      #F1F1F1;  // cards, panels, pills
-@signup-track:      #E2E3E6;  // progress track, at-capacity pill
-@signup-rule:       #C3C8CC;  // hairline rules
-@signup-link:       #2D5BFF;  // links, arrow-button hover
-@signup-green:      #5D6F54;  // progress fill, low-capacity pill
-@signup-green-soft: #B1C1A9;  // available pill
-@signup-green-ink:  #21291F;  // ink on the soft green pill
+@signup-ink:        @mytfh-ink;
+@signup-ink-2:      @mytfh-ink-2;
+@signup-ink-off:    @mytfh-ink-off;
+@signup-panel:      @mytfh-panel;
+@signup-track:      @mytfh-track;
+@signup-rule:       @mytfh-rule;
+@signup-link:       @mytfh-link;
+@signup-green:      @mytfh-green;
+@signup-green-soft: @mytfh-green-soft;
+@signup-green-ink:  @mytfh-green-ink;
 
-@signup-radius:     20px;
-@signup-pill:       99999px;
-@signup-gap:        20px;
+@signup-radius:     @mytfh-radius;
+@signup-pill:       @mytfh-pill;
+@signup-gap:        @mytfh-gap;
 
-@signup-font:       "neue-haas-grotesk-text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-@signup-font-disp:  "neue-haas-grotesk-display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-@signup-ease:       cubic-bezier(.4, 0, .2, 1);
+@signup-font:       @mytfh-font;
+@signup-font-disp:  @mytfh-font-disp;
+@signup-ease:       @mytfh-ease;
 
 // No outer padding, margin or max-width. Rock already pads the block, and
 // constraining the width here made the content narrower than the page title and
@@ -1553,5 +1592,306 @@ table.table-clean>thead>tr>th{
     .signup-group--nophoto,
     .signup-detail--nophoto {
         grid-template-columns: 1fr;
+    }
+}
+
+
+
+
+// 23. Serve Team Picker
+// ---------------------
+// Step 1 of the Serve Team interest flow: a grid of team cards where a person
+// picks up to three, then continues into the native workflow form. The Lava
+// that emits this markup lives in
+// Other/Forms/what-we-do-serve-team-interest-form/serve-team-picker.lava
+//
+// Everything here is layout and selection state. The palette, radii, type
+// scale and easing come from the shared @mytfh-* tokens in section 0.1 -- the
+// same system section 22 renders -- so this feature and /signups stay in step
+// without either owning the other's classes.
+//
+// Written mobile-first: one column by default, multi-column at @screen-sm-min,
+// matching the min-width idiom used throughout this file.
+
+.serve {
+    font-family: @mytfh-font;
+    color: @mytfh-ink;
+}
+
+// ---- Page head ----
+.serve__step {
+    font-family: @mytfh-font-disp;
+    font-size: 14px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: @mytfh-ink-2;
+    margin-bottom: 12px;
+}
+
+.serve__title {
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -1.2px;
+    color: @mytfh-ink;
+    margin: 0 0 12px;
+}
+
+.serve__intro {
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: -0.6px;
+    color: @mytfh-ink-2;
+    max-width: 620px;
+    margin: 0 0 32px;
+}
+
+// ---- Selection bar ----
+// Same hairline-rule-under-a-baseline-row shape as .signup__sectionhead.
+.serve__bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid @mytfh-rule;
+    padding-bottom: 16px;
+    margin-bottom: @mytfh-gap;
+}
+
+.serve__count {
+    font-size: 16px;
+    font-weight: 400;
+    color: @mytfh-ink-2;
+}
+
+// A real <button>, so it is reachable by keyboard and announced as an action.
+// Reset rather than styled -- it reads as a link, like .signup__back.
+.serve__clear,
+.serve__more {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 400;
+    color: @mytfh-link;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+        color: @mytfh-link;
+        text-decoration: underline;
+    }
+}
+
+// ---- Featured section + See More ----
+.serve__section {
+    margin-bottom: 32px;
+}
+
+.serve__sectionlabel {
+    font-family: @mytfh-font-disp;
+    font-size: 14px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: @mytfh-ink-2;
+    margin: 0 0 @mytfh-gap;
+}
+
+.serve__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: @mytfh-gap;
+
+    i {
+        font-size: 12px;
+    }
+}
+
+// ---- Grid ----
+.serve__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: @mytfh-gap;
+}
+
+// ---- Team card ----
+.serve-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: @mytfh-panel;
+    border-radius: @mytfh-radius;
+    overflow: hidden;
+    cursor: pointer;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+    transition: outline-color 160ms @mytfh-ease, opacity 160ms @mytfh-ease;
+
+    &:hover {
+        outline-color: @mytfh-rule;
+    }
+
+    // The card sets its own outline, which suppresses the browser's focus
+    // ring, so keyboard focus has to draw one explicitly.
+    &:focus-visible {
+        outline-color: @mytfh-ink;
+    }
+}
+
+.serve-card--selected,
+.serve-card--selected:hover {
+    outline-color: @mytfh-ink;
+}
+
+.serve-card--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+// Hover and selected both draw an outline, so the tick is what tells them
+// apart at a glance. It is present on every card as the affordance that a card
+// is selectable, and fills in once chosen.
+.serve-card__tick {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border-radius: @mytfh-pill;
+    background: #FFFFFF;
+    color: @mytfh-ink-off;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.serve-card--selected .serve-card__tick {
+    background: @mytfh-ink;
+    color: #FFFFFF;
+}
+
+.serve-card--featured::before {
+    content: 'Featured';
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    font-family: @mytfh-font-disp;
+    font-size: 12px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    background: @mytfh-ink;
+    color: #FFFFFF;
+    border-radius: @mytfh-pill;
+    padding: 7px 12px;
+}
+
+// 5:4 landscape. The ratio is escaped so dotless emits it literally instead of
+// evaluating "5 / 4" as division -- the same trap as grid-column: 1 / -1.
+.serve-card__media {
+    // The card is a column flex container, so the media is a flex item and
+    // would be shrinkable by default. Pin it, or a very long summary could
+    // squeeze the photo out of its ratio.
+    flex: 0 0 auto;
+    aspect-ratio: ~"5 / 4";
+    background-color: @mytfh-track;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+        font-size: 40px;
+        color: @mytfh-ink-off;
+    }
+}
+
+.serve-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px;
+    flex: 1 1 auto;
+}
+
+.serve-card__name {
+    font-size: 24px;
+    line-height: 1.1;
+    font-weight: 500;
+    letter-spacing: -1px;
+}
+
+// Summary renders as authored HTML, so these resets are load-bearing, not
+// decoration -- Bootstrap's p { margin: 0 0 10px } would otherwise leave a
+// gap under the last paragraph of every card.
+//
+// The separate problem of TRAILING EMPTY paragraphs is fixed in the Lava, not
+// here. Rock's editor emits them as `<p><br></p>`, which is not :empty (it has
+// a <br> child), so no selector can collapse it -- and because grid rows size
+// to their tallest item, two of them on one card stretched its whole row.
+// p:empty below still catches the plainer `<p></p>` shape if it ever appears.
+.serve-card__desc {
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: -0.6px;
+    color: @mytfh-ink-2;
+
+    p {
+        margin-bottom: 12px;
+    }
+
+    p:empty {
+        display: none;
+    }
+
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+// ---- Actions ----
+// Layout only. Next uses the native theme button so its states match the rest
+// of the site, and its disabled look comes from Bootstrap, not from here.
+.serve__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
+
+    .btn {
+        min-height: 44px;
+    }
+}
+
+// Toggled by the picker's JS for the Featured split and the See More collapse.
+// Declared last so it beats the display values set on .serve__grid, .serve__more
+// and .serve__section, which carry the same specificity.
+.serve-hide {
+    display: none;
+}
+
+// ---- Tablet and up ----
+@media only screen and (min-width: @screen-sm-min) {
+
+    .serve__title {
+        font-size: 40px;
+        letter-spacing: -1.6px;
+    }
+
+    .serve__grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     }
 }
