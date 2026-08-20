@@ -1798,18 +1798,38 @@ table.table-clean>thead>tr>th{
 
 // 5:4 landscape. The ratio is escaped so dotless emits it literally instead of
 // evaluating "5 / 4" as division -- the same trap as grid-column: 1 / -1.
+//
+// The photo is a real img child, not a background-image on this box. That is
+// what makes loading="lazy" possible at all -- a CSS background cannot be
+// natively lazy-loaded, so all 11 photos were fetched on load whether or not
+// the card was ever scrolled to. The img idiom below is the same one
+// .signup-card__photo uses in section 22.
+//
+// The ratio lives here and the img fills it, so no width/height attributes are
+// needed in the markup to prevent layout shift: the box reserves its space
+// before the image arrives regardless. Nothing asserts an intrinsic size,
+// which matters because GetImage preserves the source aspect ratio and the
+// originals are not all 5:4.
 .serve-card__media {
     // The card is a column flex container, so the media is a flex item and
     // would be shrinkable by default. Pin it, or a very long summary could
     // squeeze the photo out of its ratio.
     flex: 0 0 auto;
     aspect-ratio: ~"5 / 4";
+    // Placeholder tone behind a photo that has not arrived yet, and the
+    // backdrop for the icon fallback when a team has no photo at all.
     background-color: @mytfh-track;
-    background-size: cover;
-    background-position: center;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
 
     i {
         font-size: 40px;
