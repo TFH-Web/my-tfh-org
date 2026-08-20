@@ -99,10 +99,51 @@
   NOTE — why tag examples below are written with spaced angle brackets
   (`< p >< br >< /p >`): Rock's HTML Content editor validates the RAW text
   of the block and does not understand Lava comments, so a literal `style`
-  or `script` tag written inside {% comment %} still counts toward its
-  open/close tally. An earlier draft of this comment spelled the style tag
+  or `script` tag written inside a Lava comment block still counts toward
+  its open/close tally. (For the same reason this sentence says "a Lava
+  comment block" in words: spelling that tag out literally here would put a
+  second opener inside this very comment, and if Fluid's parser counts
+  nesting it would treat the one closing tag below as the inner close and
+  swallow the rest of the file -- a blank page, not an error message.) An earlier draft of this comment spelled the style tag
   out properly and Rock refused the paste with "End tag ... was not found",
   because it had counted two openers in prose and no closer anywhere.
+
+  -------------------------------------------------------------
+  PERFORMANCE — 2026-08-19, sized for ~6,000 visitors on a Sunday
+  -------------------------------------------------------------
+  Baseline measured in an incognito window (a first pass was polluted by
+  browser extensions and by being logged in as admin, which loads Rock's
+  Obsidian admin bundle that public visitors never see): 40 requests,
+  2.2 MB transferred, DOMContentLoaded 680 ms, Load 2.20 s.
+
+  Where that went: the 11 team photos were 880 kB, 40% of the page, each
+  taking 0.3-1.55s of Rock's time through GetImage.ashx. That is the
+  dominant cost, and not because of bytes -- 11 handler hits per visitor
+  is 66,000 requests against the app pool across the morning, eleven times
+  what the page itself generates.
+
+  Two fixes are in the card markup below, both commented where they live:
+  w=600&quality=80 on the image URL, and lazy loading for everything past
+  the first row. The second one is why the photo is a real img element
+  instead of a CSS background-image -- backgrounds cannot be natively
+  lazy-loaded.
+
+  Still outstanding, and both bigger than anything in this file:
+  - RESOLVED 2026-08-20: the 754 ms "307" seen in DevTools was an artifact
+    of typing the address, which reaches the server over http and takes a
+    real 301 plus a whole second connection (2 conns vs 1, measured). It is
+    NOT a visitor-facing cost here: the QR code and NFC tags both carry the
+    full https URL, so no redirect happens. Worth knowing if anyone ever
+    prints a bare domain -- there is no HSTS header on either hostname.
+  - RegisterPageInteraction is a database write per page view, and was
+    measured at 1.52s. It is async so it does not block rendering, but it
+    is 6,000 extra writes during the spike.
+
+  Whatever caching gets added, remember every cache is cold at 8:00 AM --
+  block output, persisted datasets, and especially the resized image
+  derivatives, which are generated on first request. Warm them the day
+  before by loading the page once per campus id, or the first arrivals pay
+  the full uncached cost during the exact peak being optimised for.
 
   STILL TO DO — see the build plan (currently at Step 9/10):
   1. Confirm Step 9's Featured/See More UI matches expectations once
@@ -224,11 +265,96 @@
                  data-name="{{ team.PublicName | Default:team.Name }}"
                  data-featured="{{ isFeatured }}">
                 <span class="serve-card__tick" aria-hidden="true"><i class="fa fa-check"></i></span>
-                <div class="serve-card__media"
+                {%- comment -%}
+                  The first row stays eager, everything after it is lazy. At
+                  >=768px the grid is three across, so cards 1-3 are the only
+                  ones reliably above the fold; lazy-loading those would defer
+                  the largest thing on screen and push LCP out rather than
+                  pulling it in.
+
+                  This is deliberately an approximation. The Featured/See More
+                  JS can reorder cards after load, and on a phone the grid is
+                  one column so even card 2 is below the fold. Loop position is
+                  the only signal available at render time, and being wrong
+                  costs a slightly early or slightly late fetch -- not a broken
+                  page -- so it is not worth more machinery than this.
+
+                  The test is written as "> 3" rather than the other way round
+                  on purpose: same result, but it keeps a bare < out of the
+                  block. Rock's HTML editor scans the raw text and has already
+                  rejected one paste of this file over a tag it thought it saw
+                  in prose -- no reason to hand it another angle bracket to
+                  consider.
+                {%- endcomment -%}
+                {% assign imgLoading = 'eager' %}
+                {% if forloop.index > 3 %}{% assign imgLoading = 'lazy' %}{% endif %}
+                <div class="serve-card__media">
                     {% if team.PhotoGuid and team.PhotoGuid != '' %}
-                        style="background-image: url('/GetImage.ashx?Guid={{ team.PhotoGuid }}');"
-                    {% endif %}>
-                    {% if team.PhotoGuid == null or team.PhotoGuid == '' %}
+                        {%- comment -%}
+                          w=600 covers the ~287px card at 2x, and quality=80
+                          is required alongside it -- NOT optional.
+
+                          Rock's manual documents w / h as the resize params
+                          ("Working With Images", Designing and Building
+                          Websites Using Rock). maxwidth / maxheight also work,
+                          since GetImage sits on the ImageResizer library, but
+                          they are not in Rock's docs -- w is used here so the
+                          URL matches what is documented. Verified byte- and
+                          pixel-identical on prod 2026-08-20:
+                          w=600&quality=80 and maxwidth=600&quality=80 both
+                          returned 34 kB at 600x603 for the same file.
+
+                          WHY quality IS MANDATORY: the manual states the
+                          default is 90, and "Quality can often be set much
+                          lower than the default." Resizing alone therefore
+                          RE-ENCODES AT 90, which for photos stored below that
+                          makes the resized copy BIGGER than the original.
+                          Measured across all 11 campus-2 photos 2026-08-19:
+
+                            original               856 kB
+                            resize only            614 kB  (-28%, 5 got BIGGER)
+                            resize + quality=80    431 kB  (-49%, none bigger)
+
+                          60 gives another ~10 kB per image and the manual
+                          encourages going lower, but 80 was kept as the safe
+                          setting for photographs of faces.
+
+                          Do NOT add format=webp. The manual lists the valid
+                          options as jpg, png and gif only, and passing webp
+                          makes GetImage silently ignore the resize entirely
+                          and return the full original -- with a 200, so it
+                          fails invisibly.
+
+                          Do NOT add disableoptimizations=true here. It turns
+                          Rock's resizing OFF so a CDN can do it instead. It
+                          only becomes relevant if Cloudflare Polish or Image
+                          Resizing is ever enabled, at which point the manual
+                          warns Rock and the CDN "will often conflict causing
+                          both Rock and the CDN to resize and optimize the
+                          file" -- and then these w/quality params must come
+                          off at the same time.
+
+                          Server-side the derivative IS cached: first request
+                          for a given size took 1.34s, subsequent ones ~0.45s.
+                          That is why these URLs need warming before a spike --
+                          see the PERFORMANCE note in the header comment.
+
+                          The separator is a bare ampersand rather than an
+                          entity because that is what Rock's own core templates
+                          and this site's existing logo URL use; it is the form
+                          proven to survive the HTML editor here.
+
+                          alt is intentionally empty. The team name is rendered
+                          immediately below in serve-card__name, inside the same
+                          control, so descriptive alt text would just read the
+                          name out twice to a screen reader. The photo is
+                          decorative in this context.
+                        {%- endcomment -%}
+                        <img src="/GetImage.ashx?Guid={{ team.PhotoGuid }}&w=600&quality=80"
+                             alt=""
+                             loading="{{ imgLoading }}"
+                             decoding="async">
+                    {% else %}
                         <i class="{{ team.IconCssClass | Default:'fa fa-users' }}"></i>
                     {% endif %}
                 </div>
