@@ -1,0 +1,9 @@
+<hr><br>SMALL GROUPS:<br>
+
+{% assign p = 'Global' | PageParameter:'PersonId' | PersonById %}
+
+{% assign groupMembers = p | Groups: "25",'Active' %}
+
+{% for groupMember in groupMembers %}
+    {{ groupMember.Group.Name }} ( {{ groupMember.GroupRole }} ) <br>
+{% endfor %}

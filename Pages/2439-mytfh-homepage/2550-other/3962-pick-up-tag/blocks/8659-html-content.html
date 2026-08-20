@@ -1,0 +1,111 @@
+{% assign token = PageParameter.t %}
+
+{% if token == null or token == '' %}
+
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 2rem; text-align: center; color: #666;">
+        <p>No pickup tag found.</p>
+    </div>
+
+{% else %}
+
+    {% assign payload = token | Decrypt %}
+
+    {% if payload == null or payload == '' %}
+
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 2rem; text-align: center; color: #666;">
+            <p>This link is invalid or has expired.</p>
+        </div>
+
+    {% else %}
+
+        {% assign parts = payload | Split:',' %}
+        {% assign tagCode = parts[0] %}
+        {% assign nameCount = parts | Size %}
+        {% assign nameStart = 1 %}
+
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background: #f2f2f7;
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 2rem 1rem;
+                margin: 0;
+            }
+            .card-wrap {
+                width: 100%;
+                max-width: 480px;
+                margin: 0 auto;
+            }
+            .card-header {
+                background: #1c1c1e;
+                border: 2px solid #e5e5ea;
+                border-radius: 10px 10px 0 0;
+                padding: 15px;
+            }
+            .card-code {
+                color: #f2f2f7;
+                font-size: 35px;
+                font-weight: 600;
+                margin: 0;
+            }
+            .card-body {
+                background: #f2f2f7;
+                border: 2px solid #e5e5ea;
+                border-top: none;
+                border-radius: 0 0 10px 10px;
+                padding: 15px;
+            }
+            .names-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 4px 8px;
+                margin-bottom: 10px;
+            }
+            .name-item {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1c1c1e;
+            }
+            .date-label {
+                font-size: 16px;
+                font-weight: 600;
+                color: #1c1c1e;
+                margin-bottom: 10px;
+            }
+            .divider {
+                border: none;
+                border-top: 1px solid #c7c7cc;
+                margin: 10px 0;
+            }
+            .tfh-label {
+                font-size: 13px;
+                color: #8e8e93;
+                text-align: center;
+                margin-top: 8px;
+            }
+
+        </style>
+
+        <div class="card-wrap">
+            <div class="card-header">
+                <p class="card-code">{{tagCode}}</p>
+            </div>
+            <div class="card-body">
+                <div class="names-grid">
+                    {% for part in parts %}
+                        {% if forloop.index0 >= 1 %}
+                            <div class="name-item">{{part}}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="date-label">Pickup Tag for {{'Now' | Date:'dddd, MMMM d'}}</div>
+                <hr class="divider" />
+                <div class="tfh-label">The Father's House Adventure Camp</div>
+            </div>
+        </div>
+
+    {% endif %}
+
+{% endif %}

@@ -1,0 +1,78 @@
+<script>
+(function () {
+  // ---- CONFIG ----
+  // Order matters: index 0 = bit 1, index 1 = bit 2, index 2 = bit 4, index 3 = bit 8, index 4 = bit 16.
+  // This array MUST stay in this exact order and match the link generator tool's list,
+  // and each code MUST match the actual checkbox option's Value in Rock's form builder.
+  var OPTION_CODES = ["thu-serv", "fri-honor", "sat-golf", "sat-spa", "sun-trans"];
+
+  // Substring (case-insensitive) that appears in the checkbox list's <label class="control-label">.
+  var FIELD_LABEL_MATCH = "which day(s) would you like to join us";
+
+  // Route: registration/anniversary/{RegistrationInstanceId}/{ShowOptions}
+  // ShowOptions is a base36 bitmask token, e.g. "j" = 19 decimal = bits 1+2+16 = thu-serv, fri-honor, sun-trans.
+  var rawToken = "{{ 'Global' | PageParameter:'ShowOptions' }}";
+
+  if (!rawToken) return; // no token, no filtering, show everything
+
+  var bitmask = parseInt(rawToken, 36);
+  if (isNaN(bitmask) || bitmask <= 0) return; // bad/empty token, fail open and show everything
+
+  var allowedCodes = OPTION_CODES.filter(function (code, i) {
+    return (bitmask & (1 << i)) !== 0;
+  });
+
+  if (allowedCodes.length === 0) return;
+
+  function findCheckboxLists() {
+    return document.querySelectorAll(".form-group.check-box-list:not([data-options-filtered])");
+  }
+
+  function matchesField(group) {
+    var label = group.querySelector(".control-label");
+    if (!label) return false;
+    return label.textContent.toLowerCase().indexOf(FIELD_LABEL_MATCH) !== -1;
+  }
+
+  function filterGroup(group) {
+    group.setAttribute("data-options-filtered", "1");
+
+    // Target the checkbox input directly, then walk up to whichever wrapper Rock rendered
+    // for this markup version: either a wrapping "div.checkbox" or a "label.checkbox-inline"
+    // with the input inside it directly. This is markup-version-agnostic on purpose, Rock's
+    // checkbox list HTML structure isn't guaranteed to stay identical across field configs.
+    var inputs = group.querySelectorAll(".rockcheckboxlist input[type='checkbox']");
+    inputs.forEach(function (input) {
+      var row = input.closest(".checkbox") || input.closest("label");
+      if (!row) return;
+
+      var value = (input.value || "").trim().toLowerCase();
+      if (allowedCodes.indexOf(value) === -1) {
+        row.style.display = "none";
+        // Belt-and-suspenders: a hidden option can never accidentally submit checked.
+        if (input.checked) {
+          input.checked = false;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+    });
+  }
+
+  function scan() {
+    findCheckboxLists().forEach(function (group) {
+      if (matchesField(group)) {
+        filterGroup(group);
+      }
+    });
+  }
+
+  // Registration Entry is Vue/Obsidian-rendered, so the checkbox list won't exist at
+  // DOMContentLoaded. Watch the DOM and re-scan whenever new content is added
+  // (covers initial render, moving between registrants, and any re-renders).
+  var observer = new MutationObserver(scan);
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Also run once immediately in case content is already present.
+  scan();
+})();
+</script>

@@ -1,0 +1,20 @@
+{% assign currentUrl = Global | Page:'Url' %}
+{% assign formPurpose = currentUrl | Url:'queryparameter','purpose' %}
+{% assign formPurpose = currentUrl | PageParameter:'purpose' %}
+
+<div>
+    
+    {% if formPurpose == 'discover' %}
+        <h1>Discover</h1>
+        <p>This two-week class is designed to help you discover your life at The Father’s House. Psalm 92 says that when we are planted in the House of God, our lives flourish. Our hope is that through Discover you will find community, live your best life, and make the decision to call TFH your home Church.</p>
+        <hr>
+    {% elseif formPurpose == 'essentials' %}
+        <h1>Essentials</h1>
+        <p>Essentials is designed to help you get started in your relationship with God. This six-week experience will provide you with the tools and support you need to connect with God and with others.</p>
+        <hr>
+    {% else %}
+        <img class="connect-header-img mb-3" src="/Content/ExternalSite/Forms/connect2020.png" style="width: 100%;" alt="TFH Connect">
+        <h1>Campus</h1>
+    {% endif %}
+        <p class="text-muted">Please select a location</p>
+</div>

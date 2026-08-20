@@ -1,0 +1,29 @@
+{% assign source = 'Global' | PageParameter:'MarketingSource' %}
+<script>
+    $('div').on('DOMSubtreeModified', function(){
+      $('label:contains("Marketing Source")').parent().hide();
+      $('label:contains("Marketing Source")').siblings("div").children("input").val("{{ source }}");
+    });
+</script>
+{% assign riId = 'Global' | PageParameter:'RegistrationInstanceId' %}
+{% if riId == 435 %}
+<script>
+    $('div').on('DOMSubtreeModified', function(){
+      $('option[value="7th grade"]').remove();
+      $('option[value="8th grade"]').remove();
+      $('option[value="9th grade"]').remove();
+      $('option[value="10th grade"]').remove();
+      $('option[value="11th grade"]').remove();
+      $('option[value="12th grade"]').remove();
+      $('option[value="Just Graduated"]').remove();
+    });
+</script>
+{% elseif riId == 434 %}
+    <script>
+        $('div').on('DOMSubtreeModified', function(){
+          $('option[value="4th grade"]').remove();
+          $('option[value="5th grade"]').remove();
+          $('option[value="6th grade"]').remove();
+        });
+    </script>
+{% endif %}

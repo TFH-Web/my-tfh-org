@@ -1,0 +1,15 @@
+{% lava
+    assign currentDay = 'Now' | Date:'ddd'
+    if currentDay == 'Sat' or 
+       currentDay == 'Sun' or 
+       currentDay == 'Mon' or 
+       currentDay == 'Tue'
+        assign respondText = 'this week'
+    else
+        assign respondText = 'shortly'
+    endif 
+%}
+
+<h1 class="">Thank You!</h1>
+
+<p class="mb-5">We will be reaching out to you {{ respondText }} to take your next step on the team. </p>

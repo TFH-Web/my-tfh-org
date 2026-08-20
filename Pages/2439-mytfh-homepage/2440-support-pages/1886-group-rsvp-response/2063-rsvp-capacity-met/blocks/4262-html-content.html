@@ -1,0 +1,27 @@
+{% assign url = 'Global' | Page:'Url' %}
+{% assign groupid = url | Url:'queryparameter','GroupId' %}
+
+{% group id:'{{ groupid }}' %}
+    {% for group in groupItems %}
+        {% assign eventdate = group | Attribute:'EventDate' | AsDate %}
+        {% assign eventname = group | Attribute:'PublicEventName' %}
+    {% endfor %}
+{% endgroup %}
+<div class="text-center">
+    {% if eventname == 'Worship and Communion' %}
+        <img src="/content/ExternalSite/Events/worship-and-communion-event.png" class="img-responsive" style="max-height: 250px; margin: 0 auto;">
+    {% endif %}
+    <h2>{{ eventname }}</h2>
+    <p>{{ eventdate | Date:'dddd, MMMM d' }}</p>
+</div>
+<hr>
+<div class="text-center">
+    <h2>EVENT FULL</h2>
+    <p style="font-size: 21px">
+        We have reached our maximum capacity for this event. Registration may be full, but you don’t have to miss out. We’ll be streaming this service at <a href="https://live.tfh.org">live.tfh.org</a>, and we’d love for you to join us.<br><br>
+        We’ll let you know as soon as RSVP’s open for our next Worship and Communion night!<br><br>
+    </p>
+    <div class="text-center">
+        <a href="https://live.tfh.org"><button type="button" class="btn btn-lg btn-info">LIVE.TFH.ORG</button></a>
+    </div>
+</div>

@@ -1,0 +1,43 @@
+{% comment %}
+
+<style>
+.group-banner {
+    border-radius: 20px;
+    overflow: hidden;
+}
+.group-banner {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 25px;
+  /*background-image: url('https://www.tfh.org/-/img/sections/groups/groups-hero-bg-2023.jpg');*/
+  background-color: ##0540BB;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  min-height: 450px;
+}
+.group-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: #0540BB;
+}
+.group-banner img {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+}
+</style>
+
+<div class="group-banner__wrapper mx-2 mx-sm-0">
+  <div class="group-banner">
+    <img class="img-responsive" src="/Content/ExternalSite/group-resources/groups_Logo_White.svg" alt="" />
+  </div>
+</div>
+
+{% endcomment %}

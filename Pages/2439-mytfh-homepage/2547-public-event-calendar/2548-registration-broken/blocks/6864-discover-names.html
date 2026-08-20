@@ -1,0 +1,7 @@
+{% registrationinstance where:'Id=="{{ 'Global' | PageParameter:'RegistrationInstanceId' }}"' %}
+    {% for i in registrationinstanceItems %}
+        {% comment %}{% if i.RegistrationTemplateId == 102 %}{% endcomment %}
+           <h2> {{ i.Name }}</h2>
+        {% comment %}{% endif %}{% endcomment %}
+    {% endfor %}
+{% endregistrationinstance %}

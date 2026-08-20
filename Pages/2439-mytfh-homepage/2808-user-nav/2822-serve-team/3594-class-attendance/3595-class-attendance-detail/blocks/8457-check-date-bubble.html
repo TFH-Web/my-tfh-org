@@ -1,0 +1,188 @@
+<!--
+  Rock RMS – Attendance Date Spotlight
+  Place the entire contents of this file into an HTML Content block on the
+  Class Attendance Detail page. The <style> and <script> tags are both required.
+-->
+
+<style>
+  #att-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #att-overlay svg { width: 100%; height: 100%; display: block; }
+
+  #att-tooltip {
+    position: fixed;
+    z-index: 9999;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 18px 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+    width: 270px;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #222;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  #att-tooltip .att-arrow {
+    position: absolute;
+    top: -10px;
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-bottom: 11px solid #fff;
+  }
+  #att-tooltip strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 15px;
+  }
+  #att-dismiss {
+    display: block;
+    margin-top: 14px;
+    width: 100%;
+    min-height: 46px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    touch-action: manipulation;
+  }
+  #att-dismiss:active { opacity: 0.85; }
+</style>
+
+<script>
+(function () {
+  var PAD      = 14;   // px of breathing room around the date picker
+  var MAX_TRIES = 20;  // retry limit (20 × 200ms = 4 seconds max wait)
+  var tries    = 0;
+  var maskId   = 'att-mask-' + Date.now();
+
+  // ── 1. Find the target element ──────────────────────────────────────────────
+  // Primary selector matches the exact class combo in your HTML:
+  //   <div class="form-group date-picker">
+  // Fallback scans for the "Attendance For" label text.
+  function findTarget() {
+    var el = document.querySelector('.form-group.date-picker');
+    if (el) return el;
+
+    var labels = document.querySelectorAll('label.control-label');
+    for (var i = 0; i < labels.length; i++) {
+      if (labels[i].textContent.trim().indexOf('Attendance For') === 0) {
+        return labels[i].closest('.form-group') || labels[i].parentElement;
+      }
+    }
+    return null;
+  }
+
+  // ── 2. Retry loop ───────────────────────────────────────────────────────────
+  // Keeps trying until the element exists AND has real dimensions.
+  // This handles Vue's async rendering and any lazy-loading Rock RMS does.
+  function tryInit() {
+    var target = findTarget();
+
+    if (!target) {
+      if (++tries < MAX_TRIES) { setTimeout(tryInit, 200); }
+      return;
+    }
+
+    var r = target.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) {
+      if (++tries < MAX_TRIES) { setTimeout(tryInit, 200); }
+      return;
+    }
+
+    // Element is ready — show the spotlight
+    showSpotlight(target, r);
+  }
+
+  // ── 3. Build and show the overlay + tooltip ─────────────────────────────────
+  function showSpotlight(target, r) {
+    var x  = r.left   - PAD;
+    var y  = r.top    - PAD;
+    var w  = r.width  + PAD * 2;
+    var h  = r.height + PAD * 2;
+    var W  = window.innerWidth;
+
+    // -- Overlay (SVG with cutout mask) --
+    var overlay = document.createElement('div');
+    overlay.id = 'att-overlay';
+    overlay.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg">' +
+        '<defs><mask id="' + maskId + '">' +
+          // White = show overlay (dark); Black = hide overlay (spotlight)
+          '<rect width="100%" height="100%" fill="white"/>' +
+          '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="8" fill="black"/>' +
+        '</mask></defs>' +
+        '<rect width="100%" height="100%" fill="rgba(0,0,0,0.52)" mask="url(#' + maskId + ')"/>' +
+      '</svg>';
+    document.body.appendChild(overlay);
+
+    // -- Lock scroll --
+    document.body.style.overflow = 'hidden';
+
+    // -- Tooltip --
+    var tip = document.createElement('div');
+    tip.id = 'att-tooltip';
+
+    var arrow = document.createElement('div');
+    arrow.className = 'att-arrow';
+    tip.appendChild(arrow);
+
+    var msg = document.createElement('span');
+    msg.innerHTML = '<strong>Before you continue</strong>Confirm you have selected the correct class date.';
+    tip.appendChild(msg);
+
+    var btn = document.createElement('button');
+    btn.id = 'att-dismiss';
+    btn.textContent = 'Got it \u2713';
+    tip.appendChild(btn);
+
+    document.body.appendChild(tip);
+
+    // -- Position tooltip below the spotlight --
+    var TIP_W   = 270;
+    var tipLeft = Math.max(8, Math.min(x, W - TIP_W - 8));
+    var tipTop  = y + h + 12;
+
+    tip.style.left = tipLeft + 'px';
+    tip.style.top  = tipTop  + 'px';
+
+    // Arrow: point upward, centered horizontally over the date box
+    var arrowCenter = Math.round((x + w / 2) - tipLeft - 11);
+    arrowCenter = Math.max(12, Math.min(arrowCenter, TIP_W - 34));
+    arrow.style.left = arrowCenter + 'px';
+
+    // ── 4. Dismiss ──────────────────────────────────────────────────────────
+    function dismiss() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      if (tip.parentNode)     tip.parentNode.removeChild(tip);
+      document.body.style.overflow = ''; // restore scroll
+    }
+
+    // "Got it" button
+    btn.addEventListener('click', function (e) { e.stopPropagation(); dismiss(); });
+
+    // Tap/click anywhere on the gray area
+    overlay.addEventListener('click', dismiss);
+    overlay.addEventListener('touchend', function (e) { e.preventDefault(); dismiss(); });
+  }
+
+  // ── 5. Kick off ─────────────────────────────────────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryInit);
+  } else {
+    tryInit();
+  }
+
+})();
+</script>

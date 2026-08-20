@@ -1,0 +1,5 @@
+{% assign workflowid = 'Global' | PageParameter:'WorkflowId' %}
+<p class="lead">
+    Thanks, {% workflow Id:'{{ workflowid }}' %}{{ workflow | Attribute:'FirstName' }}{% endworkflow %}! Please watch closely for emails regarding your application sent to: <b>{{ workflow | Attribute:'Email' }}</b>.
+</p>
+<br>

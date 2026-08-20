@@ -1,0 +1,74 @@
+<style>
+    .dropdown-wrapper {
+        position: relative;
+        font-size: 18px !important;
+        text-align: left;
+        display: flex;
+        flex-wrap: wrap;
+        z-index: 10;
+    }
+    .dropdown-wrapper .btn {
+        max-width: none;
+    }
+    .dropdown {
+        margin: 5px;
+    }
+    .dropdown-sublocation {
+
+    }
+    .btn.dropdown-toggle {
+        background-color: transparent;
+    }
+    .dropdown .btn:hover, .dropdown .btn:focus, .dropdown .btn.focus {
+    	background-color: rgba(255,255,255,.25)!important;
+    }
+    .dropdown-menu {
+    	min-width: 100%;
+    }
+    .dropdown-menu ul {
+    	padding-left: 24px;
+    }
+    .dropdown-menu li {
+    	padding-top: 5px;
+    }
+    @media only screen and (min-width: 768px) {
+        .dropdown-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    }
+</style>
+
+{% assign pageCampus = 'Global' | PageParameter:'campus' %}
+{% assign pageSublocation = 'Global' | PageParameter:'sublocation' %}
+<div class="dropdown-wrapper">
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle text-left{% if pageCampus == empty %} btn-danger{% endif %}" type="button" id="campusMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% if pageCampus == 'vacaville' %}Vacaville{% elseif pageCampus =='napa' %}Napa{% elseif pageCampus == 'east-bay' %}East Bay{% elseif pageCampus == 'roseville' %}Roseville{% elseif pageCampus == 'roseville-slavic' %}Roseville Slavic{% else %}Select Campus{% endif %} <i class="fas fa-sort-down"></i>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="campusMenuButton">
+            <ul>
+                <li><a class="dropdown-item" href="?campus=vacaville">Vacaville</a></li>
+                <li><a class="dropdown-item" href="?campus=napa">Napa</a></li>
+                <li><a class="dropdown-item" href="?campus=east-bay">East Bay</a></li>
+                <li><a class="dropdown-item" href="?campus=roseville">Roseville</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    {% if pageCampus == 'vacaville' %}
+        <div class="dropdown dropdown-sublocation">
+            <button class="btn btn-secondary dropdown-toggle text-left{% if pageSublocation == empty %} btn-danger{% endif %}" type="button" id="sublocaitonMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {% if pageSublocation == "226ccb45-4447-46d0-a0e5-7b0796613028" %}Parking Lot Fountain Tent{% elseif pageSublocation =='c32ca22b-4b4e-499e-80da-895dff8076bc' %}Courtyard Tent{% elseif pageSublocation == '4b8bfb9e-f051-49f0-ae91-20b33654d6db' %}Connect Hub{% else %}Select Location{% endif %} <i class="fas fa-sort-down"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="sublocaitonMenuButton">
+                <ul>
+                    <li><a class="dropdown-item" href="?campus=vacaville&sublocation=226ccb45-4447-46d0-a0e5-7b0796613028">Parking Lot Fountain Tent</a></li>
+                    <li><a class="dropdown-item" href="?campus=vacaville&sublocation=c32ca22b-4b4e-499e-80da-895dff8076bc">Courtyard Tent</a></li>
+                    <li><a class="dropdown-item" href="?campus=vacaville&sublocation=4b8bfb9e-f051-49f0-ae91-20b33654d6db">Connect Hub</a></li>
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,85 @@
+//- Pull the data and format it in a way that'll be easy to display
+
+//- Global Variables
+{% assign ccId = 46 %}  //- Group Leadership Resources - Training Dates (Content Channel)
+{% assign dtype = 137%} //- Group Semester Periods (Defined Type)
+
+//- The date to use as the "current" Date. For testing purposes, may not be 'Now' use 'Now' when going live
+{%comment %}{% assign currentDateCompare = '11/01/2024' | Date:'yyyyMMdd' %}{% endcomment %}
+{% assign currentDateCompare = 'Now' | Date:'yyyyMMdd' %}
+
+<div id="group-curriculum" class="py-5">
+    <h3>Important Dates</h3>
+    <hr>
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <h5 class="hr-heading bg-white pr-4">Upcoming Group Training</h5>
+
+
+            {% contentchannelitem where:'ContentChannelId == "{{ccId}}"' iterator:'contentchannelitems' %}
+                {% assign cciArraySorted = contentchannelitems | OrderBy:'TrainingDate, desc'%}
+                {% assign newest = cciArraySorted | First | Attribute:'TrainingDate' | Date:'yyyyMMdd'%}
+                {% if newest >= currentDateCompare%}
+                    <p>The following group training dates are coming up at the {{ CurrentPerson.PrimaryCampus | Remove:' Campus' }} Campus.</p>
+                    {% for item in contentchannelitems %}
+                        {% assign training = item | Attribute:'TrainingDate' | Date:'yyyyMMdd'%}
+                        {% assign tCampus = item | Attribute:'TrainingCampus' %}
+
+
+                        {% if training >= currentDateCompare and tCampus == CurrentPerson.PrimaryCampus.Name %}
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="icon pull-left mr-3 bg-secondary">
+                                        <span class="date">{{ item | Attribute:'TrainingDate' | Date:'M/d' }}</span>
+                                    </div>
+                                    <h6 class="card-title mt-0 mb-1">{{ item.Title | TruncateWords:3, ''}}</h6>
+                                    <p class="card-text small">{{ item | Attribute:'TrainingCampus'}}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                    {% endfor %}
+                {% else %}
+                    <p>There are no group training dates scheduled at the {{ CurrentPerson.PrimaryCampus | Remove:' Campus' }} Campus.</p>
+                {% endif %}
+            {% endcontentchannelitem %}
+        </div>
+
+
+        <div class="col-sm-6">
+            {% definedvalue where:'DefinedTypeId == {{ dtype}}' iterator:'entries' %}
+                {% for entry in entries%}
+                    {% assign rStartDate = entry | Attribute:'StartDate' | Date:'MMMM dd' %}
+                    {% assign rEndDate = entry | Attribute:'EndDate'| Date:'MMMM dd' %}
+                    {% assign semesterStartDate = entry | Attribute:'ActiveSemesterPeriod'| Split:' to '| First | Date:'yyyyMMdd'  %}
+                    {% assign semesterEndDate = entry | Attribute:'ActiveSemesterPeriod'| Split:' to '| Last | Date:'yyyyMMdd'  %}
+                    {% assign groupSun = entry | Attribute:'GroupSundayDate' | Date:'MMMM dd' %}
+
+
+                    //- Check if there is a semester active
+                    {% if semesterStartDate <= currentDateCompare and currentDateCompare <= semesterEndDate %}
+                        <div class="card card-dark mb-2">
+                            <div class="card-body">
+                                <span class="label label-success d-inline-block mb-2">Current Semester</span><br>
+                                <span><strong>{{entry | Attribute:'ActiveSemesterPeriod'| Split:' to '| First | Date:'MMMM dd'}} - {{entry | Attribute:'ActiveSemesterPeriod'| Split:' to '| Last | Date:'MMMM dd'}}</strong></span><br>
+                            </div>
+                        </div>
+                    {% endif%}
+
+                    {% if currentDateCompare < semesterStartDate %}
+                        //- Check the information for the upcoming semester
+                        <div class="card card-dark mb-2">
+                            <div class="card-body">
+                                <span class="label label-info d-inline-block mb-2">Upcoming Semester</span><br>
+                                <span><strong>{{ entry | Attribute:'ActiveSemesterPeriod'| Split:' to '| First | Date:'MMMM dd'}} - {{entry | Attribute:'ActiveSemesterPeriod'| Split:' to '| Last | Date:'MMMM dd'}}</strong></span><br>
+                                <span>Group Sunday: {{ entry | Attribute:'GroupSundayDate' | Date:'MMMM dd' }}</span><br><br>
+                                <span><em>Renew your group between {{rStartDate | Date:'MMMM dd'}} and {{rEndDate | Date:'MMMM dd'}} for the next semester.</em></span>
+                            </div>
+                        </div>
+                    {% endif%}
+                {% endfor %}
+            {% enddefinedvalue %}
+
+        </div>
+    </div>
+</div>

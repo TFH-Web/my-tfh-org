@@ -1,0 +1,81 @@
+{% assign lastName = 'Global' | PageParameter:'lastname' | SanitizeSql %}
+{% assign firstName = 'Global' | PageParameter:'firstname' | SanitizeSql %}
+<!-- -->
+{% sql return:'safety-names' lname:'{{ lastName }}' fname:'{{ firstName }}' %}
+    SELECT [NickName], [LastName], p.[Id],n1.[Text],tres.[CreatedDateTime] as [tDate],tres.Note as [tNote],tres.ExpirationDate as [tExp],so.[CreatedDateTime] as [soDate],so.Note as [soNote],so.ExpirationDate as [soExp],alt.[CreatedDateTime] as [altDate],alt.Note as [altNote],alt.ExpirationDate as [altExp]
+    FROM [Person] p
+    OUTER APPLY(
+        SELECT TOP 1 * 
+        FROM [Note] n
+        WHERE
+            n.EntityId=p.Id 
+            AND n.NoteTypeId=46
+    ) n1 
+    LEFT JOIN [PersonSignal] tres on tres.PersonId=p.Id AND tres.SignalTypeId=1
+    LEFT JOIN [PersonSignal] so on so.PersonId=p.Id AND so.SignalTypeId=2
+    LEFT JOIN [PersonSignal] alt on alt.PersonId=p.Id AND alt.SignalTypeId=3
+    WHERE 
+        {% if lastName != '' or firstName != '' %}
+            [LastName] like @lname+'%'
+            AND [FirstName] like @fname+'%'
+        {% else %}
+            n1.CreatedDateTime != ''
+            OR (
+                tres.CreatedDateTime != ''
+                OR so.CreatedDateTime != ''
+                OR alt.CreatedDateTime != ''
+            )
+    ORDER BY n1.CreatedDateTime ASC, tres.CreatedDateTime asc, so.CreatedDateTime asc, alt.CreatedDateTime asc
+        {% endif %}
+{% endsql %}
+{% assign today = 'Now' | Date:'MM/dd/yyyy' %}
+{% for item in safety-names %}
+    {% assign p = item.Id | PersonById %}
+    {% assign soD = item.soDate | Date:'MM/dd/yyyy' | ToString | Size %}
+    {% assign tD = item.tDate | Date:'MM/dd/yyyy' | ToString | Size %}
+    {% assign altD = item.altDate | Date:'MM/dd/yyyy' | ToString | Size %}
+    {% assign txt = item.Text | Size %}
+        <a href="/safetyTeam/PersonDetails/{{ p.Id }}" class="person-row-link"> 
+            <div class="border-bottom d-flex p-2 {% if forloop.first %}border-top{% endif %}">
+                {% if p.PhotoId == '' or p.PhotoId < 1 or p.PhotoId == null %}
+                {% else %} 
+                {% endif %}
+                <div class="mr-2">
+                    <img src="/GetAvatar.ashx?PersonId={{ p.Id }}&maxwidth=45&maxheight=45" class="rounded-circle" alt="">
+                </div>
+                <div class="person-info-row d-flex flex-column">
+                    <div>
+                        <span>{{ item.NickName }} {{ item.LastName }} </span>
+                    </div>
+                    <div>
+                        {% if soD != 0%}
+                            <span class="badge badge-danger"><i class="fas fa-exclamation-triangle"></i> Sex Offender</span>
+                        {% endif %}
+                        {% if tD != 0 %}
+                            <span class="badge badge-warning"><i class="far fa-running"></i> Tresspassed</span>
+                        {% endif %}
+                        {% if altD != 0%}
+                            <span class="badge badge-warning"> <i class="fas fa-shield"></i> Safety Concerns</span>
+                        {% endif %}
+                        {% if txt != 0 %}
+                            <span class="badge badge-info"> <i class="fas fa-file-exclamation"></i> Safety Notes</span>
+                        {% endif %} 
+                    </div>
+                </div>
+            </div>
+        </a>
+{% endfor %}
+
+{% stylesheet %}
+.person-row-link div:hover {
+    background-color: #F5F5F5;
+}
+.border-bottom, .border-top {
+    border-color: #cdcdcd !important;
+}
+.badge {
+    padding: 5px 10px;
+    margin-right: 7px;
+    margin-bottom: 7px;
+}
+{% endstylesheet %}

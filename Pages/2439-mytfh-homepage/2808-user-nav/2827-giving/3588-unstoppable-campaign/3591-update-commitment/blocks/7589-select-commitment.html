@@ -1,0 +1,111 @@
+{% assign currentAmount = 'Global' | PageParameter:'current' %}
+{% assign currentPledgeId = 'Global' | PageParameter:'id' %}
+{% assign giver = 'Global' | PageParameter:'Giver' | PersonByGuid %}
+
+<style>
+    .commit-card {
+        position: relative;
+        flex-basis:150px;
+        border: 1px solid #d1d1d1;
+    }
+    .commit-card:has(> .active) {
+        background-color: var(--color-primary);
+        color: #fff;
+        border-color: var(--color-primary);
+    }
+    .commit-card a.active {
+        color: #fff;
+    }
+    .commit-card a::before {
+        position: absolute;
+        content: '';
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+</style>
+
+{% sql return:'cData' %}
+-- Declare the given person ID for which the family pledges should be returned
+{% if giver and giver != empty %}
+DECLARE @PersonId INT = {{ giver.Id }};
+{% else %}
+DECLARE @PersonId INT = {{ CurrentPerson.Id }};
+{% endif %}
+
+
+-- Recursive CTE to gather all account IDs under the specified financial account
+WITH AcctCTE AS 
+(
+    SELECT [Id], [ParentAccountId]
+    FROM [FinancialAccount]
+    WHERE [Id] = 379 -- Unstoppable Campaign East Bay
+
+    UNION ALL
+
+    SELECT A.[Id], A.[ParentAccountId]
+    FROM AcctCTE
+    INNER JOIN [FinancialAccount] A ON A.[ParentAccountId] = AcctCTE.[Id]
+)
+
+-- Select statement to get all pledges for the family of the given person ID
+SELECT 
+    T1.[PledgeId],    -- Pledge ID
+    T1.[PersonId],    -- Person ID who made the pledge
+    T1.[Commitment]   -- Pledge amount
+FROM (
+    SELECT
+        C.[PledgeId],  -- Pledge ID from the subquery
+        C.[PersonId],  -- Person ID from the subquery
+        ISNULL(C.[Committment], 0) AS [Commitment] -- Ensure commitment is not NULL
+    FROM [Person] P
+    OUTER APPLY (
+        -- Subquery to gather pledge details for each family member
+        SELECT 
+            PL.[Id] AS [PledgeId],        -- Pledge ID
+            GP.[Id] AS [PersonId],        -- Person ID who made the pledge
+            SUM(PL.[TotalAmount]) AS [Committment] -- Total pledge amount
+        FROM [GroupMember] FM
+        INNER JOIN [Person] GP 
+            ON GP.[Id] = FM.[PersonId] 
+            AND GP.[GivingLeaderId] = P.[GivingLeaderId] -- Ensure the person is part of the same giving group
+        INNER JOIN [PersonAlias] PA 
+            ON PA.[PersonId] = GP.[Id]
+        LEFT OUTER JOIN [FinancialPledge] PL 
+            ON PL.[PersonAliasId] = PA.[Id]
+            AND PL.[AccountId] IN ( SELECT [Id] FROM AcctCTE ) -- Filter by account IDs from AcctCTE
+        WHERE FM.[GroupId] = P.[PrimaryFamilyId] -- Ensure the person is part of the primary family group
+        GROUP BY PL.[Id], GP.[Id] -- Group by pledge ID and person ID to get pledge details
+    ) C
+    WHERE P.[Id] = @PersonId -- Filter for the given person ID
+) T1
+WHERE T1.[Commitment] > 0 -- Ensure only rows with valid commitments are returned
+{% endsql %}
+
+{% assign rowCount = cData | Size %}
+
+{% if rowCount >= 1 %}
+<div class="row">
+    <div class="col-xs-12">
+        <h3>Your Current Commitments</h3>
+        <div class="d-flex flex-wrap" style="gap: 1rem;">
+            {% for row in cData %}
+                {% if row.Commitment <> 0 %}
+    
+                <div class="commit-card rounded d-flex flex-column p-3">
+                    <a href="?current={{ row.Commitment | Format:'#,##0' }}&id={{ row.PledgeId }}" class="{% if currentPledgeId == row.PledgeId %}active{% endif %}">${{ row.Commitment | Format:'#,##0' }}</a>
+                    <span>{{ row.PersonId | PersonById | Property:'FirstName' }} {{ row.PersonId | PersonById | Property:'LastName' }}</span>
+                </div>
+
+                {% endif %}
+            {% endfor %}
+            
+                <div class="commit-card rounded d-flex flex-column p-3">
+                    <a href="/giving/beyond/commit" class="d-flex align-items-center"><span class="d-block mr-1"><i class="fal fa-plus mr-1"></i></span><span class="d-block">New Commitment</span></a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+{% endif %}

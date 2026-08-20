@@ -1,0 +1,28 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        let element = document.getElementById("initial-description");
+        let text = element.textContent || element.value; // works for both input and non-input elements
+        let link_attributes = {
+            target: '_blank',
+            class: 'mylink',
+            rel: 'nofollow noopener'
+        };
+        let result = convert_url(text, link_attributes);
+        document.getElementById("final-description").innerHTML = result;
+    });
+
+    const convert_url = (text, link_attributes_obj = {}) => {
+        let attr = [];
+        for (let k in link_attributes_obj) {
+            attr.push(`${k}="${link_attributes_obj[k].replace(/"/g, "'")}"`);
+        }
+
+        let exp = /((?:https?|ftp):\/\/[a-zA-Z0-9][\w+\d+&@\-#\/%?=~_|!:,.;+]*)/gim;
+        text = text.replace(exp, `<a href="$1" ${attr.join(' ')}>$1</a>`);
+
+        let reg_ww = /(?<!\/)(www\.[a-zA-Z0-9][\w+\d+&@\-#\/%?=~_|!:,.;+]*)/gim;
+        text = text.replace(reg_ww, `<a href="https://$1" ${attr.join(' ')}>$1</a>`);
+
+        return text;
+    };
+</script>

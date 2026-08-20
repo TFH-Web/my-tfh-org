@@ -1,0 +1,9 @@
+<hr><br>DREAM TEAM GROUP:<br>
+
+{% assign p = 'Global' | PageParameter:'PersonId' | PersonById %}
+
+{% assign groupMembers = p | Groups: "23",'Active' %}
+
+{% for groupMember in groupMembers %}
+    {{ groupMember.Group.Name }} ( {{ groupMember.GroupRole }} ) <br>
+{% endfor %}

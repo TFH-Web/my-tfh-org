@@ -1,4 +1,4 @@
-﻿<div class="row announcement-list">
+<div class="row announcement-list">
   {% for item in Items %}
   {%- assign itemContent = item.Content | Trim -%}
   {%- assign itemPrimarySlug = item.PrimarySlug | Trim -%}

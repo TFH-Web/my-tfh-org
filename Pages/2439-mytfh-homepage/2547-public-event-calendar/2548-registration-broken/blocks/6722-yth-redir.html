@@ -1,0 +1,6 @@
+{% assign inst = 'Global' | PageParameter:'RegistrationINstanceId' %}
+{% assign occ = 'Global' | PageParameter:'EventOccurrenceID' %}
+{% if inst == 497 and occ == 731 %}
+    {% capture redir %}https://my.tfh.org/eventreg?RegistrationInstanceId=497&EventOccurrenceID=731{% endcapture %}
+    {{ redir | PageRedirect }}
+{% endif %}

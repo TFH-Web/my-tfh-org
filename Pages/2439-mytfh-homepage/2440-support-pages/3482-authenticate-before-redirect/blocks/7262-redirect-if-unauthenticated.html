@@ -1,0 +1,21 @@
+{% assign redir = Page | PageParameter:'redir' %}
+{% assign currentUrl = 'Global' | Page:'Url' %}
+{% assign localPath = currentUrl | Url:'localpath' | Append:'?' %}
+{% assign redirParam = currentUrl | Url:'pathandquery' | UnescapeDataString | Remove:'redir=' | Remove: redir | Remove: localPath | ReplaceFirst:'&','?'%}
+{% assign int = redir | AsInteger %}
+
+{% if int == '' or int == null %}<!-- if a page route -->
+    {% assign url = 'https://my.tfh.org/' | Append: redir | Append: redirParam %}
+{% else %}<!-- Otherwise, use page ID -->
+    {% assign route = redir | PageRoute %}
+    {% assign url = 'https://my.tfh.org' | Append: route | Append: redirParam %}
+{% endif %}
+
+<!-- redirect -->
+{% if CurrentPersonCanEdit %}
+    <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="{{ url }}">{{ url }}</a>.</p>
+{% else %}
+    <p>You should be redirected to: <a href="{{ url }}">{{ url }}</a></p>
+    {{ url | PageRedirect }}
+{% endif %}
+

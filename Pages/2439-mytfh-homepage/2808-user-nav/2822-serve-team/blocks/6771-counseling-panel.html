@@ -1,0 +1,16 @@
+{% assign isCoreAdmin = CurrentPerson | IsInSecurityRole: 169829 %}
+{% assign isAdmin = CurrentPerson | IsInSecurityRole: 169795 %}
+{% assign rockAdmin = CurrentPerson | IsInSecurityRole: 2 %}
+<h4>Counseling</h4>
+<p class="small">You're on the Counseling team, please find your tools here.</p>
+<p class="tall">
+    <a href="https://my.tfh.org/counseling/dashboard">Counseling Assignments</a>
+    <br>
+    {% if isCoreAdmin == true or rockAdmin == true %}
+        <a href="https://my.tfh.org/counseling/admin">Admin Board</a>
+        <br><a href="https://my.tfh.org/counseling/securityroles/161742">Role Manager</a>
+    {% elseif isAdmin == true or rockAdmin == true %}
+        <a href="https://my.tfh.org/counseling/admin">Admin Board</a>
+        <br><a href="https://my.tfh.org/counseling/securityroles/161742">Role Manager</a>
+    {% endif %}
+</p>

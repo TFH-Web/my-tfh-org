@@ -1,0 +1,15 @@
+{% assign url = 'Global' | PageParameter:'slug' %}
+
+{% if url == 'adventure-camp-2023' %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 text-center d-flex flex-wrap justify-content-center align-items-center">
+            <span class="text-semibold">Want to make a difference in a child's life this summer?</span>
+            <div class="d-flex justify-content-center">
+                <span class="btn text-white js-btn"><a href="https://my.tfh.org/ac23/volunteer" class="btn btn-info text-white">Volunteer</a></span>
+                <span class="btn"><a href="#donate" class="btn btn-default">Donate</a></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

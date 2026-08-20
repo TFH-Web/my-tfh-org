@@ -1,0 +1,84 @@
+{% assign workflowid = 'Global' | PageParameter:'WorkflowId' %}
+{% workflow Id:'{{ workflowid }}' %}
+{% assign person = workflow | Attribute:'Applicant','Object' %}
+<h2>Leadership College Application (Finance Department)</h2>
+<p class="lead">Application For: <b>{{ workflow | Attribute:'FirstName' }} {{ workflow | Attribute:'LastName' }}</b></p>
+
+<hr>
+<br>
+
+<div class="row">
+    <div class="col-md-4">
+        <p><img src="{{ workflow | Attribute:'YourPhoto','Url' }}" class="img-responsive"><br><br></p>
+    </div>
+    <div class="col-md-8">
+        <h4>Applicant Information</h4>
+        <p><b>First Name:</b> {{ workflow | Attribute:'FirstName' }}<br>
+        <b>Last Name:</b> {{ workflow | Attribute:'LastName' }}<br>
+        <b>Email:</b> {{ workflow | Attribute:'Email' }}<br>
+        <b>Mobile Number:</b> {{ workflow | Attribute:'MobileNumber' }}<br>
+        <b>Date of Birth:</b> {{ workflow | Attribute:'Birthdate' }} (Age: {{ person.Age }})<br>
+        <b>Gender:</b> {{ workflow | Attribute:'Gender' }}<br>
+        <b>Marital Status:</b> {{ workflow | Attribute:'MaritalStatus' }}</p>
+        <br>
+        <h4>Housing</h4>
+        <p><b>Student Housing?</b> {{ workflow | Attribute:'Doyouneedstudenthousing' }}</p>
+    </div>
+</div>
+<hr>
+<h4>Employment Information</h4>
+<p><b>Employer #1</b><br>
+<b>Company Name:</b> {{ workflow | Attribute:'EmployerCompany1Name' }}<br>
+<b>Phone:</b> {{ workflow | Attribute:'CompanyEmployer1Phone' }}<br>
+<b>Position:</b> {{ workflow | Attribute:'Position' }}<br>
+{% assign enddate = workflow | Attribute:'EndDate' %}
+{% assign stillemployed = workflow | Attribute:'StillEmployed' %}
+{% if enddate == empty and stillemployed != empty %}
+<b>Dates:</b> {{ workflow | Attribute:'StartDate' | Date:'MM/dd/yyyy' }} to Current<br>
+{% else %}
+<b>Start Date:</b> {{ workflow | Attribute:'StartDate' | Date:'MM/dd/yyyy' }}<br>
+<b>End Date:</b> {{ workflow | Attribute:'EndDate' | Date:'MM/dd/yyyy' }}<br>
+<b>Still Employed:</b> {{ stillemployed }}<br>
+{% endif %}
+{% assign reason = workflow | Attribute:'ReasonforLeaving' %}
+{% if reason != empty %}
+<b>Reason for Leaving:</b> {{ reason }}
+{% endif %}
+</p>
+
+{% assign employer2 = workflow | Attribute:'CompanyEmployer2Name' %}
+{% if employer2 != empty %}
+<p><b>Employer #2</b><br>
+<b>Company Name:</b> {{ workflow | Attribute:'CompanyEmployer2Name' }}<br>
+<b>Phone:</b> {{ workflow | Attribute:'CompanyEmployerPhone' }}<br>
+<b>Position:</b> {{ workflow | Attribute:'Position1' }}<br>
+{% assign enddate1 = workflow | Attribute:'EndDate1' %}
+{% assign stillemployed1 = workflow | Attribute:'StillEmployed1' %}
+{% if enddate1 == empty and stillemployed1 != empty %}
+<b>Dates:</b> {{ workflow | Attribute:'StartDate1' | Date:'MM/dd/yyyy' }} to Current<br>
+{% else %}
+<b>Start Date:</b> {{ workflow | Attribute:'StartDate1' | Date:'MM/dd/yyyy' }}<br>
+<b>End Date:</b> {{ workflow | Attribute:'EndDate1' | Date:'MM/dd/yyyy' }}<br>
+{% if stillemployed1 != empty %}
+<b>Still Employed:</b> {{ stillemployed1 }}<br>
+{% endif %}
+{% endif %}
+{% assign reason1 = workflow | Attribute:'ReasonforLeaving1' %}
+{% if reason1 != empty %}
+<b>Reason for Leaving:</b> {{ reason1 }}
+{% endif %}
+</p>
+{% endif %}
+<br>
+<hr>
+<h4>Personal Finances</h4>
+<p><b>What is your anticipated income (if any) during this program?</b><br>
+{{ workflow | Attribute:'AnticipatedIncome' }}</p>
+<p><b>What are your current financial obligations?</b><br>
+{{ workflow | Attribute:'Whatareyourcurrentfinancialobligations' }}</p>
+<p><b>Monthly total of current financial obligations:</b> {{ workflow | Attribute:'FinancialObligationsTotal' }}</P>
+<P><B>Detail your plan for payment of school fees and living expenses:</b><br>
+{{ workflow | Attribute:'Detailyourplanforpayment' }}</p>
+<br>
+
+{% endworkflow %}

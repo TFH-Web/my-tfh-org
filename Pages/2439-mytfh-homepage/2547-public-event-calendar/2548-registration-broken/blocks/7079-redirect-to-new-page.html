@@ -1,0 +1,8 @@
+{% assign pageUrl = 'Global' | Page:'Url' | ReplaceFirst:'/Registration','/Registration-New' %}
+    
+
+{% if CurrentPersonCanEdit %}
+    <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="{{ pageUrl }}">{{ pageUrl }}</a>.</p>
+{% elseif CurrentPerson %}
+    {{ pageUrl | PageRedirect }}
+{% endif %}

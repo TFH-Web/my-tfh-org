@@ -1,0 +1,29 @@
+{% sql return:'involvementList' %}
+    SELECT
+        g.Name
+    FROM
+        [GroupMember] gm
+        INNER JOIN [Group] g on g.id = gm.Groupid
+    WHERE
+        gm.GroupId in (
+            SELECT
+                Id
+            FROM
+                [Group]
+            WHERE
+                ParentGroupId = 157598
+        )
+        AND gm.PersonId = {{ CurrentPerson.Id }}
+{% endsql %}
+{% for item in involvementList %}
+    {% assign involved = item.Name %}
+{% endfor %}
+{% if involve != '' %}
+    <h3>Other Lists</h3>
+    <p>You are in these lists becasue you're actively involved in ongoing TFH Ministries.<br><em>If you believe any of the following to be in error, please email: <a href = "mailto:support@tfh.org?subject = Involement List Issues">support@tfh.org</a></em></p>
+    <ul style="list-style-type:none;">
+        {% for item in involvementList %}
+            <li style="padding-bottom:5px;">{{ item.Name }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

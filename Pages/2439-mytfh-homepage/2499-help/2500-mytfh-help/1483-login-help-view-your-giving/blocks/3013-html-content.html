@@ -1,0 +1,148 @@
+<style>
+    .accordion {
+        background-color: #F0F0F0;
+        color: #000;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+        font-weight: bold;
+        transition: 1s;
+    }
+
+    .instructionAccordions li {
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div>
+
+    <br>
+    {% if CurrentPerson.Users != empty %}
+            <h3>We found your account!</h3>
+            <p>{{ CurrentPerson.NickName }}, your username is <strong>{{ CurrentPerson.Users[0].UserName }}</strong><br><br></p>
+            <a class="btn btn-primary mt-1" target="none" href="https://my.tfh.org/givinghistory">Login</a>
+            <a class="btn btn-default mt-1" href="#forgotPassword">Forgot Password</a><br>
+            <br>
+    {% else %}
+            <h3>You do not have a TFH login yet</h3>
+            <p>{{ CurrentPerson.NickName }}, click Register below to get started.</p>
+            <p>(Use your email <strong>{{ CurrentPerson.Email }}</strong> when creating your account).<br><br></p>
+            <br>
+            <br>
+            <a class="btn btn-primary mt-1" target="none" href="https://my.tfh.org/NewAccount">Register</a>
+            <a class="btn btn-default mt-1" href="#moreInstructions">More Instructions</a><br>
+            <br>
+    {% endif %}
+</div>
+
+    <hr id="forgotPassword">
+    <br id="moreInstructions">
+
+    <div class="instructionAccordions">
+        <h4>Need Help?</h4>
+
+        <button class="accordion" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2" style="text-size: 12pt;">
+            <span class="caretUp" style="display:none;">▾</span> <span class="caretDown">▸ </span>I have a username but forgot my password
+        </button>
+
+        <div class="panel" style="padding: 0 18px;background-color: white;max-height: 0;overflow: hidden;transition: max-height 0.2s ease-out;">
+            <br><br>
+            <ol>
+                <li id="forgot-password">Enter your email address <strong>{{ CurrentPerson.Email }}</strong> to reset your password on the <a target="_none" href="https://my.tfh.org/page/214">FORGOT ACCOUNT page</a>.</li>
+                <li>Open the email and click the link. Enter a new password of your choice.</li>
+            </ol>
+            <br>
+        </div>
+
+        <button class="accordion" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2" style="text-size: 12pt;">
+            <span class="caretUp" style="display:none;">▾</span> <span class="caretDown">▸ </span>I need instructions to create an account
+        </button>
+
+        <div class="panel" style="padding: 0 18px;background-color: white;max-height: 0;overflow: hidden;transition: max-height 0.2s ease-out;">
+            <br><br>
+            <ol>
+                <li>Go to the <a target="_none" href="https://my.tfh.org/page/208">ACCOUNT REGISTRATION page</a>.</li>
+                <li>Enter your information, being careful to ensure that your first name, last name, and email match exactly what is on file (your email on file is {{ CurrentPerson.Email }}).</li>
+                <li>Select a username and password of your choice.</li>
+                <li>The system will ask you to confirm you are the person in our system that matches the information you entered.</li>
+                <li>The system will send you an email with a secure link to confirm your account.</li>
+                <li>Open the email and click the link.</li>
+                <li>Click Give on the website menu to download your contribution statement.</li>
+            </ol>
+            <br>
+        </div>
+
+        <button class="accordion" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2" style="text-size: 12pt;">
+            <span class="caretUp" style="display:none;">▾</span> <span class="caretDown">▸ </span>I no longer have access to the email account on file, and cannot reset the password for my account as a result
+        </button>
+
+        <div class="panel" style="padding: 0 18px;background-color: white;max-height: 0;overflow: hidden;transition: max-height 0.2s ease-out;">
+            <br><br>
+            <ol>
+                <li>To get your email corrected, please contact the Church Office at <a href="tel:7074557790">(707) 455-7790</a> for immediate assistance.</li>
+                <li>Once your email has been updated, you can follow the directions listed under "I have a username but forgot my password" to reset your password and confirm your account using the updated email address.</li>
+            </ol>
+            <br>
+        </div>
+
+        <button class="accordion" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2" style="text-size: 12pt;">
+            <span class="caretUp" style="display:none;">▾</span> <span class="caretDown">▸ </span>I no longer have access to the email account on file, so I cannot create an account as a result
+        </button>
+
+        <div class="panel" style="padding: 0 18px;background-color: white;max-height: 0;overflow: hidden;transition: max-height 0.2s ease-out;">
+            <br><br>
+            <ol>
+                <li>To get your email corrected, please contact the Church Office at <a href="tel:7074557790">(707) 455-7790</a> for immediate assistance.</li>
+                <li>Once your email has been updated, you can follow the directions listed under "I need instructions to create an account" to create and confirm your account using the updated email address.</li>
+            </ol>
+            <br>
+        </div>
+
+        <button class="accordion" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2" style="text-size: 12pt;">
+            <span class="caretUp" style="display:none;">▾</span> <span class="caretDown">▸ </span>I remember the username and password for my account, and need help updating my email address
+        </button>
+
+        <div class="panel" style="padding: 0 18px;background-color: white;max-height: 0;overflow: hidden;transition: max-height 0.2s ease-out;">
+            <br><br>
+            <ol>
+                <li>To update your email address, please <a target="_none" href="https://my.tfh.org/page/1171">Login</a> on the Communication Preferences page.</li>
+                <li>Type the email that you would like to use moving forward under "Update Contact Information", then click "SUBMIT".</li>
+                <li>Please allow a couple of business days for our staff to receive your request and make the update.</li>
+                <li>In the meantime, you can click Give > Giving History to download your contribution statement.</li>
+            </ol>
+            <br>
+        </div>
+    </div>
+
+    <p>If this article didn't answer your question and you need further assistance, please contact us by calling the Church Office at <a href="tel:7074557790">(707) 455-7790</a>.</p>
+
+
+
+
+<script>
+// This will change down carot to up carrot when clicked
+$("button.accordion").on("click", function(){ // use .on("click") instead of .click() for performance
+    var target = $(event.target); // get the element clicked and assign it to a variable
+  target.children("span").toggle(); // toggle "display:none;" on any spans within the target
+});
+
+// Expands & Collapses the Content
+var acc = document.getElementsByClassName("accordion");
+var i;
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle('\002B');
+    var panel = this.nextElementSibling;
+    if (panel.style.maxHeight){
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = "0";
+    }
+  });
+};
+</script>

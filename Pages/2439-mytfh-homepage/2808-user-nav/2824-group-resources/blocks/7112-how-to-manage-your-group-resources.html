@@ -1,0 +1,37 @@
+{% assign now = 'Now' | Date %}
+<div id="group-curriculum" class="py-5">
+    <h3>How to Manage Your Group</h3>
+    <hr>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="d-flex flex-wrap flex-row row">
+                {% comment %} -- Find all ids for Content Channel items whos parent is the MANGE YOUR GROUP channel (1368). -- {% endcomment %}
+                {% assign allChildIds = '' %}
+                {% contentchannelitem where:'ContentChannelId == "47" && Id == "1368" && StartDateTime <= "{{ now }}"' sort:'StartDateTime desc' %}
+                    {% for item in contentchannelitemItems %}
+                        {% for child in item.ChildItems %}
+                            {% assign allChildIds = allChildIds | Append:child.ChildContentChannelItem.Id | Append:',' %}
+                        {% endfor %}
+                    {% endfor %}
+                    {% assign allChildIds = allChildIds | ReplaceLast:',','' %}
+                {% endcontentchannelitem %}
+
+                {% comment %} -- Return the most recent 4 items based on the childIds returned above. -- {% endcomment %}
+                {% contentchannelitem ids:'{{ allChildIds }}' where:'Status == "Approved"' sort:'StartDateTime desc' limit:'4' %}
+
+                    {% for item in contentchannelitemItems %}
+                        {[ groupresourcecard contentchannelitem:item detailpageurl:'group-resources/resources/{slug}' ]}
+                    {% endfor %}
+
+                {% endcontentchannelitem %}
+
+                
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a class="pull-right mt-3" href="https://my.tfh.org/group-resources/resources#manage-group-resources">More Group Management Resources <i class="fa fa-chevron-right font-weight-light"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,112 @@
+<br>
+<h3>Hi {{ Person.NickName }},</h3>
+<p></p>
+<p>
+    It’s that time again to RENEW or DEACTIVATE your group for the Fall Semester. Click on the link below.
+</p> 
+<p>Here are some instructions:</p>
+<p>
+    <ul style="list-style: none;">
+        <li><strong><span style="color: #21bf73;">RENEW</span></strong> - Click renew if your group will continue meeting during the new semester. *Please make sure to <strong>UPDATE</strong> your <strong>group details</strong>.<br><br></li>
+        <li><strong><span style="color: #fd5e53;">DEACTIVATE</span></strong> - Click deactivate if your group is taking a break during the new semester.<br><br></li>
+        <li><strong><span style="color: #3282b8;">REGISTER A NEW GROUP</span></strong> - Click <a href="https://my.tfh.org/group-resources/groups/new">here</a> to register today!<br><br></li>
+    </ul>
+</p>
+<div class="panel panel-default">
+  <div class="panel-body text-center">
+    <h3 class="text-uppercase text-red-500">Important</h3>
+    Make sure to select either option for your group by <strong>August 25<sup>th</sup></strong>. If you do not respond by this date, your group will automatically be deactivated in the system.
+  </div>
+</div>
+
+
+<!-- Get all of the groups that they are in that are of the group type 'TFH Groups' (25) and they are 'Active' in that group -->
+{% assign personGMs = Person | Groups: "25",'All','All' %} 
+{% assign name = Person.NickName %} 
+{% assign leadsAGroup = false %}
+<!-- If this person leads any TFH Group, show them with the option to RENEW or DEACTIVATE -->
+    <br><br>
+    <h2 class="text-center">Groups you led or are currently leading</h2>
+    <!-- Loop over each of them, get the group id of the group -->
+        
+        {% for gm in personGMs %}
+            {% assign groupId = gm.GroupId %}
+            {% assign group = groupId | GroupById %}
+            {% assign groupName = group.Name %}
+            {% assign groupCapacity = group.GroupCapacity %}
+            {% assign groupDescription = group.Description %}
+            {% assign groupCategory = group | Attribute:'TFHGroupCategory' %}
+            {% assign groupTopic = group.Topic %}
+            {% capture meetingLocation %}
+                {% for GroupLocation in group.GroupLocations %}
+                    {{ GroupLocation.Location.Street1 }}, 
+                    {% if GroupLocation.Location.Street2 != empty %}
+                        {{ GroupLocation.Location.Street2 }}, 
+                    {% endif %}
+                    {{ GroupLocation.Location.City }}, {{ GroupLocation.Location.State }} {{ GroupLocation.Location.PostalCode }}
+                {% endfor %}
+            {% endcapture %}
+            {% assign meetingDay = group.Schedule.WeeklyDayOfWeek %} 
+            {% assign meetingTime = group.Schedule.WeeklyTimeOfDay | Date: 'h:mm tt' %}
+            {% assign campus = gm | Attribute:'Campus' %}
+            {% assign inactivedate = group.InactiveDateTime %}
+                {% if inactivatedate != empty %}
+                    {% assign inactiveDateDiff = inactivedate | DateDiff:'Now','d' %}
+                {% endif %}
+            <!-- Link to group renew workflow -->
+            {% capture renewLink %}{{ 'Global' | Attribute:'PublicApplicationRoot' }}/group-resources/group/renew?GroupId={{ groupId }}{% endcapture %}
+            {% capture deactivateLink %}{{ 'Global' | Attribute:'PublicApplicationRoot' }}/group-resources/group/deactivate?GroupId={{ groupId }}{% endcapture %}
+            <!-- Get all of the members -->
+            {% assign groupMembers = group.Members %}
+            <!-- Loop through members -->
+            {% for grm in groupMembers %}
+                <!-- find this person in the members -->
+                {% if grm.PersonId == Person.Id %}
+                    <!-- only continue if they are a leader (TFH Groups Leader Role ID = 24) -->
+                    {% if grm.GroupRole.Id == 24 %}
+                        {% if group.IsActive == 'true' or inactiveDateDiff <= '106' %}
+                        <!-- assign value that this person is currently leading a group -->
+                        {% assign leadsAGroup = true %}
+                        <hr>
+                        <h3>{{ groupName }}</h3>
+                        <strong>Group Status:</strong> {% assign isactive = group.IsActive %}{% if isactive == 'true' %}Active Group{% elseif isactive == 'false' %}Inactive Group{% endif %}<br>
+                        <strong>Group Category: </strong>{{ groupCategory }}<br>
+                        <strong>Group Topic: </strong>{{ groupTopic }}<br>
+                        <strong>Description: </strong>{{ groupDescription }}<br>
+                        <strong>Meeting Location: </strong> {{ meetingLocation }}<br>
+                        <strong>Schedule: </strong>
+                            {{ meetingDay }} 
+                            {% if meetingTime != empty %} 
+                                at {{ meetingTime | Date: 'h:mm tt' }} 
+                            {% else %}
+                            {% endif %}<br>
+                        <strong>Capacity: </strong>{{ groupCapacity }}<br>
+                        <br>
+                        {% if group.IsActive %}
+                            <a href="{{ renewLink }}" style="margin-right: 5px; font-weight: bold; background-color: #21bf73; border-radius:3px; color: #ffffff; padding: 15px 20px; display: inline-block; margin-bottom: 5px; text-decoration: none;">Renew</a>
+                            <a href="{{ deactivateLink }}" style="font-weight: bold; background-color: #fd5e53; border-radius:3px; color: #ffffff; padding: 15px 20px; display: inline-block; text-decoration: none;">De-Activate</a><br><br>
+                        {% else %}
+                            <a href="{{ renewLink }}" style="margin-right: 5px; font-weight: bold; background-color: #21bf73; border-radius:3px; color: #ffffff; padding: 15px 20px; display: inline-block; margin-bottom: 5px; text-decoration: none;">Reactivate</a>
+                        {% endif %}
+                        {% endif %}    
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    {% if leadsAGroup == true %}
+        <hr>
+        <br>
+        <p><strong>Want to create a new group?</strong></p>
+    <!-- If this person does not lead any TFH Groups, then display the following -->
+    {% else %}
+        <hr>
+        <p>
+            <strong>No active groups were found. </strong><em>Are you leading a group that did not show up? Let us know by emailing <a href="mailto:groups@tfh.org">groups@tfh.org</a></em>.<br><br>
+        <p>
+            <strong>Want to create a new group? </strong><br>
+        </p>
+    {% endif %}
+<a href="https://my.tfh.org/group-resources/groups/new" style="font-weight: bold; background-color: #3282b8; border-radius:3px; color: #ffffff; padding: 15px 20px; display: inline-block; text-decoration: none;">Register New Group</a>
+<br><br><br>
+<strong>Thank you for making a place for people to belong!</strong>
+<br><br><br>

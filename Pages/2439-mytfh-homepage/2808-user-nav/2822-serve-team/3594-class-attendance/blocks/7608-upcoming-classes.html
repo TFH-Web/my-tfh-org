@@ -1,0 +1,216 @@
+/-
+    This is the new code for Class Attendance
+    
+    Possible future issues: 
+    Currently the groups are all one word names so any word after the first is dropped. If the names are ever longer, this will need to be changed.
+-/
+
+
+//- Pull the data and format it in a way that'll be easy to display
+
+//- Global Variables
+{% assign essentialsGroupId = 170 %}  //- Essentials Group Type Id
+{% assign discoverGroupId = 169 %}    //- Discover Group Type Id
+
+//- {% assign currentDate = '2/15/2026' | Date:'M/d/yyyy' %}
+{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+{% assign currentGroups = '[]' | FromJSON %} //- Array to store the group objects
+{% assign currentCampuses = '[]' | FromJSON %} //-Array to store the Campus Names where the classes are occuring
+
+
+//- SQL Statement for the Occurrence Information
+{% sql return:'occurrences'%}
+    SELECT [AttendanceOccurrence].[Id], [AttendanceOccurrence].[GroupId],[AttendanceOccurrence].[OccurrenceDate]
+    FROM [AttendanceOccurrence]
+    JOIN [Group] ON [AttendanceOccurrence].GroupId = [Group].Id
+    WHERE [Group].[GroupTypeId] = {{ essentialsGroupId}}
+    OR [Group].[GroupTypeId] = {{discoverGroupId }}
+{% endsql %}
+
+
+//- Pull all Groups of the Discover and Essentials Group types that are current
+{% group where:'
+    (GroupTypeId == {{ discoverGroupId }} || GroupTypeId == {{ essentialsGroupId }}) && IsActive == True && Week1Class _! "Blank"'
+    iterator:'groupList' %}
+
+    //- Narrow down the list to only hold the current classes
+    {% for item in groupList %}
+        {% assign tempDates = '[]' | FromJSON %}
+        //- Sets all of the various week attributes to variables depending on GroupTypeId
+        {% if item.GroupTypeId == discoverGroupId %}
+            {% assign firstWeek = item | Attribute:'Week1Class' | Date:'M/d/yyyy' %}
+            {% assign lastWeek = item | Attribute:'Week2Class' | Date:'M/d/yyyy' %}
+            {% assign tempDates = tempDates | AddToArray:firstWeek | AddToArray:lastWeek %}
+        {% elseif item.GroupTypeId == essentialsGroupId %}
+            {% assign firstWeek = item | Attribute:'Week1Class' | Date:'M/d/yyyy' %}
+            {% assign secondWeek = item | Attribute:'Week2Class' | Date:'M/d/yyyy' %}
+            {% assign thirdWeek = item | Attribute:'Week3Class' | Date:'M/d/yyyy' %}
+            {% assign fourthWeek = item | Attribute:'Week4Class' | Date:'M/d/yyyy' %}
+            {% assign fifthWeek = item | Attribute:'Week5Class' | Date:'M/d/yyyy' %}
+            {% assign lastWeek = item | Attribute:'Week6Class' | Date:'M/d/yyyy' %}
+            {% assign tempDates = tempDates | AddToArray:firstWeek | AddToArray:secondWeek | AddToArray:thirdWeek | AddToArray:fourthWeek | AddToArray:fifthWeek | AddToArray:lastWeek %}
+        {% endif %}
+
+        //- Check if the class is current
+        {% assign currentClass = currentDate | IsDateBetween:firstWeek,lastWeek %}
+
+        /-
+            Create objects that will hold the data that we actually need to reduce database calls
+        -/
+
+        {% if currentClass == True %}
+            {% assign currentCampuses = currentCampuses | AddToArray:item.Campus %}
+
+            {% for date in tempDates%}
+                {% for occurrence in occurrences%}
+                    {% assign checkDate = occurrence.OccurrenceDate | Date:'M/d/yyyy' %}
+                    {%  if checkDate == date and item.Id == occurrence.GroupId %}
+                        {% assign occurrenceNumber = occurrence.Id %}
+                        {% break %}
+                    {% else %}
+                        {% assign occurrenceNumber = "" %}
+                    {% endif %}
+                {% endfor%}
+
+                {% assign tempObject = '{
+                    "id":"' | Append:item.Id | Append:'",
+                    "groupTypeId":"' | Append:item.GroupTypeId | Append:'",
+                    "groupTypeName":"' | Append:item.GroupType | Append:'",
+                    "campus":"' | Append:item.Campus.Name| Append:'",
+                    "campusId":"' | Append:item.Campus.Id| Append:'",
+                    "weekNumber":"' | Append:forloop.index | Append:'",
+                    "occurrenceId":"' | Append:occurrenceNumber | Append:'",
+                    "date":"' | Append:date | Append:'"
+                }' | FromJSON %}
+                {% assign currentGroups = currentGroups | AddToArray:tempObject %}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+{% endgroup %}
+
+{% assign currentCampuses = currentCampuses | Distinct | Sort | Reverse%}
+{% assign currentGroups = currentGroups | OrderBy:'date desc, groupTypeName' %}
+
+/-
+    This starts the code that actually populates the page
+-/
+<div class="mb-5">
+    
+//- Check if there are any classes
+{% if currentGroups.size >= 1 %}
+
+    //- Selecting a Campus will reload the page with the appropriate CampusId parameter
+
+    <div id="campus-buttons">
+        {% if PageParameter.CampusId %}
+            //- Do Nothing
+        {% else %}
+            {% assign campusIdMissing = True %}
+        {% endif %}
+        <a href="{{ pagepath }}?CampusId=" type="button" class="btn mr-1 mb-1 {%if campusIdMissing or PageParameter.CampusId==""%}btn-primary{% else %}btn-default{% endif %}">All Campuses</a>
+        {% for campus in currentCampuses %}
+            <a href="{{ pagepath }}?CampusId={{ campus.Id }}" type="button" class="btn mr-1 mb-1 {%if PageParameter.CampusId==campus.Id%}btn-primary{% else %}btn-default{% endif %}">{{ campus.Name }}</a>
+        {% endfor %}
+    </div>
+
+
+    //- Current Classes
+    <div class="row">
+        <div class="col-md-12 mt-5">
+            <h4 class="hr-heading bg-white pr-4">Today's Classes</h4>
+            <div class="row">
+                {% for item in currentGroups %}
+                    {% assign dateConverted = item.date | Date:'yyyyMMdd' %}
+                    {% assign currentDateConverted = currentDate | Date:'yyyyMMdd' %}
+                    //- Find the entry that matches currentDate
+                    {% if dateConverted == currentDateConverted %}
+                        {% if PageParameter.CampusId and PageParameter.CampusId != "" %}
+                            {% if PageParameter.CampusId == item.campusId %}
+                                //- For changes, it's easiest to change this block and then copy it over to the other ones
+                                <div class="col-sm-6 col-md-3 col-lg-3">
+                                    <div class="card card-dark mb-2">
+                                        <div class="card-body">
+                                            <div class="icon pull-left mr-3 bg-secondary">
+                                                <span class="date">{{item.date | Date:'M/d'}}</span>
+                                            </div>
+                                            //-Set Group Name: GroupTypeName break at space + week + Array index of current date plus 1
+                                            //- Currently the groups are all one word. If they ever expand to more, TruncateWords will need to be changed!
+                                            <h6 class="card-title mt-0 mb-1">{{ item.groupTypeName |TruncateWords:1,"" }} Week {{ item.weekNumber }}</h6>
+                                            <p class="card-text small">{{ item.campus }}</p>
+                                            <a href="https://my.tfh.org/serveteam/classattendance/detail?GroupId={{ item.id }}&OccurrenceId={{item.occurrenceId}}" type="button" class="btn btn-link">Enter Attendance <i class="fa fa-chevron-right"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="col-sm-6 col-md-3 col-lg-3">
+                                <div class="card card-dark mb-2">
+                                    <div class="card-body">
+                                        <div class="icon pull-left mr-3 bg-secondary">
+                                            <span class="date">{{item.date | Date:'M/d'}}</span>
+                                        </div>
+                                        //-Set Group Name: GroupTypeName break at space + week + Array index of current date plus 1
+                                        <h6 class="card-title mt-0 mb-1">{{ item.groupTypeName |TruncateWords:1,"" }} Week {{ item.weekNumber }}</h6>
+                                        <p class="card-text small">{{ item.campus }}</p>
+                                        <a href="https://my.tfh.org/serveteam/classattendance/detail?GroupId={{ item.id }}&OccurrenceId={{item.occurrenceId}}" type="button" class="btn btn-link">Enter Attendance <i class="fa fa-chevron-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    //- Previous Classes
+    <div class="row">
+        <div class="col-md-12 mt-5">
+            <h4 class="hr-heading bg-white pr-4">Previous Classes</h4>
+            <div class="row">
+                {% for item in currentGroups %}
+                    {% assign dateConverted = item.date | Date:'yyyyMMdd' %}
+                    {% assign currentDateConverted = currentDate | Date:'yyyyMMdd' %}
+                    //- Find the entry that matches currentDate
+                    {% if dateConverted < currentDateConverted %}
+                        {% if PageParameter.CampusId and PageParameter.CampusId != "" %}
+                            {% if PageParameter.CampusId == item.campusId %}
+                                <div class="col-sm-6 col-md-3 col-lg-3">
+                                    <div class="card card-dark mb-2">
+                                        <div class="card-body">
+                                            <div class="icon pull-left mr-3 bg-secondary">
+                                                <span class="date">{{item.date | Date:'M/d'}}</span>
+                                            </div>
+                                            //-Set Group Name: GroupTypeName break at space + week + Array index of current date plus 1
+                                            <h6 class="card-title mt-0 mb-1">{{ item.groupTypeName |TruncateWords:1,"" }} Week {{ item.weekNumber }}</h6>
+                                            <p class="card-text small">{{ item.campus }}</p>
+                                            <a href="https://my.tfh.org/serveteam/classattendance/detail?GroupId={{ item.id }}&OccurrenceId={{item.occurrenceId}}" type="button" class="btn btn-link">Enter Attendance <i class="fa fa-chevron-right"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="col-sm-6 col-md-3 col-lg-3">
+                                <div class="card card-dark mb-2">
+                                    <div class="card-body">
+                                        <div class="icon pull-left mr-3 bg-secondary">
+                                            <span class="date">{{item.date | Date:'M/d'}}</span>
+                                        </div>
+                                        //-Set Group Name: GroupTypeName break at space + week + Array index of current date plus 1
+                                        <h6 class="card-title mt-0 mb-1">{{ item.groupTypeName |TruncateWords:1,"" }} Week {{ item.weekNumber }}</h6>
+                                        <p class="card-text small">{{ item.campus }}</p>
+                                        <a href="https://my.tfh.org/serveteam/classattendance/detail?GroupId={{ item.id }}&OccurrenceId={{item.occurrenceId}}" type="button" class="btn btn-link">Enter Attendance <i class="fa fa-chevron-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <p> There are currently no classes in progress. </p>
+{% endif %}
+
+</div>

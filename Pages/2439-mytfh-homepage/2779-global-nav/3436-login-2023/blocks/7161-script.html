@@ -1,0 +1,23 @@
+<script>
+    function toggleActive(targetId) {
+        // Remove the "active" class from all links in the list
+        var links = document.querySelectorAll('.login-options-list li');
+        for (var i = 0; i < links.length; i++) {
+            links[i].classList.remove('active');
+        }
+
+        // Add the "active" class to the clicked link
+        document.getElementById(targetId + '-link').classList.add('active');
+
+        // Toggle the "active" class between the divs
+        var divs = document.querySelectorAll('.login-rock-block');
+        for (var i = 0; i < divs.length; i++) {
+            if (divs[i].id === targetId) {
+                divs[i].classList.add('active');
+            } else {
+                divs[i].classList.remove('active');
+            }
+        }
+    }
+</script>
+

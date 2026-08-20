@@ -1,0 +1,6 @@
+{% assign currentUrlParts = Global | Page:'Url' | Split:'?' %}
+{% assign urlParameters = currentUrlParts[1] %}
+<div class="alert alert-primary" role="alert">
+  <strong>Try the new Group Attendance!</strong>
+  Check out the new, easy to use <a href="https://my.tfh.org/page/368?{{ urlParameters }}"><u>Group Attendance</u></a> experience.
+</div>

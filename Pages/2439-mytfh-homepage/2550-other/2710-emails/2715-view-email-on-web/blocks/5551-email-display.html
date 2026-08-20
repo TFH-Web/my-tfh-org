@@ -1,0 +1,27 @@
+<style>
+    /* Reset styles to not conflict with emails */
+    table {
+        background-color: transparent;
+    }
+</style>
+{% sql %}
+    DECLARE @communicationId nvarchar(max) = '{{  'Global' | PageParameter:'cg' }}'
+    DECLARE @name varchar(max) = '{{ CurrentPerson.NickName }}'
+    SELECT
+        message as Message, Subject as Subject
+    FROM
+        [Communication]
+    WHERE
+        [GUID] = '{{  'Global' | PageParameter:'cg' }}'
+{% endsql %}
+
+<div class="pull-right" style="text-align:right; line-height:1; font-size: 14px; padding:5px;">Not {{ CurrentPerson.NickName }}? <a href="/Auth/Logout">Logout</a></div>
+{% for item in results %}
+    <script>
+        document.title = '{{ item.Subject }}';
+    </script>
+    
+    <div id="emailMessage">{{ item.Message | RunLava }}</div>
+    
+   
+{% endfor %} 

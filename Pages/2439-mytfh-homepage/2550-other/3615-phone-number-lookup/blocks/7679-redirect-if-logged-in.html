@@ -1,0 +1,17 @@
+{% comment %} -- Get current URL -- {% endcomment %}
+{% assign url = 'Global' | Page:'Url' %}
+
+{% comment %} -- -- {% endcomment %}
+{% assign returnUrl = url | Url:'queryparameter','returnurl' %}
+
+{% if returnUrl != '' %}
+    {% assign redirectUrl = returnUrl %}
+{% else %}
+    {% assign redirectUrl = "https://my.tfh.org" %}
+{% endif %}
+
+{% if CurrentPersonCanEdit %}
+    <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="{{ redirectUrl }}">{{ redirectUrl }}</a>.</p>
+{% else %}
+    {{ redirectUrl | PageRedirect }}
+{% endif %}

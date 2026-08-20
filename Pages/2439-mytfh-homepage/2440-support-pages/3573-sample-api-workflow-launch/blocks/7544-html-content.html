@@ -1,0 +1,67 @@
+<script>
+    
+    Sys.Application.add_load(function () {
+        
+        $('#submit').on('click', function() {
+            
+            var workflowTypeId = 1026
+            
+            var firstName = $("#firstName").val();
+            var lastName = $("#lastName").val();
+            var email = $("#email").val();
+            var mobilePhone = $("#mobilePhone").val();
+            var amount = $("#amount").val();
+            
+            var attributes = {
+                'FirstName': firstName,
+                'LastName': lastName,
+                'Email': email,
+                'MobilePhone': mobilePhone,
+                'Amount': amount
+            }
+            var data = JSON.stringify( attributes )
+            
+            //var apiUrl = 'https://rock.tfh.org/api/Workflows/LaunchWorkflow/0?workflowTypeId=' + workflowTypeId + '&workflowName=' + firstName + '%20' + lastName; 
+            var apiUrl = 'https://9embers.ngrok.io/api/Workflows/LaunchWorkflow/0?workflowTypeId=' + workflowTypeId + '&workflowName=' + firstName + '%20' + lastName;         
+            $.ajax({
+                url: apiUrl,
+                type: 'POST',
+                contentType: 'application/json', 
+                data: data,
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader( "Authorization-Token", "n3xxyvVNC7eL0tF5wDOeSbqD" )
+                },
+                success: function(response) {
+                    console.log("Workflow launched successfully", response);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error launching workflow", status, error);
+                }
+            });
+        });
+    });
+
+</script>
+<div class="well">
+    <div>
+        <label for="firstName">First Name</label>
+        <input id="firstName" type="text" name="firstName" required="required"/>
+    </div>
+    <div>
+        <label for="lastName">Last Name</label>
+        <input id="lastName" type="text" name="lastName" required="required"/>
+    </div>
+    <div>
+        <label for="email">Email Address</label>
+        <input id="email" type="email" name="email" required="required"/>
+    </div>    
+    <div>
+        <label for="mobilePhone">Mobile Phone</label>
+        <input id="mobilePhone" type="text" name="mobilePhone" required="required"/>
+    </div>     
+    <div>
+        <label for="amount">Your Total Commitment</label>
+        <input id="amount" type="number" name="amount" required="required"/>
+    </div>     
+    <input id="submit" type="button" value="Submit" />
+</div>

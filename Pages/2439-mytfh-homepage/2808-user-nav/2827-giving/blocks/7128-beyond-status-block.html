@@ -1,0 +1,248 @@
+<!-- Beyond Giving Page Block -->
+{% comment %}-- First check if the Financial Account is still active, if so, show the block --{% endcomment %}
+{% assign isBeyondAccountActive = false %}
+{% financialaccount where:'Id == 338 && IsActive == true' %}
+    {% for financialaccount in financialaccountItems %}
+        {% assign isBeyondAccountActive = true %}
+    {% endfor %}
+{% endfinancialaccount %}
+{% if isBeyondAccountActive == true %}
+    
+    {% if Person.AgeClassification == 'Adult' or Person.Age >= 13 or Person.RecordTypeValueId == 2 %}
+    {% sql return:'pdata' %}
+        DECLARE @PersonId INT = '{{ Context.Person.Id }}'
+        {% if Person.AgeClassification == 'Adult' or Person.RecordTypeValueId == 2 %}
+            ;WITH AcctCTE AS 
+            (
+                SELECT [Id], [ParentAccountId]
+                FROM [FinancialAccount]
+                WHERE [Id] = 338 -- Beyond Campaign Vacaville
+            
+                UNION ALL
+            
+                SELECT A.[Id], A.[ParentAccountId]
+                FROM AcctCTE
+                INNER JOIN [FinancialAccount] A ON A.[ParentAccountId] = AcctCTE.[Id]
+            )
+            
+            , FamilyGroup AS
+            (
+                SELECT P.[GivingLeaderId]
+                FROM [Person] P
+                WHERE P.[Id] = @PersonId
+            )
+            
+            , Pledges AS
+            (
+                SELECT
+                    GP.[GivingLeaderId],
+                    SUM(PL.[TotalAmount]) AS TotalPledged
+                FROM [GroupMember] FM
+                INNER JOIN [Person] GP 
+                    ON GP.[Id] = FM.[PersonId]
+                    AND GP.[GivingLeaderId] IN (SELECT [GivingLeaderId] FROM FamilyGroup)
+                INNER JOIN [PersonAlias] PA 
+                    ON PA.[PersonId] = GP.[Id]
+                LEFT OUTER JOIN [FinancialPledge] PL 
+                    ON PL.[PersonAliasId] = PA.[Id]
+                    AND PL.[AccountId] IN (SELECT [Id] FROM AcctCTE)
+                WHERE FM.[GroupRoleId] = 3
+                GROUP BY GP.[GivingLeaderId]
+            )
+            
+            , Givings AS
+            (
+                SELECT
+                    GP.[GivingLeaderId],
+                    SUM(D.[Amount]) AS TotalGiven
+                FROM [GroupMember] FM
+                INNER JOIN [Person] GP 
+                    ON GP.[Id] = FM.[PersonId]
+                    AND GP.[GivingLeaderId] IN (SELECT [GivingLeaderId] FROM FamilyGroup)
+                INNER JOIN [PersonAlias] PA 
+                    ON PA.[PersonId] = GP.[Id]
+                INNER JOIN [FinancialTransaction] T 
+                    ON T.[AuthorizedPersonAliasId] = PA.[Id]
+                INNER JOIN [FinancialTransactionDetail] D 
+                    ON D.[TransactionId] = T.[Id]
+                    AND D.[AccountId] IN (SELECT [Id] FROM AcctCTE)
+                WHERE FM.[GroupRoleId] = 3
+                GROUP BY GP.[GivingLeaderId]
+                
+                -- Add sum for soft credits
+                UNION ALL
+    
+    			SELECT
+                    SP.[GivingLeaderId],
+                    SUM(FTD.[Amount]) AS TotalGiven
+                FROM [Attribute] A
+        			INNER JOIN [Attributevalue] AV ON AV.[Attributeid] = A.[Id]
+        			INNER JOIN [PersonAlias] SPA ON SPA.[Guid] = TRY_CAST(AV.[Value] as uniqueidentifier)
+        			INNER JOIN [Person] SP ON SP.[Id] = SPA.[PersonId]
+        			INNER JOIN [Financialtransactiondetail] FTD ON FTD.[Id] = AV.[EntityId]
+        			INNER JOIN [Financialtransaction] FT ON FT.[Id] = FTD.[TransactionId]
+        		WHERE A.[Guid] IN ('7AFE4DD4-5573-4472-BF82-D94CB3FAAB7E','2612E440-EC46-42A2-9B95-F4F906C243D5')
+    				AND SP.[GivingLeaderId] IN (SELECT [GivingLeaderId] FROM FamilyGroup) 
+    				AND FTD.[AccountId] IN (SELECT [Id] FROM AcctCTE)
+    				GROUP BY SP.[GivingLeaderId]
+            )
+            
+            SELECT 
+                ISNULL(PL.TotalPledged, 0) AS Commitment,
+                ISNULL(SUM(GV.TotalGiven), 0) AS Given,
+                CASE WHEN ISNULL(PL.TotalPledged, 0) > ISNULL(SUM(GV.TotalGiven), 0)
+                    THEN ISNULL(PL.TotalPledged, 0) - ISNULL(SUM(GV.TotalGiven), 0)
+                    ELSE 0
+                END AS Remaining,
+                CAST(
+                    CASE WHEN ISNULL(PL.TotalPledged, 0) > 0
+                        THEN (ISNULL(SUM(GV.TotalGiven), 0) * 100.00) / ISNULL(PL.TotalPledged, 0)
+                        ELSE 0.00
+                    END AS decimal(18,2)
+                ) AS PercentageComplete
+            FROM [Person] P
+            LEFT JOIN Pledges PL ON P.[GivingLeaderId] = PL.[GivingLeaderId]
+            LEFT JOIN Givings GV ON P.[GivingLeaderId] = GV.[GivingLeaderId]
+            WHERE P.[Id] = @PersonId
+            AND (ISNULL(PL.TotalPledged, 0) > 0 OR ISNULL(GV.TotalGiven, 0) > 0)
+    		GROUP BY PL.TotalPledged
+    		
+        {% elseif Person.AgeClassification != 'Adult' and Person.Age >= 13 %}
+            ;WITH AcctCTE AS 
+            (
+                SELECT [Id], [ParentAccountId]
+                FROM [FinancialAccount]
+                WHERE [Id] = 338 -- Beyond Campaign Vacaville
+        
+                UNION ALL
+        
+                SELECT A.[Id], A.[ParentAccountId]
+                FROM AcctCTE
+                INNER JOIN [FinancialAccount] A ON A.[ParentAccountId] = AcctCTE.[Id]
+            )
+        
+            SELECT 
+                T1.[Commitment],
+                T1.[Given],
+                CASE WHEN [Commitment] > [Given] 
+                    THEN [Commitment] - [Given] 
+                    ELSE 0
+                END AS [Remaining],
+                CAST( CASE WHEN [Commitment] > 0
+                    THEN ( [Given] * 100.00 ) / [Commitment] 
+                    ELSE 0.00
+                END AS decimal(15,2) ) AS [PercentageComplete]
+        
+            FROM (
+        
+                SELECT 
+                    ISNULL(TC.[Amount],0) AS [Commitment],
+                    ISNULL(SUM(TG.[Amount]),0) AS [Given]
+                FROM [Person] P
+                OUTER APPLY (
+                    SELECT SUM(PL.[TotalAmount]) AS [Amount]
+                    FROM [Person] GP 
+                    INNER JOIN [PersonAlias] PA ON PA.[PersonId] = GP.[Id]
+                    INNER JOIN [FinancialPledge] PL ON PL.[PersonAliasId] = PA.[Id]
+                    WHERE GP.[Id] = P.[Id]
+                    AND PL.[AccountId] IN ( SELECT [Id] FROM AcctcTE )
+                ) TC
+                OUTER APPLY (
+                    SELECT SUM(D.[Amount]) AS [Amount]
+                    FROM [Person] GP 
+                    INNER JOIN [PersonAlias] PA ON PA.[PersonId] = GP.[Id]
+                    INNER JOIN [FinancialTransaction] T ON T.[AuthorizedPersonAliasId] = PA.[Id]
+                    INNER JOIN [FinancialTransactionDetail] D ON D.[TransactionId] = T.[Id]
+                    WHERE GP.[Id] = P.[Id]
+                    AND D.[AccountId] IN ( SELECT [Id] FROM AcctcTE )  
+    
+                    -- Add sum for soft credits
+    				UNION ALL
+    
+        			SELECT
+                        
+                        SUM(FTD.[Amount]) AS TotalGiven
+                    FROM [Attribute] A
+            			INNER JOIN [Attributevalue] AV ON AV.[Attributeid] = A.[Id]
+            			INNER JOIN [PersonAlias] SPA ON SPA.[Guid] = TRY_CAST(AV.[Value] as uniqueidentifier)
+            			INNER JOIN [Person] SP ON SP.[Id] = SPA.[PersonId]
+            			INNER JOIN [Financialtransactiondetail] FTD ON FTD.[Id] = AV.[EntityId]
+            			INNER JOIN [Financialtransaction] FT ON FT.[Id] = FTD.[TransactionId]
+            		WHERE A.[Guid] IN ('7AFE4DD4-5573-4472-BF82-D94CB3FAAB7E','2612E440-EC46-42A2-9B95-F4F906C243D5')
+        				AND SP.Id = P.[Id] 
+        				AND FTD.[AccountId] IN (SELECT [Id] FROM AcctCTE)
+    				
+                ) TG
+                WHERE P.[Id] = @PersonId
+    			GROUP BY TC.[Amount]
+            ) T1
+        {% endif %}
+    {% endsql %}
+    {% endif %}
+    <style>
+        .gap-5 {
+            gap: 20px;
+        }
+        .commitment-numbers-title {
+            display: block;
+            font-size: 16px;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+        .commitment-numbers {
+            display: block;
+            font-size: 36px;
+        }
+    </style>
+    {% for row in pdata %}
+    <div class="container-fluid panel d-flex flex-column flex-lg-row justify-content-around align-items-center px-4 py-4 gap-5" style="background-image: linear-gradient(90deg,#2e2637,#1b529f); color: #fff;">
+        <div class="d-flex justify-content-center align-items-center w-100 mx-auto" style="max-width: 400px;">
+            <img src="/Content/ExternalSite/Give/beyond.png" class="img-responsive px-5 mx-5"/>
+        </div>
+        {% if row.Commitment > 0 %}
+        <div class="d-flex flex-column w-100">
+            <div class="d-flex flex-column flex-sm-row justify-content-between text-center text-md-left">
+                <div class="col-md-4">
+                    <span class="commitment-numbers-title">My Commitment</span>
+                    <span class="commitment-numbers">{{ 'Global' | Attribute:'CurrencySymbol' }}{{ row.Commitment | Format:'#,##0' }}</span>
+                </div>
+                <div class="col-md-4">
+                    <span class="commitment-numbers-title">Given</span>
+                    <span class="commitment-numbers">{{ 'Global' | Attribute:'CurrencySymbol' }}{{ row.Given | Format:'#,##0' }}</span>
+                </div>
+                <div class="col-md-4">
+                    <span class="commitment-numbers-title">Remaining</span>
+                    <span class="commitment-numbers">{{ 'Global' | Attribute:'CurrencySymbol' }}{{ row.Remaining | Format:'#,##0' }}</span>
+                </div>
+            </div>
+            <div class="w-100">
+                <div class="progress" style="height: 40px;border: none; ;background-color: rgb(255 255 255 / 25%); margin-top:15px">
+                    <div class="progress-bar" role="progressbar" style="width: {{ row.PercentageComplete | Format:'##' }}%;background-color: #fff;border-radius: 3px 0 0 3px;" aria-valuenow="{{ row.PercentageComplete | Format:'##'}}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="d-flex flex-column w-100">
+            <div class="d-flex flex-column flex-sm-row justify-content-between text-center">
+                <div class="col-sm-12 text-center">
+                    <p class="mx-auto">Learn more about Beyond at <a href="https://beyond.tfh.org" style="color: #c9cef7; text-decoration: underline;">beyond.tfh.org</a></p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+    </div>
+    {% if row.Commitment > 0 %}
+    <div class="row mb-5">       
+        <div class="col-md-12 d-flex justify-content-end gap-5">
+            <a class="pull-right mr-2" href="https://ppay.co/eEvBz0H6HjE">Give online</a>
+            <!--<a class="pull-right mr-2" href="https://www.tfh.org/give/stock">Give stock</a>-->
+            <!--<a class="pull-right mr-2" href="/giving/beyond/update{% if Context.Person.RecordTypeValueId == 2 %}?Giver={{Context.Person.Guid}}{% endif %}">Update my commitment</a>-->
+            <span class="pull-right mr-2">Questions? <a href="mailto:accounting@tfh.org">accounting@tfh.org</a></span>
+        </div>  
+    </div>
+    {% endif %}
+    
+{% endfor %}
+
+{% endif %}

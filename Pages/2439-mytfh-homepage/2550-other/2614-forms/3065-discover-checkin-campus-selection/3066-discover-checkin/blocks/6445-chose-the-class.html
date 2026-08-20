@@ -1,0 +1,18 @@
+<div>
+    <h2>Please Select Your Class:</h2>
+    <br><br>
+    {% sql return:'DiscoverGroups' %}
+        SELECT g.[Guid], g.[Id], g.[Name]
+        FROM [Group] g
+        INNER JOIN [AttributeValue] av on av.EntityId=g.Id AND av.AttributeId = 35030 AND av.Value >= '{{ 'Now' | Date:'yyyy-MM-ddT00:00:00.0000000' }}'
+        WHERE g.[CampusId] = '{{ 'Global' | PageParameter:'campusid' }}'
+    {% endsql %}
+    {% for i in DiscoverGroups %}
+        <div>
+            <h4>{{ i.Name }}</h4>
+            <a class="btn btn-primary" href="https://my.tfh.org/formEntry/748?DiscoverGroup={{- i.Guid -}}&gId={{- i.Id -}}">Week 1</a>
+            <br><br><a class="btn btn-primary" href="https://my.tfh.org/formEntry/749?DiscoverGroup={{- i.Guid -}}&gId={{- i.Id -}}">Week 2</a>
+            <br><br><br>
+        </div>
+    {% endfor %}
+</div>

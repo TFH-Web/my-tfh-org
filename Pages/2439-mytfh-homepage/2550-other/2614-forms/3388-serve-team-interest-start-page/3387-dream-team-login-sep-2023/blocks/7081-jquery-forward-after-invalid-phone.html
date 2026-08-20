@@ -1,0 +1,11 @@
+<script>
+    $('#ctl00_main_ctl09_ctl03_ctl00_btnVerify').click(function(){
+        console.log("Button Clicked"); 
+        if ($('#jQCheckMe').length) {
+            console.log("Eval True"); 
+            window.location.replace("http://stackoverflow.com");
+        } else {
+            console.log("Eval False"); 
+        }
+    });
+</script>

@@ -1,4 +1,4 @@
-﻿{% if RegistrationInstance %}
+{% if RegistrationInstance %}
 <div class='well margin-t-md'>
     {% assign daysTillStartDate = 'Now' | DateDiff:RegistrationInstance.StartDateTime,'m' %}
     {% assign daysTillEndDate = 'Now' | DateDiff:RegistrationInstance.EndDateTime,'m' %}

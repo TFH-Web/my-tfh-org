@@ -1,0 +1,50 @@
+{% stylesheet compile:'less' %}
+    .media-player-wrapper {
+        margin-right: auto;   
+        margin-left: auto;
+        max-width: 1100px; 
+        
+        .link-via-script {
+            padding: 10px;  
+            max-width: 750px;
+        }
+        
+        h2, p {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+    }
+    @media only screen and (min-width: 1520px) {
+        .media-player-wrapper {
+            max-width: 1520px;
+            
+            .link-via-script {
+                max-width: 1000px;
+            }
+            
+            h2, p {
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+    }
+{% endstylesheet %}
+
+{% assign media = 'Global' | PageParameter:'media' %}
+
+{% mediaelement id:'{{media}}' securityenabled:'false' %}
+    <div class="media-player-wrapper">
+        <div class="mt-1 mb-3">
+           {[ mediaplayer media:'{{ media }}' controls:'play,play-large,restart,progress,mute,volume,captions,settings,pip,airplay,fullscreen' autoresumeindays:'-1' ]}{[ endmediaplayer ]}
+        </div>
+        <div class="link-via-script">
+            <h2>{{ mediaelement.Name }}</h2>
+            <p id="initial-description" class="d-none">{{ mediaelement.Description }}</p>
+            <p id="final-description" class="mb-5 tall"></p>
+        </div>
+    </div>
+{% endmediaelement %}
+
+<style>
+
+</style>

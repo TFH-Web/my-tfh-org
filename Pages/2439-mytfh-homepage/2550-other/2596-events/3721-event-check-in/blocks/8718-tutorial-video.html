@@ -1,0 +1,219 @@
+<style>
+/* ================================
+   Video Trigger Button
+================================ */
+
+.video-trigger {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  color: #111;
+  text-align: left;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.video-trigger__icon {
+  font-size: 24px;
+  padding: 6px;
+  transition: transform 160ms ease;
+}
+
+.video-trigger__text {
+  text-decoration: underline;
+}
+
+.video-trigger:hover {
+  color: #0d6efd;
+}
+
+.video-trigger:hover .video-trigger__icon {
+  transform: scale(1.1);
+}
+
+.video-trigger:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ================================
+   Popover Container
+================================ */
+
+.video-popover {
+  position: relative;
+  width: min(900px, calc(100vw - 2rem));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.video-popover::backdrop {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+}
+
+/* ================================
+   Video Frame (the "card")
+================================ */
+
+.video-popover__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.55),
+    0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.video-popover__embed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video-popover__embed iframe,
+.video-popover__embed video {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.video-popover__embed .video-js,
+.video-popover__embed .vjs-tech {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.video-popover__embed .vjs-fluid {
+  padding-top: 0 !important;
+  height: 100% !important;
+}
+
+/* ================================
+   Close Button
+================================ */
+
+.video-popover__close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  z-index: 2;
+
+  display: grid;
+  place-items: center;
+
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+
+  background: rgba(20, 20, 20, 0.75);
+  color: #fff;
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    0 1px 8px rgba(0, 0, 0, 0.25);
+
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.video-popover__close:hover {
+  background: rgba(20, 20, 20, 0.9);
+  transform: translateY(-1px);
+}
+
+.video-popover__close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .video-popover__frame { border-radius: 12px; }
+  .video-popover__close { top: -10px; right: -10px; }
+}
+</style>
+
+<!-- Trigger -->
+<div class="mt-0 mb-4">
+  <button type="button" class="video-trigger" popovertarget="my-popover">
+    <i class="fal fa-play-circle video-trigger__icon"></i>
+    <span class="video-trigger__text">How to take attendance</span>
+  </button>
+</div>
+
+<!-- Popover -->
+<div id="my-popover" popover="auto" class="video-popover">
+
+  <button
+    type="button"
+    class="video-popover__close"
+    popovertarget="my-popover"
+    popovertargetaction="hide"
+    aria-label="Close video"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="24" height="24"
+         viewBox="0 0 24 24"
+         fill="currentColor">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10m3.6 5.2a1 1 0 0 0 -1.4 .2l-2.2 2.933l-2.2 -2.933a1 1 0 1 0 -1.6 1.2l2.55 3.4l-2.55 3.4a1 1 0 1 0 1.6 1.2l2.2 -2.933l2.2 2.933a1 1 0 0 0 1.6 -1.2l-2.55 -3.4l2.55 -3.4a1 1 0 0 0 -.2 -1.4"/>
+    </svg>
+  </button>
+
+  <div class="video-popover__frame">
+    <div class="video-popover__embed">
+      {[ mediaplayer media:'1670' resume:'false' ]}{[ endmediaplayer ]}
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const pop = document.getElementById("my-popover");
+
+  pop.addEventListener("toggle", (e) => {
+    if (e.newState === "open") {
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 50);
+    }
+
+    if (e.newState === "closed") {
+      const iframe = pop.querySelector("iframe");
+      const video = pop.querySelector("video");
+
+      if (iframe) {
+        const src = iframe.src;
+        iframe.src = "";
+        iframe.src = src;
+      }
+
+      if (video) {
+        try {
+          video.pause();
+          video.currentTime = 0;
+        } catch (err) {}
+      }
+    }
+  });
+});
+</script>

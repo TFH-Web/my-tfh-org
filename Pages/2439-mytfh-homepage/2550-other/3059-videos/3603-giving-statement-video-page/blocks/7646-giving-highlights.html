@@ -1,0 +1,139 @@
+<div style="max-width: 800px;">
+
+    <p><strong>To access your 2023 Giving Statement, click the link below to login to your <a href="https://my.tfh.org/giving">MyTFH account</a>.</strong> A login is required to protect your security and privacy. </p>
+
+    <!-- this is the start of the household giving highlights code -->
+    <div class="my-5" >
+        <!--BEGIN Giving Highlights -->
+    
+        /-
+                Account Info
+                Add or delete accounts between the square brackets below. These are the current accounts that are listed:
+                    Global Reach: 366
+                    Beyond: 338
+                    Unstoppable: 379
+                    Now: 380
+                    PCN: 382 & 303
+                    Youth Sponsorships: 229
+                    Disaster Relief: 9 (Parent Account)
+                Also ensure the CASE statement gets updated for the added/removed accounts
+        -/
+        
+            {% assign accounts = '[366,338,379,380,382,303,229,9]' | FromJSON %}
+            {% assign showBanner = true %}
+        
+        
+            {% for account in accounts%}
+        
+                //- Call the Shortcode for the giving data. It should return only one line of data per call so only the first row is used
+                {% capture data %}{[GivingData account:'{{account}}']}{% endcapture %}
+                {% assign data = data | FromJSON  | First%}
+        
+                {% if data.Given != 0 %}
+        
+                    //- Show the banner if the recipient has any donation related to the chosen accounts
+                    {% if showBanner%}
+                                    <h2>
+                                        Your Household's Giving Highlights
+                                    </h2>
+                        {% assign showBanner = false %}
+                    {% endif%}
+        
+                    {% case account %}
+                        {% when 366 %} //- Global Reach (All)
+                            <div class="">
+                                <h3 style="color: #5E5E5E !important">Global Reach</h3>
+                                <p>
+                                    Because of your support for missions through Global Reach, we were able to partner with 15 organizations
+                                    making a difference globally this year. We sponsored 12 missions trips to Haiti, Uganda, Costa Rica, and the Dream Center.
+                                    Your giving also helped to support the Ainsworth’s as they spent three months counseling families and pastors effected by the
+                                    October 7th attacks in Israel.<br>
+                                </p>
+                                <hr>
+                            </div>
+                        {% when 338 %} //- Beyond Campaign
+                            <div class="">
+                                <h3 style="color: #5E5E5E !important">Beyond Campaign</h3>
+                                <p>
+                                    {% if data.Commitment != 0 %}
+                                        Thank you for continuing to give towards your {{data.Name}} Commitment. <br>
+                                    {% endif %}
+                                    We are weeks away from completing our new 25,000 sq/ft building expansion dedicated to generations,
+                                    community, and discipleship. We can’t wait to hear testimonies of the lives that will find life in Christ in this new space.<br>
+                                </p>
+                                <hr>
+                            </div>
+                        {% when 379%} //- Unstoppable
+                            <div class="">
+                                <h3 style="color: #5E5E5E !important">Unstoppable Campaign</h3>
+                                <p>
+                                    {% if data.Commitment != 0 %}
+                                        Thank you for continuing to give towards your {{data.Name}} Commitment. <br>
+                                    {% endif %}
+                                    We are weeks away from completing our new 25,000 sq/ft building expansion dedicated to generations,
+                                    community, and discipleship. We can’t wait to hear testimonies of the lives that will find life in Christ in this new space.<br>
+                                </p>
+                                <hr>
+                            </div>
+                        {% when 380 %} //- Now
+                            <div class="">
+                                <h3 style="color: #5E5E5E !important">Now Campaign</h3>
+                                <p>
+                                    {% if data.Commitment != 0 %}
+                                        Thank you for continuing to give towards your {{data.Name}} Commitment. <br>
+                                    {% endif %}
+                                    We are weeks away from completing our new 25,000 sq/ft building expansion dedicated to generations,
+                                    community, and discipleship. We can’t wait to hear testimonies of the lives that will find life in Christ in this new space.<br>
+                                </p>
+                                <hr>
+                        
+                            </div>
+                        {% when 382 or 303 %} //- Prison Church Network
+                            <div class="">
+                                <h3 style="color: #5E5E5E !important">Prison Church Network</h3>
+                                <p>
+                                    Because of your support for missions through Global Reach, we were able to partner with 15 organizations
+                                    making a difference globally this year. We sponsored 12 missions trips to Haiti, Uganda, Costa Rica, and the Dream Center.
+                                    Your giving also helped to support the Ainsworth’s as they spent three months counseling families and pastors effected by the
+                                    October 7th attacks in Israel.<br>
+                                </p>
+                                <hr>
+                            </div>
+                        {% when 229 %} //- Youth
+                            <div class="">
+                                <h3 style="color: #5E5E5E !important">Youth Sponsorships</h3>
+                                <p>
+                                    You gave to sponsor youth events this year. Because of your giving kids were able to attend
+                                    Adventure Camp and high school / middle school students were able to attend Winter Camp and Rally Conference.
+                                    Here is one example of a life changed:
+                                </p>
+                                <blockquote>
+                                    <p>“At rally conference I surrendered completely to God and He told me I am going to be a pastor.” - Johnny (14) </p>
+                                </blockquote>
+                                <br>
+                                <hr>
+                            </div>
+                        {% when 9 %} //- Diaster Relief (All)
+                            <div class="">
+                                <h3 style="color: #5E5E5E !important">Disaster Relief</h3>
+                                <p>
+                                    Because of your support for missions through Global Reach, we were able to partner with 15 organizations
+                                    making a difference globally this year. We sponsored 12 missions trips to Haiti, Uganda, Costa Rica, and the Dream Center.
+                                    Your giving also helped to support the Ainsworth’s as they spent three months counseling families and pastors effected by the
+                                    October 7th attacks in Israel.<br>
+                                </p>
+                                <hr>
+                            </div>
+                    {% endcase%}
+                {% endif %}
+            {% endfor%}
+            <!--END Household Giving Highlights-->
+            
+    </div>
+    <!-- end giving highlights code -->
+
+    <div class="mb-5">  
+        <a class="btn btn-primary" title="Access Giving Statement" href="http://my.tfh.org/giving" >Access Giving Statement</a>
+    </div>
+
+</div>

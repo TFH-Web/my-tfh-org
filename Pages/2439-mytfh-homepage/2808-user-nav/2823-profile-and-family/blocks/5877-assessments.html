@@ -1,0 +1,69 @@
+{% assign currentPersonAliasId = CurrentPerson.PrimaryAlias.Id %}
+
+<div style="background-color:#fafafc;" class="pb-4">
+    <div class="container position-reltive">
+        <h3>Assessments</h3>
+        <hr>
+        {%- assessmenttype where:'IsActive == True' iterator:'Items' securityenabled:'false' -%}
+            {% assessment where:'PersonAliasId == {{currentPersonAliasId}}' iterator:'AssessmentTypes' securityenabled:'false' %} 
+            {[ swiper breakpoints:'lg-5|15,md-3|15,sm-3|15' slidesperview:'1.25' spacebetween:'15' ]}
+                {%- for item in Items -%}
+                    /- Manual Description. V13 fixes will include AssessmentType Description property -/
+                    {% if item.Id == 1 %}
+                        {% assign assessmentDescription = 'DISC is a self-assessment that measures how an individual prefers to interact with others. DISC creates a common language and a self-awareness to better understand ourselves and others. ' %}
+                    {% elseif item.Id == 2 %}
+                        {% assign assessmentDescription = 'The Spiritual Gifts Assessment identifies the spiritual gifts an individual possesses. While this is not a comprehensive list of spiritual gifts, it does include those that are most commonly seen in action for most people.' %}
+                    {% elseif item.Id == 3 %}
+                        {% assign assessmentDescription = 'This is a description of the Conflict assessment. Have you taken it? You Should! Go ahead, take it.' %}
+                    {% elseif item.Id == 4  %}
+                        {% assign assessmentDescription = 'The Emotional Intelligence, or EQ, Assessment is a measure of individuals’ developed skills in understanding the emotions of themselves and others, and appropriately harnessing their emotional responses.' %}
+                    {% elseif item.Id == 5  %}
+                        {% assign assessmentDescription = 'The Motivators Assessment identifies what a person truly values, which drives their perspective and goals.' %}
+                    {% endif %}
+                    
+                    [[ slide ]]
+                        {% assign currentTypeId = '' %}
+                        /- Runs loop and creates and detects completed and pending assesments -/  
+                        {% assign assessmentCurrentType =  AssessmentTypes | Where:'AssessmentTypeId',item.Id %}
+                        {% assign assessmentOrderByTypeId =  assessmentCurrentType | OrderBy:'Date' %}
+                        {%- for assessmenttype in assessmentOrderByTypeId reversed -%}
+                            {% if assessmenttype.AssessmentTypeId == currentTypeId %}
+                                {% break %}
+                            {% endif %}
+                            {% assign assessmentStatus = assessmenttype.Status %}
+                            {% assign assessmentCompletedDateTime = assessmenttype.CompletedDateTime %}
+                            {% assign assessmentRequestedDateTime = assessmenttype.RequestedDateTime %}
+                            {% assign assessmentRequesterPersonAliasId = assessmenttype.RequesterPersonAliasId  %}
+                            {% assign currentTypeId = assessmenttype.AssessmentTypeId %}
+                        {%- endfor -%}
+                            
+                            
+                        <div class="card">
+                            <div class="card-header bg-white no-border">
+                                <h4 class="mt-0 mb-1">{{ item.Title }}</h4>
+                            </div>
+                            <div class="card-body pt-0 pb-5">
+                                <p class="small mb-2 leading-relaxed">{{ assessmentDescription }}</p>
+                            </div>
+                            <div class="card-footer">
+                                {% if assessmentStatus == "Complete" %}
+                                    <p class="small">Completed: ({{ assessmentCompletedDateTime | Date:'M/d/yyyy'}})</p>
+                                    <a href='{{ item.AssessmentPath }}'>View Results<i class="fa fa-chevron-right font-weight-light ml-3"></i></a>
+                                {% elseif assessmentStatus == "Pending" %}
+                                    {% assign requester = assessmentRequesterPersonAliasId | PersonByAliasId  %}
+                                    <p class="small">Requested: {{ requester.NickName }} {{ requester.LastName }} ({{ assessmentRequestedDateTime | Date:'M/d/yyyy'}})</p>
+                                    <a href='{{ item.AssessmentPath }}'>Start Assessment <i class="fa fa-chevron-right font-weight-light ml-3"></i></a>
+                                {% else %}
+                                    <a href='{{ item.AssessmentPath }}'>Start Assessment <i class="fa fa-chevron-right font-weight-light ml-3"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    [[ endslide ]]
+                    {% assign assessmentStatus = '' %}
+                {%- endfor -%}
+        
+            {[ endswiper ]}
+            {%- endassessment -%}
+       {%- endassessmenttype -%}
+    </div>
+</div>
