@@ -215,10 +215,23 @@
   <script>
   (function () {
     var root = document.querySelector('.signup[data-crumb-name]');
-    var list = document.querySelector('.breadcrumb');
-    if (!root || !list) { return; }
+    if (!root) { return; }
     var name = root.getAttribute('data-crumb-name');
     var date = root.getAttribute('data-crumb-date');
+
+    // Title and heading first -- neither should depend on a breadcrumb existing.
+    // The layout renders <h1 class="pagetitle"> from the page's static name
+    // ("Sign-up Detail"); point it at the group instead.
+    var heading = document.querySelector('h1.pagetitle');
+    if (heading) { heading.textContent = name; }
+
+    var t = document.title;
+    document.title = t.indexOf('|') > -1
+      ? name + ' |' + t.split('|').slice(1).join('|')
+      : name;
+
+    var list = document.querySelector('.breadcrumb');
+    if (!list) { return; }
 
     // The group is treated as the root of the trail, so ancestor crumbs above it
     // are dropped. Target: Kids Min Orientation / Thursday, August 27
@@ -249,17 +262,6 @@
       list.insertBefore(li, current);
     }
 
-    // The layout renders <h1 class="pagetitle"> from the page's static name
-    // ("Sign-up Detail"). Point it at the group instead, so the page reads
-    // Kids Min Orientation > Thursday, August 27 rather than leading with a
-    // label that tells the visitor nothing.
-    var heading = document.querySelector('h1.pagetitle');
-    if (heading) { heading.textContent = name; }
-
-    var t = document.title;
-    document.title = t.indexOf('|') > -1
-      ? name + ' |' + t.split('|').slice(1).join('|')
-      : name;
   })();
   </script>
 
