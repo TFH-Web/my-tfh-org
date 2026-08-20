@@ -1,4 +1,4 @@
-﻿{{ Group | Attribute:'OpportunityTitle' | AddMetaTagToHead:'property','twitter:title' }}
+{{ Group | Attribute:'OpportunityTitle' | AddMetaTagToHead:'property','twitter:title' }}
 {{ Group | Attribute:'OpportunitySummary' | AddMetaTagToHead:'property','twitter:description' }}
 {{ Group | Attribute:'OpportunityTitle' | AddMetaTagToHead:'property','og:title' }}
 {{ Group | Attribute:'OpportunitySummary' | AddMetaTagToHead:'property','og:description' }}

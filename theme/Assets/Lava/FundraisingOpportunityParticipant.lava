@@ -1,4 +1,4 @@
-﻿{% assign percentWidth = PercentMet %}
+{% assign percentWidth = PercentMet %}
 {% if percentWidth > 100 %}
   {% assign percentWidth = 100 %}
 {% endif %}

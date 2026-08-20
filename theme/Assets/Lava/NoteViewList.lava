@@ -1,1 +1,1 @@
-﻿{% include '~/Assets/Lava/NoteViewList.lava' %}
+{% include '~/Assets/Lava/NoteViewList.lava' %}
