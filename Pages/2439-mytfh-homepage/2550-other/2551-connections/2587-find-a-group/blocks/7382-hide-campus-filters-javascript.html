@@ -1,0 +1,18 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Select all button elements within the div with id 'filter-campus'
+    const buttons = document.querySelectorAll('#filter-campus button');
+
+    // Iterate over each button
+    buttons.forEach(function(button) {
+        // Check if the button's text includes "Calgary" or "Prison"
+        if (button.innerText.includes('Calgary') || button.innerText.includes('Prison') || button.innerText.includes('Church Online')) {
+            // Hide the button
+            button.style.display = 'none';
+        } else {
+            // Remove the word 'Campus' from the button text, if present
+            button.innerText = button.innerText.replace(' Campus', '');
+        }
+    });
+});
+</script>

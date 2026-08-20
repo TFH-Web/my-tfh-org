@@ -1,0 +1,30 @@
+{% assign now = 'Now' | Date %}
+<div id="group-curriculum" class="py-5">
+    <h3>Leadership Development</h3>
+    <hr>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="d-flex flex-wrap flex-row row" style="row-gap: 0.5rem;">
+                {% comment %} -- Find all ids for Content Channel items whos parent is the MANGE YOUR GROUP channel (1368). -- {% endcomment %}
+                {% assign allChildIds = '' %}
+                {% contentchannelitem where:'ContentChannelId == "47" && Id != "1368" && StartDateTime <= "{{ now }}"' sort:'StartDateTime desc' %}
+                    {% for item in contentchannelitemItems %}
+                        {% for child in item.ChildItems %}
+                            {% assign allChildIds = allChildIds | Append:child.ChildContentChannelItem.Id | Append:',' %}
+                        {% endfor %}
+                    {% endfor %}
+                    {% assign allChildIds = allChildIds | ReplaceLast:',','' %}
+                {% endcontentchannelitem %}
+
+                {% comment %} -- Return the most recent 4 items based on the childIds returned above. -- {% endcomment %}
+                {% contentchannelitem ids:'{{ allChildIds }}' where:'Status == "Approved"' sort:'StartDateTime desc' %}
+
+                    {% for item in contentchannelitemItems %}
+                        {[ groupresourcecard contentchannelitem:item detailpageurl:'group-resources/resources/{slug}' ]}
+                    {% endfor %}
+
+                {% endcontentchannelitem %}
+            </div>
+        </div>
+    </div>
+</div>

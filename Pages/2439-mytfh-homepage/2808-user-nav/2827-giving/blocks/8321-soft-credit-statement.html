@@ -1,0 +1,9 @@
+{% assign personId = CurrentPerson.Id %}
+{% assign thisYear = 'Now' | Date:'yyyy' %}
+{% assign startDate = '1/1/' | Append:thisYear | Date:'MM/dd/yyyy' %}
+{% assign endDate = 'Now' | Date:'MM/dd/yyyy' %}
+
+
+{[ softcreditsforstatement personid:'{{personId}}' startdate:'{{ 'Global' | PageParameter:'StartDate' | Date:'MM/dd/yyyy' }}' enddate:'{{ 'Global' | PageParameter:'EndDate' | Date:'MM/dd/yyyy' }}' ]}
+
+<br>

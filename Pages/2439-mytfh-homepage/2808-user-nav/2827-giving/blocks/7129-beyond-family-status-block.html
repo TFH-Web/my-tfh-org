@@ -1,0 +1,169 @@
+{% comment %}-- First check if the Financial Account is still active, if so, show the block --{% endcomment %}
+{% assign isBeyondAccountActive = false %}
+{% financialaccount where:'Id == 338 && IsActive == true' %}
+    {% for financialaccount in financialaccountItems %}
+        {% assign isBeyondAccountActive = true %}
+    {% endfor %}
+{% endfinancialaccount %}
+{% if isBeyondAccountActive == true %}
+
+    {% sql return:'mData' %}
+        WITH AcctCTE AS 
+            (
+                SELECT [Id], [ParentAccountId]
+                FROM [FinancialAccount]
+                WHERE [Id] = 338 -- Beyond Campaign Vacaville
+        
+                UNION ALL
+        
+                SELECT A.[Id], A.[ParentAccountId]
+                FROM AcctCTE
+                INNER JOIN [FinancialAccount] A ON A.[ParentAccountId] = AcctCTE.[Id]
+            )
+        
+            SELECT 
+                T1.[Id],
+                T1.[Commitment],
+                T1.[Given],
+                CASE WHEN [Commitment] > [Given] 
+                    THEN [Commitment] - [Given] 
+                    ELSE 0
+                END AS [Remaining],
+                CAST( CASE WHEN [Commitment] > 0
+                    THEN ( [Given] * 100.00 ) / [Commitment] 
+                    ELSE 0.00
+                END AS decimal(15,2) ) AS [PercentageComplete]
+            FROM (
+                SELECT
+                    C.[Id],
+                    ISNULL(C.[Committment],0) AS [Commitment],
+                    ISNULL(C.[Given],0) AS [Given]
+                FROM [Person] P
+                OUTER APPLY (
+                    SELECT 
+                        GP.[Id],
+                        (PL.[TotalAmount]) AS [Committment],
+                        SUM(G.[Amount]) AS [Given]
+                    FROM [GroupMember] FM
+                    INNER JOIN [Person] GP 
+                        ON GP.[Id] = FM.[PersonId] 
+                        AND GP.[GivingLeaderId] = P.[GivingLeaderId]
+                    INNER JOIN [PersonAlias] PA 
+                        ON PA.[PersonId] = GP.[Id]
+                    LEFT OUTER JOIN [FinancialPledge] PL 
+                        ON PL.[PersonAliasId] = PA.[Id]
+                        AND PL.[AccountId] IN ( SELECT [Id] FROM AcctcTE )  
+                    OUTER APPLY (
+                        SELECT SUM(D.[Amount]) AS [Amount]
+                        FROM [FinancialTransaction] T 
+                        INNER JOIN [FinancialTransactionDetail] D 
+                            ON D.[TransactionId] = T.[Id]
+                            AND D.[AccountId] IN ( SELECT [Id] FROM AcctcTE )  
+                        WHERE T.[AuthorizedPersonAliasId] = PA.[Id]  
+                        
+                        -- Add sum for soft credits
+                        UNION ALL
+    
+    					SELECT
+    					SUM(FTD.[Amount]) AS Given
+    					FROM [Attribute] A
+        					INNER JOIN [Attributevalue] AV ON AV.[Attributeid] = A.[Id]
+        					INNER JOIN [PersonAlias] SPA ON SPA.[Guid] = TRY_CAST(AV.[Value] as uniqueidentifier)
+        					INNER JOIN [Person] SP ON SP.[Id] = SPA.[PersonId]
+        					INNER JOIN [Financialtransactiondetail] FTD ON FTD.[Id] = AV.[EntityId]
+        					INNER JOIN [Financialtransaction] FT ON FT.[Id] = FTD.[TransactionId]
+        				WHERE A.[Guid] IN ('7AFE4DD4-5573-4472-BF82-D94CB3FAAB7E','2612E440-EC46-42A2-9B95-F4F906C243D5')
+    						AND SPA.[Id] = PA.[Id]
+    						AND FTD.[AccountId] IN ( SELECT [Id] FROM AcctcTE ) 
+    						
+                    ) G
+                    WHERE FM.[GroupId] = P.[PrimaryFamilyId]
+                    AND FM.[GroupRoleId] = 4
+                    GROUP BY gp.Id,PL.[TotalAmount] 
+                ) C
+                WHERE P.[Id] = '{{ Context.Person.Id }}' 
+            ) T1
+            WHERE T1.[Commitment] > 0 OR T1.[Given] > 0
+    {% endsql %}
+    
+    <style>
+        .beyond-family-wrapper {
+            border-bottom-left-radius: 10px;
+            border-left: 1px solid #2D283D;
+            border-bottom: 1px solid #2D283D;
+            padding: 40px 20px 20px 20px;
+            margin: -100px 20px 30px 20px;
+            position: relative;
+            z-index: -1;
+        }
+        .family-content-wrapper {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .family-content-wrapper span.text-beyond {
+            color: #1B519F;
+        }
+        .family-progress-bar {
+            width: 100%;
+            max-width: 200px;
+            color: hsla(215, 70%, 35%, 0.065);
+        }
+        @media only screen and (max-width: 768px) {
+            .beyond-family-wrapper {
+                padding-top: 60px; 
+            }
+            .family-content-wrapper {
+                margin-bottom: 10px;
+            }
+        }
+        @media only screen and (max-width: 580px) {
+            .beyond-family-wrapper {
+                border-radius: 10px;
+                border: 1px solid #2D283D;
+                padding: 20px 20px 20px 20px;
+                margin: 30px 10px 30px 10px;
+            }
+            .family-content-wrapper {
+                flex-direction: column;
+                gap: 5px;
+                align-items: start;
+                margin-bottom: 20px;
+            }
+            .family-progress-bar {
+                max-width: 100%;
+            }
+        }
+    </style>
+    
+    {% assign rowCount = mData | Size %}
+    
+    {% for row in mData %}
+        {% if rowCount >= 1 and row.Commitment <> 0 %}
+        
+            {% if forloop.first %}
+            <div class="beyond-family-wrapper">
+                <h3 class="mb-1">Family Commitments</h3>
+                <p class="text-sm">Commitments from other people in your family 18 and under</p>
+    
+            {% endif %}
+        
+            <div class="family-content-wrapper">
+                <strong>{{ row.Id | PersonById | Property:'FirstName' }} {{ row.Id | PersonById | Property:'LastName' }}</strong>
+                <div class="family-content">
+                     <span class="text-beyond">${{ row.Commitment | Format:'#,##0' }}</span> <span class="text-muted">Committed</span> | <span class="text-beyond">${{ row.Given | Format:'#,##0' }}</span> <span class="text-muted">Given</span>
+                </div>
+                <div class="family-progress-bar">
+                    <div class="progress" style="max-height: 15px; border: none; ;background-color: hsla(215, 70%, 35%, 0.065); margin-bottom: 0;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ row.PercentageComplete | Format:'##' }}%;background-color: #2e2637; background-image: linear-gradient(90deg,#2e2637,#1b529f);border-radius: 5px 0 0 5px;" aria-valuenow="{{ row.PercentageComplete | AsPercentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+            {% if forloop.last %}
+            </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    
+{% endif %}

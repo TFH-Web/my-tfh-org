@@ -1,0 +1,29 @@
+{% assign modalTitle = "Would you like to login?" %}
+{% assign modalText  = "If you have a myTFH account, you can login to pre-fill your information and make the registration process quicker." %}
+{% assign loginText  = "Login Now" %}
+{% assign cancelText = "Continue Anonymously" %}
+{% unless CurrentPerson and CurrentPerson != null %}
+    <script>
+        $(function(){
+            bootbox.dialog({
+                message: "<h3>{{ modalTitle }}</h3><p>{{ modalText }}</p>",
+                buttons: {
+                    ok: {
+                        label: '{{ loginText }}',
+                        className: 'btn-primary',
+                        callback: function () {
+                            window.location.href = '/login?returnurl={{ 'Global' | Page:'Url' | Url:'pathandquery' | EscapeDataString }}';
+                        }
+                    },
+                    cancel: {
+                        label: '{{ cancelText }}',
+                        className: 'btn-default',
+                        callback: function () {
+                            // Do Nothing
+                        }
+                    }
+                }
+            })
+        });
+    </script>
+{% endunless %}

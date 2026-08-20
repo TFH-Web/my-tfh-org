@@ -1,0 +1,23 @@
+<!-- Check if a renewal period is active -->
+{% capture renewalPeriodId %}{[ isactivegroupssemester ]}{% endcapture %}
+
+<!-- Show renewal banner if renewal period is active -->
+{% if renewalPeriodId >= 1 %}
+    {% definedvalue where:'Id == {{ renewalPeriodId }}' %}
+        {% for value in definedvalueItems %}
+            {% assign now = 'Now' | Date:'yyyy-MM-dd HH:mm' %}
+            {% assign renewStartDate = value | Attribute:'StartDate' %}
+            {% assign renewEndDate = value | Attribute:'EndDate' %}
+
+            {% assign isRenewPeriod = now | IsDateBetween:renewStartDate,renewEndDate %}
+            {% if isRenewPeriod %}
+                {% assign daysSinceLastRenewed = Group | Attribute:'LastRenewalDate' | DaysSince %}
+        	    {% if daysSinceLastRenewed == null or daysSinceLastRenewed > 40 %}
+                        <div class="alert alert-primary" role="alert">
+                        The {{ value.Value }} semester  is starting soon. Don't forget to Renew your group after you complete attendance.
+                        </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% enddefinedvalue %}
+{% endif %}

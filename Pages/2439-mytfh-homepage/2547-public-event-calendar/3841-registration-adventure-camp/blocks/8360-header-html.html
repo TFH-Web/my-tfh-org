@@ -1,0 +1,33 @@
+<style>
+:root {
+    --ac-primary: #1B2C4F;
+    --ac-red: #EA3743;
+    --ac-blue: #275997;
+    --ac-yellow: #EDBA56;
+}
+.btn-primary {
+    background-color: var(--ac-primary);
+    border-color: var(--ac-primary);
+    color: #fff;
+}
+.btn-primary:hover {
+    background-color: #fff;
+    color: var(--ac-primary);
+    border-color: var(--ac-primary);
+}
+main .block-instance .form-group .input-group {
+    gap: 10px;
+}
+#ac-logo-26 { max-width: 250px; }
+@media screen and (min-width: 768px) {
+    #ac-logo-26 { max-width: 400px; }
+}
+</style>
+<p><img src="/Content/ExternalSite/Events/Adventure_Camp_Logo.svg" class="d-block w-100 mx-auto mb-3" alt="Adventure Camp" id="ac-logo-26"><br></p>
+{% comment %}
+{% registrationinstance where:'Id=="{{ 'Global' | PageParameter:'RegistrationInstanceId' }}"' %}
+    {% for i in registrationinstanceItems %}
+           <h2> {{ i.Name }}</h2>
+    {% endfor %}
+{% endregistrationinstance %}
+{% endcomment %}

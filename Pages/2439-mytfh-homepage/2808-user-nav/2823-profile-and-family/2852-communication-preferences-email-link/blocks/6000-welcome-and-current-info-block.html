@@ -1,0 +1,11 @@
+<h1>Communication Preferences</h1>
+<p class="lead">Use this page to view or update your TFH communication preferences.</p>
+<br>
+
+<ul style="list-style:none;">
+    <li><h4 style="text-transform:uppercase;">Your Current Contact Information</h4></li>
+    <li><strong>Name: </strong>{{ CurrentPerson.NickName }} {{ CurrentPerson.LastName }}</li>
+    <li><strong>Email Address: </strong>{{ CurrentPerson.Email }}</li>
+    <li><strong>Mobile Phone: </strong>{{ CurrentPerson | PhoneNumber:'Mobile' }}</li>
+</ul>
+<br>

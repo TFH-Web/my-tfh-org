@@ -1,0 +1,32 @@
+<style>
+.embed-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; } 
+.embed-container iframe, .embed-container object, .embed-container embed { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+</style>
+
+{% assign media = 'Global' | PageParameter:'media' %}
+{% assign title = 'Global' | PageParameter:'title' %}
+
+{% if media == 1180 %}
+    {% assign source = 'https://vimeo.com/799315878?h=1385917a07' %}
+{% elseif media == 1182 %}
+    {% assign source = 'https://vimeo.com/799310453?h=74de33b58f' %}
+  {% elseif media == 1181 %}  
+    {% assign source = 'https://vimeo.com/799314386?h=155d5e4074' %}
+{% endif %}
+
+<div class="containter">
+    <div class="row">
+        <div class="col-xs-12">
+            <h1 class="hr-heading bg-white pr-4">{{ title }}</h1><br>
+            <!--<p>Here is a quick message from our new Groups Pastors!</p>-->
+               {[ mediaplayer src:'{{ source }}']}{[ endmediaplayer ]}
+            <!--<div class="embed-container">
+                <iframe src="https://player.vimeo.com/video/749739402?h=a918afe992&badge=0&autoplay=1&player_id=0&app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            </div>-->
+        </div>
+    </div>
+</div>
+
+<style>
+
+</style>

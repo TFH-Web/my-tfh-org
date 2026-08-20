@@ -1,0 +1,75 @@
+<div class="feature-img">
+    <div class="feature-wrapper">
+        
+        {% assign isAds = false %}
+        {% assign now = 'Now' | Date %}
+        
+        {% comment %}Ads Content Channel{% endcomment %}
+        {% contentchannelitem where:'ContentChannelId == "77" && Status == "Approved" && StartDateTime <= "{{ now }}" && ExpireDateTime >= "{{ now }}"' %}
+            {% for item in contentchannelitemItems limit:1 %}
+                {% assign isAds = true %}
+                {% stylesheet %}
+                @media only screen and (min-width: 1650px) {
+                    .feature-wrapper {
+                        left:0;
+                        
+                        .feature {
+                            margin: 20px auto;
+                            max-width: 1150px;
+                        }
+                    }
+                }
+                {% endstylesheet %}
+                <div class="feature slide-in-bottom fade-in" id="feature-ad">
+                    <div class="feature-ad">
+                        {% assign photoGuid = item | Attribute:'Image','Guid' %}
+                        {% if photoGuid != '' %}
+                            <div class="feature-ad-img">
+                                <img src='/GetImage.ashx?Guid={{ photoGuid }}&w=200' alt="{{ item.Title }}"/>
+                                </div>
+                        {% endif %} 
+                        <div class="feature-ad-content">
+                            <p class="mb-0"><strong>{{ item.Title }}</strong></p>
+                            <p>{% if item.Content %}{{ item.Content }}{% endif %}</p>
+                            {% assign linkText = item | Attribute:'LinkText' %}
+                            {% if linkText %}
+                            <a href="{{ item | Attribute:'LinkURL' }}" class="">{{ linkText }} <i class="far fa-chevron-right"></i></a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endcontentchannelitem %}
+            
+        {% if isAds == false %}
+            {% comment %}TFH Values Content Channel{% endcomment %}
+            {% contentchannelitem where:'ContentChannelId == "76"' %}
+                {% sql return:'Content' %}
+                    SELECT top 1 cci.[Title],txt.[Value] as PlainText, strct.[Value] as Structured,bf.[Path] as [ImgPath]
+                    FROM ContentChannelItem cci
+                    INNER JOIN AttributeValue txt on txt.EntityId=cci.Id AND txt.AttributeId=39924
+                    INNER JOIN AttributeValue strct on strct.EntityId=cci.Id AND strct.AttributeId=39925
+                    INNER JOIN AttributeValue img on img.EntityId=cci.Id AND img.AttributeId=39926
+                    INNER JOIN BinaryFile bf on CAST(bf.[Guid] as nvarchar(max))=img.[Value]
+                    WHERE ContentCHannelId=76
+                    ORDER BY NEWID()
+                {% endsql %}
+                
+                {% for i in Content %}
+                <div class="feature slide-in-right fade-in" id="feature-ad">
+                    <img src="{{ i.ImgPath }}" class="tfh-value-img" alt="i.Title" />
+                </div>
+                {% endfor %}
+                
+            {% endcontentchannelitem %}
+        {% endif %}
+        
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', function() {
+        const featureDiv = document.getElementById('feature-ad');
+        featureDiv.classList.add('active'); // Add the 'active' class to trigger the animation
+    });
+</script>

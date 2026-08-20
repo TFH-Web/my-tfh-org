@@ -1,0 +1,46 @@
+{% assign pageCampus = 'Global' | PageParameter:'campus' %}
+{% assign pageSublocation = 'Global' | PageParameter:'sublocation' %}
+
+{% comment %}
+{% if pageCampus == "vacaville" %}
+    {% if pageSublocation and pageSublocation != '' %}
+        {% assign campusAttr = 'Campus=585df503-5fe6-45b3-a279-55f3641aa22e&sublocation=' | Append: pageSublocation %}
+    {% else %}
+        {% assign campusAttr = 'Campus=585df503-5fe6-45b3-a279-55f3641aa22e'%}
+    {% endif %}
+{% elseif pageCampus == "napa" %}
+    {% assign campusAttr = 'Campus=4f326c19-ef98-40cf-93fe-0086db739472'%}
+{% elseif pageCampus == "east-bay" %}
+    {% assign campusAttr = 'Campus=9c450251-4f6c-4c25-bd62-aa91d8d7a1c1'%}
+{% elseif pageCampus == "roseville" %}
+    {% assign campusAttr = 'Campus=8cc2e7a6-24ba-4a8d-bd85-d8175c9f4a47'%}
+{% elseif pageCampus == "roseville-slavic" %}
+    {% assign campusAttr = 'Campus=7ad7ba9b-399a-47a1-b2dc-7ffa6e234acb'%}
+{% endif %}
+{% endcomment %}
+
+{% if pageCampus == "vacaville" %}
+    {% if pageSublocation and pageSublocation != '' %}
+        {% assign campusAttr = 'CampusId=2&sublocation=' | Append: pageSublocation %}
+    {% else %}
+        {% assign campusAttr = 'CampusId=2'%}
+    {% endif %}
+{% elseif pageCampus == "napa" %}
+    {% assign campusAttr = 'CampusId=3'%}
+{% elseif pageCampus == "east-bay" %}
+    {% assign campusAttr = 'CampusId=4'%}
+{% elseif pageCampus == "roseville" %}
+    {% assign campusAttr = 'CampusId=5'%}
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Get all <a> tags that are children of .add-campus-link
+    var anchors = document.querySelectorAll('.add-campus-link a');
+
+    // Iterate over each anchor and modify the href attribute
+    anchors.forEach(function(anchor) {
+        anchor.href += "?{{ campusAttr }}";
+    });
+});
+</script>

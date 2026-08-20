@@ -1,0 +1,597 @@
+{% assign eventOccurrenceId = 'Global' | PageParameter:'EventOccurrenceId' %}
+{% assign RegistrationPage = '/Registration' %}
+
+{% stylesheet compile:'less' %}
+    h2.section-heading {
+        margin-bottom: 24px;
+    }
+    .show-more-section {
+        padding-bottom: 30px;
+
+        .show-more-section-content {
+            max-height: 225px;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+        }
+        .show-more-section-overlay {
+            position: absolute;
+            width: 100%;
+            min-height: 150px;
+            left: 0;
+            bottom: 0;
+            background: linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,80) 65%, rgb(255,255,255) 100%)
+        }
+        .show-more-section-button {
+            position: absolute;
+            bottom: 0;
+        }
+
+        &.full {
+            .show-more-section-content {
+                max-height: none;
+                transition: max-height 1s ease-in-out;
+            }
+            .show-more-section-overlay {
+                display: none;
+            }
+            .show-more-section-button {
+                margin-top: 20px;
+            }
+        }
+    }
+{% endstylesheet %}
+
+
+<!-- Capture Event Attributes -->
+
+//- If this is a calendar event occurrence
+{% if eventOccurrenceId != '' %}
+    {% eventitemoccurrence where:'Id == "{{ eventOccurrenceId }}"' %}
+        {% for EventItemOccurrence in eventitemoccurrenceItems %}
+
+            {% assign eventColor = EventItemOccurrence.EventItem | Attribute:'EventColor' %}
+            {% assign eventName = EventItemOccurrence.EventItem.Name %}
+
+            //- Caputure the Date and Time
+            {% capture eventDateTime %}
+                {% if EventItemOccurrence.Schedule.DurationInMinutes != empty %}
+                    {% assign duration = EventItemOccurrence.Schedule.DurationInMinutes %}
+                    {% assign nextStartDate = EventItemOccurrence.Schedule.NextStartDateTime %}
+                    {% if duration > 1440 %}
+                        {% if EventItemOccurrence.Schedule.NextStartDateTime and EventItemOccurrence.Schedule.NextStartDateTime != empty %}
+                            {% assign durationEndTime = EventItemOccurrence.Schedule.NextStartDateTime | DateAdd:duration,'m' %}
+                        {% else %}   
+                            {% assign durationEndTime = EventItemOccurrence.Schedule.NextStartDateTime | DateAdd:duration,'m' %}
+                        {% endif %}
+                        {{ EventItemOccurrence.Schedule.NextStartDateTime  | Date: 'MMMM d' }}
+                        {%- unless duration == 0 -%}
+                        - {{ durationEndTime | Date:'MMM d' }} 
+                        {%- endunless -%}
+                    {% else %}
+                    {% assign durationEndTime = EventItemOccurrence.Schedule.NextStartDateTime | DateAdd:duration,'m' %}
+                    {{ EventItemOccurrence.Schedule.NextStartDateTime  | Date: 'MMMMM d' }},
+                    {{ EventItemOccurrence.Schedule.NextStartDateTime | Date:'h:mm tt' }}
+                    {%- unless duration == 0 or EventItemOccurrence.Schedule.NextStartDateTime == '' %}
+                    - {{ durationEndTime | Date:'h:mm tt' }} 
+                    {% endunless -%}
+                    {% endif %}    
+                {% else %}
+                    {{ EventItemOccurrence.Schedule.FriendlyScheduleText }}
+                {% endif %}
+            {% endcapture %}
+            
+            //- Capture Registration Buttons or Message
+            {% capture registerBtn %}
+
+                {% assign eventItemOccurrenceLinkages = EventItemOccurrence.Linkages %}
+                {% assign eventItemOccurrenceLinkagesCount = eventItemOccurrenceLinkages | Size %}
+                {% if eventItemOccurrenceLinkagesCount > 0 %}
+                    {% for eventItemOccurrenceLinkage in eventItemOccurrenceLinkages %}
+
+                        //- Pause to get the Cost 
+                        {% assign eventCost = eventItemOccurrenceLinkage.RegistrationInstance.Cost %}
+
+                        //- Continue with registration btn
+                        {% assign daysTillStartDate = 'Now' | DateDiff:eventItemOccurrenceLinkage.RegistrationInstance.NextStartDateTime,'m' %} 
+                        {% assign daysTillEndDate = 'Now' | DateDiff:eventItemOccurrenceLinkage.RegistrationInstance.EndDateTime,'m' %}
+                        {% assign showRegistration = true %}
+                        {% assign registrationMessage = '' %}
+                
+                        {% if daysTillStartDate and daysTillStartDate > 0 %}
+                            {% assign showRegistration = false %}
+                            {% if eventItemOccurrenceLinkagesCount == 1 %}
+                                {% capture registrationMessage %}<p>Registration opens on {{ eventItemOccurrenceLinkage.RegistrationInstance.NextStartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                            {% else %}
+                                {% capture registrationMessage %}<p class="text-gray-500">Registration for {{ eventItemOccurrenceLinkage.PublicName }} opens on {{ eventItemOccurrenceLinkage.RegistrationInstance.NextStartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                            {% endif %}
+                        {% endif %}
+                
+                        {% if daysTillEndDate and daysTillEndDate < 0 %}
+                            {% assign showRegistration = false %}
+                            {% if eventItemOccurrenceLinkagesCount == 1 %}
+                                {% capture registrationMessage %}<p class="text-gray-500">Registration closed on {{ eventItemOccurrenceLinkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                            {% else %}
+                                {% capture registrationMessage %}<p class="text-gray-500">Registration for {{ eventItemOccurrenceLinkage.PublicName }} closed on {{ eventItemOccurrenceLinkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                            {% endif %}
+                        {% endif %}
+                
+                        {% if showRegistration == true %}
+                            {% assign statusLabel = "Register" %}
+                            {% assign maxAttendees = eventItemOccurrenceLinkage.RegistrationInstance.MaxAttendees %}
+                            {% assign currentAttendees = 0 %}
+                            {% assign availableAttendees = 0 %}
+                            {% assign registrationInstanceId = eventItemOccurrenceLinkage.RegistrationInstance.Id %}
+                            {% registration where:'RegistrationInstanceId == "{{ registrationInstanceId }}"' %}
+                                {% assign regCount = 0 %}
+                                {% for item in registrationItems %}
+                                    {% assign i = item.Registrants | Size %}
+                                    {% assign regCount = regCount | Plus:i %}
+                                {% endfor %}
+                                {% assign currentAttendees = regCount %}
+                            {% endregistration %}
+                            {% assign availableAttendees = maxAttendees | Minus:currentAttendees %}
+                            {% if availableAttendees < 1 %}
+                                {% if eventItemOccurrenceLinkage.RegistrationInstance.RegistrationTemplate.WaitListEnabled == true %}
+                                    {% assign statusLabel = "Join Wait List" %}
+                                {% else %}
+                                {% assign statusLabel = "Full" %}
+                                {% endif %}
+                            {% endif %}
+                            {% if eventItemOccurrenceLinkagesCount == 1 %}
+                                {% assign registrationButtonText = statusLabel %}
+                            {% else %}
+                                {% assign registrationButtonText = statusLabel | Plus:' for ' | Plus:eventItemOccurrenceLinkage.PublicName %}
+                            {% endif %}
+                
+                            {% if statusLabel == 'Full' %}
+                                {% if eventItemOccurrenceLinkagesCount == 1 %}
+                                    {% assign registrationButtonText = 'Registration Full' %}
+                                {% else %}
+                                    {% assign registrationButtonText = eventItemOccurrenceLinkage.PublicName | Plus: ' (Registration Full) ' %}
+                                {% endif %}
+                                <div class='btn btn-info text-center  btn-block margin-t-md border-0' style='display: block; padding: 8px;'>{{ registrationButtonText }}</div>
+                            {% else %}
+                                {% if eventItemOccurrenceLinkage.UrlSlug != '' %}
+                                    <a href='{{ RegistrationPage }}?RegistrationInstanceId={{ eventItemOccurrenceLinkage.RegistrationInstanceId }}&Slug={{eventItemOccurrenceLinkage.UrlSlug}}' class='btn btn-default btn-block margin-t-md js-btn border-0'>{{ registrationButtonText }}</a>
+                                {% else %}
+                                    <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ eventItemOccurrenceLinkage.RegistrationInstanceId }}&EventOccurrenceID={{ eventItemOccurrenceLinkage.EventItemOccurrenceId }}" class="btn btn-default btn-block margin-t-md js-btn border-0">{{ registrationButtonText }}</a>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <p>{{ registrationMessage }}</p>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endcapture %}
+
+            //- Get Image Guid
+            {% if EventItemOccurrence.EventItem.Photo.Guid %}
+                {% assign PhotoGuid = EventItemOccurrence.EventItem.Photo.Guid %}
+            {% endif %}
+
+        {% endfor %}
+    {% endeventitemoccurrence %}
+
+/- If this is a content channel event occurrence -/
+{% else %}
+
+    {% assign url = 'Global' | Page:'Url' %}
+    {% assign urlSegments = url | Url:'segments' %}
+    {% assign ContentChannelItemSlug = urlSegments | Last | Remove:'/' %}
+    {% assign contentId = 0 %}
+
+    {% contentchannelitemslug where:'Slug == "{{ ContentChannelItemSlug }}"' %}
+        {% for slugs in contentchannelitemslugItems %}
+            {% assign contentId = slugs.ContentChannelItemId %}
+        {% endfor %}
+    {% endcontentchannelitemslug %}
+
+    {% contentchannelitem where:'Id == "{{ contentId }}"' %}
+        {% for cci in contentchannelitemItems %}
+
+            //- Get Content Channel Attributes
+            {% assign eventColor = cci | Attribute:'EventColor' %}
+            {% assign eventName = cci.Title %}
+            {% assign eventStart = cci | Attribute:'EventStartDate' %}
+            {% assign eventEnd = cci | Attribute:'EventEndDate' %}
+            {% capture eventDateTime %}
+                {{ eventStart | Date:'MMM d' }}
+                {% if eventEnd != '' %}
+                     - {{ eventEnd | Date:'MMM d' }}
+                {% endif %}
+            {% endcapture %}
+            {% assign PhotoGuid = cci | Attribute:'EventImage','RawValue' %}
+            {% assign eventDetails = cci | Attribute:'EventDetails' %}
+            {% assign eventFAQ = cci | Attribute:'EventFAQ' %}
+            {% assign now = 'Now' | Date:'MM/dd/yyyy HH:mm' %} 
+            {% assign registrationStartDate = cci.StartDateTime | Date:'MM/dd/yyyy HH:mm' %}
+            {% if cci.ExpireDateTime %}
+                {% assign registrationEndDate = cci.ExpireDateTime | Date:'MM/dd/yyyy HH:mm' %} 
+            {% else %}
+                {% comment %} If no End Date is set, set an end date 10 years from today {% endcomment %}
+                {% assign registrationEndDate = 'Now' | DateAdd:10,'y' | Date:'MM/dd/yyyy HH:mm' %}
+            {% endif %}
+            {% assign hideDate = cci | Attribute:'HideDate' %}
+
+        {% endfor %}
+    {% endcontentchannelitem %}
+
+{% endif %}
+
+<!-- Hero Section (with Image) -->
+<div class="container-fluid bg-gray-dark py-2 py-sm-3 py-lg-5 js-hero">
+  <div class="container py-2 py-sm-3 py-lg-5">
+    <div class="row d-flex flex-column flex-sm-row">
+      <div class="col-md-5 align-self-center animate-fade-in-fly-in-right">
+        <h1 class="display text-uppercase text-white">{{ eventName }}</h1>
+
+        {% if hideDate != 'Yes' %}
+            {% assign trimmedEventDateTime = eventDateTime | Trim %}
+            {% if eventDateTime and trimmedEventDateTime != '-' %}<h2 class="text-white opacity-80">{{ eventDateTime }}</h2>{% endif %}
+        {% endif %}
+        <h2 class="text-white">
+            {% if eventOccurrenceId != '' and eventCost >= 0 %}
+                ${{ eventCost }}
+            {% elseif eventOccurrenceId != '' and eventCost == 0 %}
+                Free
+            {% else %}
+                <!-- leave blank -->
+            {% endif %}
+        </h2>
+        <div class="mb-4">
+                {% if eventOccurrenceId != '' %}
+                    {{ registerBtn }}
+                {% else %}
+                    {% assign isLive = now | IsDateBetween:registrationStartDate,registrationEndDate %}
+                    {% if isLive %}
+                        <a href="#registration-options" class='btn btn-default btn-block margin-t-md js-btn border-0'>Registration Options</a>
+                    {% else %}
+                        <a href="" disabled="disabled" class='btn btn-default btn-block margin-t-md js-btn border-0'>Registration Closed</a>
+                    {% endif %}
+                {% endif %}
+        </div>
+        
+        
+      </div>
+      <div class="col-md-7 animate-zoomfade-img">
+        {% if eventOccurrenceId != '' %}
+            <img src="/GetImage.ashx?Guid={{ PhotoGuid }}" class="title-image img-responsive js-img w-100 animate-fade-in" />
+        {% elseif PhotoGuid != '' %}
+            <img src="/GetImage.ashx?Guid={{ PhotoGuid }}" class="title-image img-responsive js-img w-100 animate-fade-in" />
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- IF A REGISTRATION CALENDAR EVENT -->
+{% if eventOccurrenceId != '' %}
+    {% eventitemoccurrence where:'Id == "{{ eventOccurrenceId }}"' %}
+        {% for EventItemOccurrence in eventitemoccurrenceItems %}
+            <div class="container py-5">
+                <div class="row">
+                    <!-- Event Description Section -->
+                    <div class="col-md-8">
+                    <h3 class="font-weight-normal leading-relaxed mb-4">{{ EventItemOccurrence.EventItem.Summary }}</h3>
+                    {{ EventItemOccurrence.EventItem.Description }}
+
+                    /- Social Media Share Links
+                    <script>function fbs_click() { u = location.href; t = document.title; window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                    <script>function ics_click(e) { e.preventDefault(); text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ EventItemOccurrence.EventItem.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ EventItemOccurrence.EventItem.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                    <ul class="socialsharing">
+                        <li>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ 'Global' | Page:'Url' | EscapeDataString }}" onclick="return fbs_click()" target="_blank" class="socialicon socialicon-facebook" title="" data-original-title="Share via Facebook">
+                                <i class="fa fa-fw fa-facebook"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/intent/tweet?text={{ 'Global' | Page:'Url' | EscapeDataString }}" class="socialicon socialicon-twitter" title="" data-original-title="Share via Twitter">
+                                <i class="fa fa-fw fa-twitter"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="mailto:?Subject={{ EventItemOccurrence.EventItem.Name | EscapeDataString }}&Body={{ 'Global' | Page:'Url' | EscapeDataString }}"  class="socialicon socialicon-email" title="" data-original-title="Share via Email">
+                                <i class="fa fa-fw fa-envelope-o"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="" onclick="return ics_click(event);" class="socialicon socialicon-calendar" title="" data-original-title="Download Event">
+                                <i class="fa fa-fw fa-calendar"></i>
+                            </a>
+                        </li>
+                    </ul>
+                    -/
+
+                    {% if EventItemOccurrence.EventItem.Summary != '' %}
+                    {{ EventItemOccurrence.EventItem.Summary | AddMetaTagToHead:'name','description' }}
+                    {% endif %}
+
+                    {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
+                    {{ EventItemOccurrence.EventItem.Name | AddMetaTagToHead:'property','twitter:title' }}
+                    {{ EventItemOccurrence.EventItem.Description | AddMetaTagToHead:'property','twitter:description' }}
+
+                    {{ EventItemOccurrence.EventItem.Name | AddMetaTagToHead:'property','og:title' }}
+                    {{ EventItemOccurrence.EventItem.Description | AddMetaTagToHead:'property','og:description' }}
+
+                    {% assign facebookPhoto = Event | Attribute:'core_calendar_FacebookPhoto','Object' %}
+                    {% if facebookPhoto %}
+                    {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
+                    {% endif %}
+
+                    {% assign twitterPhoto = Event | Attribute:'core_calendar_TwitterPhoto','Object' %}
+                    {% if twitterPhoto != '' %}
+                    {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
+                    {% endif %}
+                    </div>
+
+                    <!-- Event Details + Registration Link Section -->
+                    <div class="col-md-4 mt-4 mt-md-0">
+                    <div class="card card-accent well js-card" style="background-color:#fafafc;">
+                        <h4>Event Details</h4>
+                        <div class="row">
+                        <div class="col-lg-6">              
+                                {% if EventItemOccurrence.Schedule.DurationInMinutes != empty %}
+                                <p>
+                                    <span class="d-block small">Day and Time</span>
+                                    {% assign duration = EventItemOccurrence.Schedule.DurationInMinutes %}
+                                    {% assign nextStartDate = EventItemOccurrence.Schedule.NextStartDateTime %}
+                                    {% if duration > 1440 %}
+                                    {% assign durationEndTime = EventItemOccurrence.Schedule.NextStartDateTime | DateAdd:duration,'m' %}
+                                        {% if EventItemOccurrence.Schedule.NextStartDateTime and EventItemOccurrence.Schedule.NextStartDateTime != empty %}
+                                            {% assign durationEndTime = EventItemOccurrence.Schedule.NextStartDateTime | DateAdd:duration,'m' %}
+                                        {% else %}   
+                                            {% assign durationEndTime = EventItemOccurrence.Schedule.FirstStartDateTime | DateAdd:duration,'m' %}
+                                        {% endif %}
+                                        {{ EventItemOccurrence.Schedule.FirstStartDateTime  | Date: 'MMMM d' }}
+                                        {%- unless duration == 0 -%}
+                                        - {{ durationEndTime | Date:'MMM d' }} 
+                                        {%- endunless -%}
+                                    {% else %}
+                                    {% assign durationEndTime = EventItemOccurrence.Schedule.StartTimeOfDay | DateAdd:duration,'m' %}
+                                    {{ EventItemOccurrence.Schedule.FirstStartDateTime  | Date: 'MMMMM d' }},
+                                    {{ EventItemOccurrence.Schedule.StartTimeOfDay | Date | DateAdd:8,'h' | Date:'h:mm tt' }}
+                                    {%- unless duration == 0 %}
+                                    - {{ durationEndTime | Date | DateAdd:8,'h' | Date:'h:mm tt' }} 
+                                    {% endunless -%}
+                                    {% endif %}    
+                                </p>
+                                {% else %}
+                                <p>
+                                    <span class="d-block small">Day and Time</span>
+                                    {{ EventItemOccurrence.Schedule.FriendlyScheduleText }}
+                                </p>
+                                {% endif %}
+                            <p>
+                            <span class="d-block small">Location</span>
+                            {% if EventItemOccurrence.Campus != null %}
+                                {{ EventItemOccurrence.Campus.Name }} 
+                            {% endif %}                  
+                            {% if EventItemOccurrence.Location != '' %}
+                                {% assign locationParts = EventItemOccurrence.Location | Split:',' %}
+                                {% for locations in locationParts %}
+                                    {% if forloop.first == true %}
+                                        {{ locationParts[forloop.index0] }}
+                                    {% else %}
+                                        <br>{{ locationParts[forloop.index0] }}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-lg-6">
+                            {% if EventItemOccurrence.ContactPersonAliasId != null or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+                            <p>
+                                <span class="d-block small">Contact</span>
+                                
+                                {% if EventItemOccurrence.ContactPersonAliasId != null %}
+                                <span class="tall">{{ EventItemOccurrence.ContactPersonAlias.Person.FullName }}</span><br />
+                                {% endif %}
+
+                                {% if EventItemOccurrence.ContactPhone != '' %}
+                                <i class="fa fa-mobile fa-lite"></i> {{ EventItemOccurrence.ContactPhone }} <br />
+                                {% endif %}
+
+                                {% if EventItemOccurrence.ContactEmail != '' %}
+                                <i class="fa fa-envelope fa-lite"></i> {{ EventItemOccurrence.ContactEmail }} <br />
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        </div>
+
+                        {% if EventItemOccurrence.Note != '' %}
+                        <p>Note: {{ EventItemOccurrence.Note | StripHtml }}</p>
+                        {% endif %}
+
+                        <!-- temp styling for button -->
+                        <style>
+                        .js-btn>a {
+                            background-color: gray !important;
+                            color: #fff;
+                            text-transform: uppercase;
+                            font-weight: 600;
+                        }
+                        </style>
+                        <div class="js-btn">
+                            {{ registerBtn }}
+                        </div>    
+                    </div>
+                    </div>
+                </div>
+            </div>   
+
+        {% endfor %}
+    {% endeventitemoccurrence %}
+
+<!-- IF A CONTENT CHANNEL CALENDAR EVENT -->
+{% else %}
+    {% contentchannelitem where:'Id == "{{ contentId }}"' %}
+        {% for cci in contentchannelitemItems %}
+            <div class="container" id="EventDetails">
+
+                {% if eventDetails != '' %}
+                <div class="row my-5">
+                    <div class="col-xs-12">
+                        {{ eventDetails }}
+                        
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if eventFAQ !='' %}
+                <hr>
+                <div class="row my-5">
+                    <div class="col-xs-12">
+                        <div class="show-more-section">
+                            <div class="show-more-section-content">
+                                <h2 class="section-heading">Frequently Asked Questions</h2>
+                                {{ eventFAQ }}
+                            </div>
+                            <div class="show-more-section-overlay">
+                            </div>
+                            <a aria-expanded="false" href="" class="btn btn-xs btn-default show-more-section-button">Show More <i class="far fa-chevron-down"></i></a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <hr>
+                <div class="row my-5"  id="registration-options">
+                    <div class="col-xs-12">
+                        <h2 class="section-heading">Registration Options</h2>
+                    </div>
+                    <div class="col-xs-12 mt-2 d-flex justify-content-center align-items-stretch flex-wrap">
+                        
+
+                        {% for regItem in cci.ChildItems %}
+                            {% assign cciStartDate = regItem.ChildContentChannelItem.StartDateTime | Date:'MM/dd/yyyy HH:mm' %}
+                            {% if regItem.ChildContentChannelItem.ExpireDateTime %}
+                                {% assign cciEndDate = regItem.ChildContentChannelItem.ExpireDateTime | Date:'MM/dd/yyyy HH:mm' %} 
+                            {% else %}
+                                {% comment %} If no End Date is set, set an end date 10 years from today {% endcomment %}
+                                {% assign cciEndDate = 'Now' | DateAdd:10,'y' | Date:'MM/dd/yyyy HH:mm' %}
+                            {% endif %}
+
+                            <!-- If the Start Date has passed and the End date is empty or in the future -->
+                            {% assign isLive = now | IsDateBetween:cciStartDate,cciEndDate %}
+                            {% if isLive %}
+                            <div class="col-xs-12 col-sm-5 col-md-5 col-lg-3 mb-3 align-self-stretch">
+                                <div class="card card-accent card-dark js-card text-center px-2 h-100 d-flex flex-column justify-content-between animate-fade-in-fly-in-bottom">
+                                    <div class="card-body pb-1">
+                                        <h3 class="card-title mb-2">{{ regItem.ChildContentChannelItem.Title }}</h3>
+                                        {% assign cost = regItem.ChildContentChannelItem | Attribute:'Cost' %}
+                                        {% if cost != '' %}<h4 class="text-muted mt-0 text-light">{{ cost }}</h4>{% endif %}
+                                    </div>
+                                    <div class="card-body pt-1">
+                                        <p class="card-text leading-relaxed">{{ regItem.ChildContentChannelItem | Attribute:'Detail' }}</p>
+                                    </div>
+                                    <div class="card-footer js-btn">
+                                        {% assign linkStatus = regItem.ChildContentChannelItem | Attribute:'RegistrationStatus' %}
+                                        {% if linkStatus == 'Open' %}{% comment%} If the content channel item is set to open {% endcomment %}
+                                            {% assign registrationInstanceId = regItem.ChildContentChannelItem | Attribute:'ButtonUrl' | Url:'queryparameter','RegistrationInstanceId' %}
+                                            {% comment %}{% assign eventOccurrenceID = regItem.ChildContentChannelItem | Attribute:'ButtonUrl' | Url:'queryparameter','EventOccurrenceID' %}{% endcomment %}
+                                            {% if registrationInstanceId %}{% comment%} If the regInstId was found in the URL {% endcomment %}
+                                                {% registrationinstance id:'{{registrationInstanceId }}' %}{% comment %} Get the Registration Instance item {% endcomment %}
+                                                    {% comment %} Get the Start and End dates of the Registration {% endcomment %}
+                                                    {% if registrationinstance.StartDateTime %}
+                                                        {% assign cciRegStartDate = registrationinstance.StartDateTime | Date:'MM/dd/yyyy HH:mm' %} 
+                                                    {% else %}
+                                                        {% comment %} If no Start Date is set, set a start day 7 days before today {% endcomment %}
+                                                        {% assign cciRegStartDate = 'Now' | DateAdd:-7,'d' | Date:'MM/dd/yyyy HH:mm' %}
+                                                    {% endif %}
+                                                    {% if registrationinstance.EndDateTime %}
+                                                        {% assign cciRegEndDate = registrationinstance.EndDateTime | Date:'MM/dd/yyyy HH:mm' %} 
+                                                    {% else %}
+                                                        {% comment %} If no End Date is set, set an end date 10 years from today {% endcomment %}
+                                                        {% assign cciRegEndDate = 'Now' | DateAdd:10,'y' | Date:'MM/dd/yyyy HH:mm' %}
+                                                    {% endif %}
+                                                    {% assign isRegLive = now | IsDateBetween:cciRegStartDate,cciRegEndDate %}
+                                                    {% if isRegLive %}
+                                                        <a href="{{ regItem.ChildContentChannelItem | Attribute:'ButtonUrl' }}" type="button" class="btn btn-info btn-sm mx-3 mb-2 text-white">{{ regItem.ChildContentChannelItem | Attribute:'ButtonText' }}</a>
+                                                    {% else %}
+                                                        <h4>Closed</h4>
+                                                    {% endif %}
+                                                {% endregistrationinstance %}
+                                            {% else %}
+                                                <a href="{{ regItem.ChildContentChannelItem | Attribute:'ButtonUrl' }}" {% if isLive == false %}disabled="disabled" {% endif %}type="button" class="btn btn-info btn-sm mx-3 mb-2 text-white">{{ regItem.ChildContentChannelItem | Attribute:'ButtonText' }}</a>
+                                            {% endif %}
+                                        {% else %}
+                                            <h4>{{ linkStatus }}</h4>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+            
+                        
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endcontentchannelitem %}
+        
+{% endif %}
+
+/- Re-themes page to average color from targeted image -/
+<script>
+    Sys.Application.add_load(function() {
+      {% if eventColor and eventColor != empty %}
+        $(function() {
+          var colorTheme = '{{ eventColor }}';
+      
+          $(window).on('load', function(){
+            color = colorTheme;
+            
+            $('.js-hero').css('background-color', color );
+            $('.js-card').css('border-color', color );
+            $('.js-btn .btn').css('background-color', color );
+          });
+        });
+      {% else %}
+        $(function() {
+          var colorThief = new ColorThief();
+      
+          $(window).on('load', function(){
+            var sourceImage = $('.js-img')[0];
+            color = colorThief.getColor(sourceImage);
+            
+            $('.js-hero').css('background-color', 'rgb(' + color + ')');
+            $('.js-card').css('border-color', 'rgb(' + color + ')');
+            $('.js-btn .btn').css('background-color', 'rgb(' + color + ')');
+          });
+        });
+      {% endif %}
+    });
+</script>
+
+<!-- Script for Show More Content sections -->
+<script>
+// Select all elements with the class 'show-more-section'
+const showMoreContentElements = document.querySelectorAll('.show-more-section');
+
+// Iterate through each element
+showMoreContentElements.forEach(element => {
+    // Find the 'Show More' button within this element
+    const showMoreButton = element.querySelector('.show-more-section-button');
+
+    // Add a click event listener to the button
+    showMoreButton.addEventListener('click', function(event) {
+        // Prevent the default action of the anchor tag
+        event.preventDefault();
+
+        // Toggle the 'full' class on the '.show-more-section' element
+        element.classList.toggle('full');
+
+        // Check if the element now has the 'full' class
+        if (element.classList.contains('full')) {
+            // Change button HTML to 'Show Less' with an up chevron icon
+            showMoreButton.innerHTML = 'Show Less <i class="far fa-chevron-up"></i>';
+        } else {
+            // Change button HTML back to 'Show More' with a down chevron icon
+            showMoreButton.innerHTML = 'Show More <i class="far fa-chevron-down"></i>';
+        }
+    });
+});
+</script>

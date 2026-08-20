@@ -1,0 +1,514 @@
+<!-- Source: https://github.com/TFH-Web/my-tfh-org/blob/master/Other/Forms/what-we-do-serve-team-interest-form/serve-team-picker.lava -->
+{% comment %}
+  =============================================================
+  Serve Team Signup — Step 1: Team Picker (Lava Application Page)
+  =============================================================
+  Sits between the existing Campus Picker (page 1092) and the existing
+  native Workflow form (WF 1091, form 1567).
+
+  Flow:
+    Welcome HTML block --> Campus Picker (1092) --> THIS PAGE --> WF 1091 form
+
+  Campus Picker appends ?CampusId=[int] to whatever returnurl it was given
+  (see its own Lava: Workflow | Attribute:'Campus1','Id'). This page reads
+  that same CampusId, uses it to pull only the teams active for that
+  campus, and on submit forwards to the existing form with CampusId, Team
+  (comma-separated Connection Opportunity **Ids**, not Guids), and
+  Source=picker all appended — mirroring Campus Picker's own "does the URL
+  already have a ?" append logic.
+
+  Source=picker exists because this page is NOT a workflow form itself —
+  there's no workflow action or attribute running here, just this page's
+  own JS building a redirect URL. So this is the only place that can flag
+  "this person came through the picker" for the native form to consume.
+  On the receiving end, WF 1091 needs a new/extended action that reads
+  Source via PageParameter and stores it as a workflow attribute, which
+  Form 1567's Header/PreHtml Lava then checks to decide whether to hide
+  the Campus + Serving Teams of Interest fields. See build plan Step 2
+  for the full reasoning.
+
+  CONFIRMED WORKING: the destination form's "Set Serve Team Of Interest"
+  Lava action was patched to split `Team` on comma and look up each Id
+  individually, joining the resulting Guids back together to populate
+  ServingTeamsofInterest -- tested with Team=77,6&CampusId=3, which
+  correctly pre-checks Audio + Baptism (full story and the patched Lava in
+  serve-sunday_team-signup-build-plan.md, Step 1).
+
+  This page itself is live-tested too: card grid renders, campus filtering
+  works, selection and Clear selection both work, and Next correctly
+  redirects into the native form with CampusId + Team appended. One bug
+  surfaced along the way -- loading with no CampusId in the URL left it
+  genuinely blank (not 0), breaking the {% sql %} block's DECLARE
+  statement. Fixed by guarding against 0, '', and null before defaulting to
+  campus 2 (general write-up in learnings/rock-lava-web-quirks.md, "Blank
+  Lava-Interpolated Variables Break {% sql %} Blocks").
+
+  Team=[id],[id] pre-selection: if a Team param arrives on THIS page (not
+  just the destination form), matching cards are pre-selected on load --
+  counts toward the 3, still fully editable. Only Ids that match an actual
+  card for the current campus are honored, capped at maxSelections, so a
+  stale or out-of-campus Id in a link can't inflate the count. This is the
+  "I already know I'm signing up for this one" case (e.g. visited a booth),
+  NOT Phase 2's featured-3 concept -- those are different UI behaviors.
+
+  RESOLVED since the above was written: Source flag + Visibility Rules hide
+  Campus/ServingTeamsofInterest correctly on the native form (see build plan
+  Step 2); native form's checkbox grey-out-on-load bug is fixed (see
+  learnings/rock-lava-web-quirks.md); internal testing via the admin-gated
+  test button on the live Welcome block is underway.
+
+  Phase 2 -- Featured + See More (Sept 13): FeaturedTeam=[id],[id] marks
+  cards as featured (data-featured="true" set per-card by the Lava loop,
+  padded-comma-contains check against featuredIdsPadded so "7" doesn't
+  false-match inside "77"). At page load, JS moves any featured cards into
+  their own "Featured" section (badge via .serve-card--featured, capped at
+  maxSelections defensively) and collapses the remainder behind a "See
+  More" toggle. No FeaturedTeam param means no card ever gets
+  data-featured="true", so the page renders exactly as it did in Phase 1,
+  a single flat grid, no split. Featured and "See More" are exclusive (a
+  team never appears in both), avoiding any dual-location selection-sync
+  problem. Selection/limit logic (updateState, click handlers) needed zero
+  changes for this: cards is a static NodeList captured before any of this
+  runs, and moving a card via appendChild doesn't drop its listeners or
+  invalidate that reference.
+
+  -------------------------------------------------------------
+  STYLING — 2026-08-19: this page has NO style block anymore.
+  -------------------------------------------------------------
+  Every rule moved into the theme, at Admin -> CMS -> Themes -> MyTFH-2021
+  -> Theme Styler -> CSS Overrides, tracked in this repo as
+  theme/Styles/_css-overrides.less **section 23. Serve Team Picker**.
+
+  Why it changed, not just where it moved: the old inline styles were
+  written against var(--tfh-*, ...) custom properties that are not defined
+  anywhere on this site, so every one of them was silently falling back to
+  its second argument -- and those fallbacks were the **rock.tfh.org
+  internal** design system (#36454f brand, 10px radii, 1px #eee borders,
+  hover box-shadows). That is the wrong site's look. my.tfh.org is the
+  public system: black ink, #F1F1F1 panels, 20px radii, Neue Haas Grotesk,
+  and no shadows anywhere.
+
+  The palette now lives once, in section 0.1 of that same file, as the
+  shared @mytfh-* tokens. Section 22 (public sign-up pages) aliases them
+  and section 23 uses them directly, so this page and /signups cannot drift
+  apart. Class names are feature-named with no vendor prefix, per this
+  repo's convention -- `serve-`, not `tfh-`.
+
+  Do not reintroduce a style block here. Add to section 23 instead.
+
+  NOTE — why tag examples below are written with spaced angle brackets
+  (`< p >< br >< /p >`): Rock's HTML Content editor validates the RAW text
+  of the block and does not understand Lava comments, so a literal `style`
+  or `script` tag written inside a Lava comment block still counts toward
+  its open/close tally. (For the same reason this sentence says "a Lava
+  comment block" in words: spelling that tag out literally here would put a
+  second opener inside this very comment, and if Fluid's parser counts
+  nesting it would treat the one closing tag below as the inner close and
+  swallow the rest of the file -- a blank page, not an error message.) An earlier draft of this comment spelled the style tag
+  out properly and Rock refused the paste with "End tag ... was not found",
+  because it had counted two openers in prose and no closer anywhere.
+
+  -------------------------------------------------------------
+  PERFORMANCE — 2026-08-19, sized for ~6,000 visitors on a Sunday
+  -------------------------------------------------------------
+  Baseline measured in an incognito window (a first pass was polluted by
+  browser extensions and by being logged in as admin, which loads Rock's
+  Obsidian admin bundle that public visitors never see): 40 requests,
+  2.2 MB transferred, DOMContentLoaded 680 ms, Load 2.20 s.
+
+  Where that went: the 11 team photos were 880 kB, 40% of the page, each
+  taking 0.3-1.55s of Rock's time through GetImage.ashx. That is the
+  dominant cost, and not because of bytes -- 11 handler hits per visitor
+  is 66,000 requests against the app pool across the morning, eleven times
+  what the page itself generates.
+
+  Two fixes are in the card markup below, both commented where they live:
+  w=600&quality=80 on the image URL, and lazy loading for everything past
+  the first row. The second one is why the photo is a real img element
+  instead of a CSS background-image -- backgrounds cannot be natively
+  lazy-loaded.
+
+  Still outstanding, and both bigger than anything in this file:
+  - RESOLVED 2026-08-20: the 754 ms "307" seen in DevTools was an artifact
+    of typing the address, which reaches the server over http and takes a
+    real 301 plus a whole second connection (2 conns vs 1, measured). It is
+    NOT a visitor-facing cost here: the QR code and NFC tags both carry the
+    full https URL, so no redirect happens. Worth knowing if anyone ever
+    prints a bare domain -- there is no HSTS header on either hostname.
+  - RegisterPageInteraction is a database write per page view, and was
+    measured at 1.52s. It is async so it does not block rendering, but it
+    is 6,000 extra writes during the spike.
+
+  Whatever caching gets added, remember every cache is cold at 8:00 AM --
+  block output, persisted datasets, and especially the resized image
+  derivatives, which are generated on first request. Warm them the day
+  before by loading the page once per campus id, or the first arrivals pay
+  the full uncached cost during the exact peak being optimised for.
+
+  STILL TO DO — see the build plan (currently at Step 9/10):
+  1. Confirm Step 9's Featured/See More UI matches expectations once
+     Bethany reviews it, then move to Step 10 (re-test with a real
+     FeaturedTeam link).
+  2. Two smaller loose ends from Phase 1, still open: verify the icon
+     fallback class (`fa fa-users`) matches whatever Font Awesome version
+     is in use (v6 syntax is `fa-solid fa-users`), and decide what a blank
+     Summary should look like on a card (accept the sparse look, or add
+     fallback text). The same question applies to `fa fa-check` on the
+     selection tick and `fa fa-chevron-down` on See More.
+  3. Do not point the real "Get Started" button at this page until Task
+     #5's internal review is fully signed off by everyone who needs to
+     weigh in.
+  =============================================================
+{% endcomment %}
+
+{% assign campusIdRaw = 'Global' | PageParameter:'CampusId' %}
+{% assign campusId = campusIdRaw | AsInteger %}
+{% if campusId == 0 or campusId == '' or campusId == null %}{% assign campusId = 2 %}{% endif %}
+{% assign destinationUrl = 'https://my.tfh.org/serveteam/what-we-do/form' %}
+{% assign maxSelections = 3 %}
+{% assign teamParamRaw = 'Global' | PageParameter:'Team' %}
+{% assign featuredParamRaw = 'Global' | PageParameter:'FeaturedTeam' %}
+{% assign featuredIdsPadded = ',' | Append:featuredParamRaw | Append:',' %}
+
+{% sql return:'teams' %}
+    DECLARE @CampusId INT = {{ campusId }}
+
+    SELECT
+        CO.[Id]
+        , CO.[Name]
+        , CO.[PublicName]
+        , CO.[Summary]
+        , CO.[Guid]
+        , CO.[IconCssClass]
+        , BF.[Guid] AS [PhotoGuid]
+
+    FROM
+        [ConnectionOpportunity] CO
+
+    JOIN [ConnectionOpportunityCampus] CC ON CC.[ConnectionOpportunityId] = CO.[Id]
+    LEFT JOIN [Attribute] A ON A.[EntityTypeQualifierValue] = CO.[ConnectionTypeId] AND CO.[ConnectionTypeId] = 1 AND A.[Id] = 44230
+    LEFT JOIN [AttributeValue] AV ON AV.[AttributeId] = A.[Id] AND AV.[EntityId] = CO.[Id]
+    LEFT JOIN [BinaryFile] BF ON BF.[Id] = CO.[PhotoId]
+
+    WHERE CO.[IsActive] = 1
+    AND CC.[CampusId] = @CampusId
+    AND ( (CO.[ConnectionTypeId] = 1 AND AV.[Value] = 'True') OR CO.[Id] = 52 )
+
+    ORDER BY CO.[Name]
+{% endsql %}
+
+{%- comment -%}
+  No outer padding or max-width on this wrapper. Rock already pads the block,
+  and constraining the width here made the content narrower than the page title
+  above it. Width belongs at the page-layout level so everything on the page
+  agrees -- the same call section 22 documents for /signups.
+
+  mb-5 is the deliberate exception, kept at Tim's call on 2026-08-19: this is
+  the last block on the page and it otherwise sits too close to the footer.
+  It is the theme's own utility (margin-bottom: 3rem) rather than a margin
+  declared in section 23, so the spacing stays adjustable from the block
+  markup without a theme recompile.
+{%- endcomment -%}
+<div class="serve mb-5">
+
+    <div class="serve__step">Step 1 of 2</div>
+    <h1 class="serve__title">Find Your Place To Serve</h1>
+    <p class="serve__intro">Choose the teams you're interested in joining (up to {{ maxSelections }}), then continue to your contact info.</p>
+
+    <div class="serve__bar">
+        <span class="serve__count" id="serveSelectionCount" aria-live="polite">0 of {{ maxSelections }} selected</span>
+        <button type="button" class="serve__clear" id="serveClearSelection">Clear selection</button>
+    </div>
+
+    <div class="serve__section serve-hide" id="serveFeaturedSection">
+        <div class="serve__sectionlabel">Featured</div>
+        <div class="serve__grid" id="serveFeaturedGrid"></div>
+    </div>
+
+    <button type="button" class="serve__more serve-hide" id="serveMoreToggle" aria-expanded="false">
+        <span id="serveMoreLabel">See More</span> <i class="fa fa-chevron-down"></i>
+    </button>
+
+    <div class="serve__grid" id="serveTeamGrid">
+        {% for team in teams %}
+            {% assign teamIdPadded = ',' | Append:team.Id | Append:',' %}
+            {% assign isFeatured = false %}
+            {% if featuredIdsPadded contains teamIdPadded %}{% assign isFeatured = true %}{% endif %}
+            {%- comment -%}
+              Summary is authored in Rock's HTML editor and can arrive carrying
+              trailing empty paragraphs. Verified against prod 2026-08-19: of
+              the 11 teams on campus 2, exactly one -- Baptism (Id 6) -- ends
+              with `< /p >< p >< br >< /p >< p >< br >< /p >`. Those two empty paragraphs
+              rendered as real line boxes at the bottom of what was already the
+              tallest card in the row, and because CSS grid rows size to their
+              tallest item, that one card's junk stretched every other card
+              beside it. See _temporary-files/serve-team-summary-trailing-markup.sql.
+
+              This MUST be fixed here rather than in CSS: `< p >< br >< /p >`
+              is not :empty -- it has a br child -- so no selector can
+              collapse it.
+
+              The pattern is stripped rather than the markup being flattened
+              with StripHtml, because two summaries carry inline formatting
+              worth keeping: Guest Services bolds its list of sub-teams, and
+              Video & Lighting uses a mid-sentence &nbsp;. The alternation has
+              no backslashes in it on purpose -- Fluid rejects invalid escape
+              sequences inside string literals, so `\s` would fail to parse.
+            {%- endcomment -%}
+            {% assign teamDesc = team.Summary | RegExReplace:'(<p>(<br>|<br/>|<br />|&nbsp;| )*</p>)+$','' %}
+            <div class="serve-card"
+                 role="button"
+                 tabindex="0"
+                 aria-pressed="false"
+                 data-id="{{ team.Id }}"
+                 data-guid="{{ team.Guid }}"
+                 data-name="{{ team.PublicName | Default:team.Name }}"
+                 data-featured="{{ isFeatured }}">
+                <span class="serve-card__tick" aria-hidden="true"><i class="fa fa-check"></i></span>
+                {%- comment -%}
+                  The first row stays eager, everything after it is lazy. At
+                  >=768px the grid is three across, so cards 1-3 are the only
+                  ones reliably above the fold; lazy-loading those would defer
+                  the largest thing on screen and push LCP out rather than
+                  pulling it in.
+
+                  This is deliberately an approximation. The Featured/See More
+                  JS can reorder cards after load, and on a phone the grid is
+                  one column so even card 2 is below the fold. Loop position is
+                  the only signal available at render time, and being wrong
+                  costs a slightly early or slightly late fetch -- not a broken
+                  page -- so it is not worth more machinery than this.
+
+                  The test is written as "> 3" rather than the other way round
+                  on purpose: same result, but it keeps a bare < out of the
+                  block. Rock's HTML editor scans the raw text and has already
+                  rejected one paste of this file over a tag it thought it saw
+                  in prose -- no reason to hand it another angle bracket to
+                  consider.
+                {%- endcomment -%}
+                {% assign imgLoading = 'eager' %}
+                {% if forloop.index > 3 %}{% assign imgLoading = 'lazy' %}{% endif %}
+                <div class="serve-card__media">
+                    {% if team.PhotoGuid and team.PhotoGuid != '' %}
+                        {%- comment -%}
+                          w=600 covers the ~287px card at 2x, and quality=80
+                          is required alongside it -- NOT optional.
+
+                          Rock's manual documents w / h as the resize params
+                          ("Working With Images", Designing and Building
+                          Websites Using Rock). maxwidth / maxheight also work,
+                          since GetImage sits on the ImageResizer library, but
+                          they are not in Rock's docs -- w is used here so the
+                          URL matches what is documented. Verified byte- and
+                          pixel-identical on prod 2026-08-20:
+                          w=600&quality=80 and maxwidth=600&quality=80 both
+                          returned 34 kB at 600x603 for the same file.
+
+                          WHY quality IS MANDATORY: the manual states the
+                          default is 90, and "Quality can often be set much
+                          lower than the default." Resizing alone therefore
+                          RE-ENCODES AT 90, which for photos stored below that
+                          makes the resized copy BIGGER than the original.
+                          Measured across all 11 campus-2 photos 2026-08-19:
+
+                            original               856 kB
+                            resize only            614 kB  (-28%, 5 got BIGGER)
+                            resize + quality=80    431 kB  (-49%, none bigger)
+
+                          60 gives another ~10 kB per image and the manual
+                          encourages going lower, but 80 was kept as the safe
+                          setting for photographs of faces.
+
+                          Do NOT add format=webp. The manual lists the valid
+                          options as jpg, png and gif only, and passing webp
+                          makes GetImage silently ignore the resize entirely
+                          and return the full original -- with a 200, so it
+                          fails invisibly.
+
+                          Do NOT add disableoptimizations=true here. It turns
+                          Rock's resizing OFF so a CDN can do it instead. It
+                          only becomes relevant if Cloudflare Polish or Image
+                          Resizing is ever enabled, at which point the manual
+                          warns Rock and the CDN "will often conflict causing
+                          both Rock and the CDN to resize and optimize the
+                          file" -- and then these w/quality params must come
+                          off at the same time.
+
+                          Server-side the derivative IS cached: first request
+                          for a given size took 1.34s, subsequent ones ~0.45s.
+                          That is why these URLs need warming before a spike --
+                          see the PERFORMANCE note in the header comment.
+
+                          The separator is a bare ampersand rather than an
+                          entity because that is what Rock's own core templates
+                          and this site's existing logo URL use; it is the form
+                          proven to survive the HTML editor here.
+
+                          alt is intentionally empty. The team name is rendered
+                          immediately below in serve-card__name, inside the same
+                          control, so descriptive alt text would just read the
+                          name out twice to a screen reader. The photo is
+                          decorative in this context.
+                        {%- endcomment -%}
+                        <img src="/GetImage.ashx?Guid={{ team.PhotoGuid }}&w=600&quality=80"
+                             alt=""
+                             loading="{{ imgLoading }}"
+                             decoding="async">
+                    {% else %}
+                        <i class="{{ team.IconCssClass | Default:'fa fa-users' }}"></i>
+                    {% endif %}
+                </div>
+                <div class="serve-card__body">
+                    <div class="serve-card__name">{{ team.PublicName | Default:team.Name }}</div>
+                    <div class="serve-card__desc">{{ teamDesc }}</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="serve__actions">
+        <button type="button" class="btn btn-primary" id="serveNextBtn" disabled>Next</button>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    var maxSelections = {{ maxSelections }};
+    var campusId = '{{ campusId }}';
+    var destinationUrl = '{{ destinationUrl }}';
+    var preselectedTeams = '{{ teamParamRaw }}';
+    var selected = [];
+
+    var grid = document.getElementById('serveTeamGrid');
+    var cards = grid.querySelectorAll('.serve-card');
+    var countLabel = document.getElementById('serveSelectionCount');
+    var nextBtn = document.getElementById('serveNextBtn');
+    var clearBtn = document.getElementById('serveClearSelection');
+
+    // Restore prior selection when arriving with ?Team=, e.g. "I visited a
+    // booth and already know I'm signing up for this one." Only teams that
+    // actually appear as cards for this campus get pre-selected, and the
+    // list is capped at maxSelections, so a stale or out-of-campus Id in
+    // the link can't inflate the count or leave it out of sync with what's
+    // visually shown.
+    if (preselectedTeams) {
+        var cardIds = [];
+        cards.forEach(function (card) { cardIds.push(card.getAttribute('data-id')); });
+
+        selected = preselectedTeams.split(',')
+            .map(function (id) { return id.trim(); })
+            .filter(function (id) { return id !== '' && cardIds.indexOf(id) > -1; })
+            .slice(0, maxSelections);
+    }
+
+    // Phase 2: split off featured cards (marked via data-featured by the Lava
+    // loop above) into their own "Featured" section, with the remainder
+    // collapsed under a "See More" toggle. cards is a static NodeList
+    // captured before this runs, and moving a node via appendChild doesn't
+    // remove its event listeners or invalidate that reference, so no
+    // changes are needed to updateState() or the click handlers below,
+    // they keep working across both containers automatically. If no
+    // FeaturedTeam param is present, no card ever gets data-featured="true",
+    // so this block finds nothing to move and the page renders exactly as
+    // it did before Phase 2, a single flat grid.
+    var featuredSection = document.getElementById('serveFeaturedSection');
+    var featuredGrid = document.getElementById('serveFeaturedGrid');
+    var moreToggle = document.getElementById('serveMoreToggle');
+    var moreLabel = document.getElementById('serveMoreLabel');
+    var moreIcon = moreToggle.querySelector('i');
+
+    var featuredCards = Array.prototype.filter.call(cards, function (card) {
+        return card.getAttribute('data-featured') === 'true';
+    }).slice(0, maxSelections); // defensive cap in case more than 3 get configured by mistake
+
+    if (featuredCards.length > 0) {
+        featuredCards.forEach(function (card) {
+            card.classList.add('serve-card--featured');
+            featuredGrid.appendChild(card);
+        });
+
+        featuredSection.classList.remove('serve-hide');
+        moreToggle.classList.remove('serve-hide');
+        grid.classList.add('serve-hide');
+
+        moreToggle.addEventListener('click', function () {
+            var isCollapsed = grid.classList.contains('serve-hide');
+            grid.classList.toggle('serve-hide', !isCollapsed);
+            moreToggle.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+            moreLabel.textContent = isCollapsed ? 'See Less' : 'See More';
+            moreIcon.classList.toggle('fa-chevron-down', !isCollapsed);
+            moreIcon.classList.toggle('fa-chevron-up', isCollapsed);
+        });
+    }
+
+    function updateState() {
+        var atLimit = selected.length >= maxSelections;
+
+        countLabel.textContent = selected.length + ' of ' + maxSelections + ' selected';
+        nextBtn.disabled = selected.length === 0;
+
+        cards.forEach(function (card) {
+            var id = card.getAttribute('data-id');
+            var isSelected = selected.indexOf(id) > -1;
+            var isDisabled = !isSelected && atLimit;
+
+            card.classList.toggle('serve-card--selected', isSelected);
+            card.classList.toggle('serve-card--disabled', isDisabled);
+            card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+
+            // pointer-events:none stops the mouse but not the keyboard, so a
+            // card that's out of reach has to leave the tab order too.
+            card.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+            card.tabIndex = isDisabled ? -1 : 0;
+        });
+    }
+
+    function toggleCard(card) {
+        if (card.getAttribute('aria-disabled') === 'true') { return; }
+
+        var id = card.getAttribute('data-id');
+        var idx = selected.indexOf(id);
+
+        if (idx > -1) {
+            selected.splice(idx, 1);
+        } else if (selected.length < maxSelections) {
+            selected.push(id);
+        }
+        updateState();
+    }
+
+    cards.forEach(function (card) {
+        card.addEventListener('click', function () {
+            toggleCard(card);
+        });
+
+        // role="button" is a promise that Enter and Space activate it.
+        card.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                toggleCard(card);
+            }
+        });
+    });
+
+    clearBtn.addEventListener('click', function () {
+        selected = [];
+        updateState();
+    });
+
+    nextBtn.addEventListener('click', function () {
+        if (selected.length === 0) { return; }
+
+        var separator = destinationUrl.indexOf('?') > -1 ? '&' : '?';
+        var url = destinationUrl + separator
+            + 'CampusId=' + encodeURIComponent(campusId)
+            + '&Team=' + encodeURIComponent(selected.join(','))
+            + '&Source=picker';
+
+        window.location.href = url;
+    });
+
+    updateState();
+})();
+</script>

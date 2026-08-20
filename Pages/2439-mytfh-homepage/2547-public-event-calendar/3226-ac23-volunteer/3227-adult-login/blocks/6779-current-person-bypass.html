@@ -1,0 +1,5 @@
+{% if CurrentPersonCanEdit %}
+    <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://my.tfh.org/AC/Volunteer/Background">https://my.tfh.org/AC/Volunteer/Background</a>.</p>
+{% elseif CurrentPerson %}
+    {{ 'https://my.tfh.org/AC/Volunteer/Background' | PageRedirect }}
+{% endif %}

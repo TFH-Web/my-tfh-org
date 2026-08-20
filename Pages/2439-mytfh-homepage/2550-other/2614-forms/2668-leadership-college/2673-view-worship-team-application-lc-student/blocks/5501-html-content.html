@@ -1,0 +1,92 @@
+{% assign workflowid = 'Global' | PageParameter:'WorkflowId' %}
+{% workflow Id:'{{ workflowid }}' %}
+{% assign person = workflow | Attribute:'Person','Object' %}
+<h2>LC Student: Worship Team Application</h2>
+<p class="lead">Application For: <b>{{ workflow | Attribute:'FirstName' }} {{ workflow | Attribute:'LastName' }}</b></p>
+
+
+        <p><b>Audition Video Submitted:</b> {{ workflow | Attribute:'AuditionVideoSubmitted' }}<br>
+        {% capture url %}https://my.tfh.org/lc/resend-audition-video-instructions?PersonId={{ person.Id }}&WorkflowId={{ workflowid }}{% endcapture %}
+        <a target="_none" href="{{ url }}">Resend Audition Video Instructions</a></p>
+
+<hr>
+<br>
+
+<div class="row">
+    <div class="col-md-4">
+        <p><img src="{{ workflow | Attribute:'YourPhoto','Url' }}" class="img-responsive"><br><br></p>
+    </div>
+    <div class="col-md-8">
+        <h4>Applicant Information</h4>
+        <p><b>First Name:</b> {{ workflow | Attribute:'FirstName' }}<br>
+        <b>Last Name:</b> {{ workflow | Attribute:'LastName' }}<br>
+        <b>Email:</b> {{ workflow | Attribute:'Email1' }}<br>
+        <b>Mobile Number:</b> {{ workflow | Attribute:'MobileNumber' }}<br>
+        <b>Home Campus:</b> {{ workflow | Attribute:'Campus' }}</p>
+        <br>
+        <h4>Worship Community</h4>
+        <p><b>In a few sentences, please describe why you are interested in being a part of the TFH Worship Community:</b><br>
+        {{ workflow | Attribute:'InafewsentencespleasedescribewhyyouwanttojointheTFHWorshipCommunity' }}</p>
+
+    </div>
+</div>
+<br>
+
+<div class="row">
+    <div class="col-md-6">
+<h4>Instrument(s)</h4>
+<p><b>Instrument / Vocal 1:</b> {{ workflow | Attribute:'InstrumentVocal1' }}<br>
+<b>Years of Experience:</b> {{ workflow | Attribute:'YearsExperience1' }}</p>
+
+{% assign instrument2 = workflow | Attribute:'InstrumentVocal2' %}
+{% if instrument2 != empty %}
+<p><b>Instrument / Vocal 2:</b> {{ workflow | Attribute:'InstrumentVocal2' }}<br>
+<b>Years of Experience:</b> {{ workflow | Attribute:'YearsExperience2' }}</p>
+{% endif %}
+
+{% assign instrument3 = workflow | Attribute:'InstrumentVocal3' %}
+{% if instrument3 != empty %}
+<p><b>Instrument / Vocal 2:</b> {{ workflow | Attribute:'InstrumentVocal3' }}<br>
+<b>Years of Experience:</b> {{ workflow | Attribute:'YearsExperience3' }}</p>
+{% endif %}
+<br>
+<p><b>Do you personally own your instrument?</b> {{ workflow | Attribute:'Doyoupersonallyownyourinstrument' }}</p>
+<p><b>Please list the brand/model/type of gear you own:</b><br>
+{{ workflow | Attribute:'Pleaselistthebrandmodeltypeofgearyouown' }}</p>
+<br>
+<h4>Christian Experiences</h4>
+<p><b>Have you been baptized in the Holy Spirit, as evidenced by speaking in tongues?</b> {{ workflow | Attribute:'HaveyoubeenbaptizedintheHolySpiritasevidencedbyspeakingintongues' }}</p>
+</div>
+
+    <div class="col-md-6">
+        <h4>Audition Video</h4>
+        
+        <!-- get audition URL -->
+        {% capture auditionurl %}{{ workflow | Attribute:'AuditionVideoURL','RawValue' }}{% endcapture %}
+
+        <!-- initialize revised audition URL variable -->
+        {%- assign auditionvideoid = '' -%}
+        
+        <!-- Check to see what type of URL was given -->
+        {%- if auditionurl contains "youtu.be" -%}
+            {%- capture auditionvideoid -%}{{ auditionurl | Url:'localpath' }}{%- endcapture -%}
+        {%- elseif auditionurl contains 'youtube.com' -%}
+            {%- capture auditionvideoid -%}/{{ auditionurl | Url:'queryparameter','v' }}{%- endcapture -%}
+        {%- endif -%}
+        
+        <!-- Either show embedded video or link if invalide youtube url was given -->
+        {%- if auditionvideoid != '' -%}
+            <style>.embed-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; }
+            .embed-container iframe, .embed-container object, .embed-container embed { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+            </style>
+            <div class='embed-container'>
+                <iframe src='https://youtube.com/embed{{ auditionvideoid }}' frameborder='0' allowfullscreen></iframe>
+            </div>
+        {%- else -%}
+            <a href="{{ auditionurl }}" target="_blank">{{ auditionurl }}</a>
+        {%- endif -%}
+
+    </div>
+</div>
+<br>
+{% endworkflow %}

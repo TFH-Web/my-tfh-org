@@ -1,0 +1,15 @@
+{% assign member = CurrentPerson | Group:'290452'%}
+{% assign admin = CurrentPerson |  IsInSecurityRole:'2' %}
+
+{% assign date = 'Now' | Date:'yyyyMMdd' %}
+{% assign lifechangestart = '2025/03/14' | Date:'yyyyMMdd' %}
+{% assign lifechangeend = '2025/03/15' | Date:'yyyyMMdd' %}
+
+{% if date == lifechangestart or date == lifechangeend %}
+    {% if member != null or admin != null %}
+
+        <h4>Life Change 2025</h4>
+            <p class="small">Please find the link to take attendance for Life Change below.</p>
+            <a href="/serveteam/lifechangeattendance"> Class Attendance Page<i class="fa fa-chevron-right"></i></a>
+    {% endif %}
+{% endif %}

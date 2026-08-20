@@ -1,0 +1,16 @@
+{% assign url = 'Global' | Page:'Url' %}
+{% assign groupid = url | Url:'queryparameter','GroupId' %}
+
+{% group id:'{{ groupid }}' %}
+    {% for group in groupItems %}
+        {% assign eventdate = group | Attribute:'EventDate' | AsDate %}
+        {% assign eventname = group | Attribute:'PublicEventName' %}
+    {% endfor %}
+{% endgroup %}
+
+{% if eventname == "Worship and Communion" %}
+    <img src="/content/ExternalSite/Events/worship-and-communion-event.png" class="img-responsive" style="max-height: 250px; margin: 0 auto;">
+{% endif %}
+<h2 class="text-center">{{ eventname }} RSVP</h2>
+
+<p class="lead text-center">{{ eventdate | Date:'dddd, MMMM d' }}</p>

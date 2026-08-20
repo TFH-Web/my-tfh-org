@@ -1,0 +1,22 @@
+<!-- Get groupid from URL -->
+{% assign groupid = 'Global' | PageParameter:'GroupId' %}
+{% assign group = groupid | GroupById %}
+
+<!-- if group is 148996, then redirect without counting... it is already full -->
+{% if groupid == 148996 %}
+    {{ 'https://my.tfh.org/eventrsvp/full?GroupId=148996' | PageRedirect }}
+{% endif %}
+
+<!-- Removed this since the Workflow is handling the redirect -->
+{% comment %}
+    {% assign headcount = 0 | AsInteger %}
+    {% for Member in group.Members %} 
+        {% assign memberheadcount = Member | Attribute:'Headcount' | AsInteger %}
+        {% assign headcount = headcount | Plus:memberheadcount | AsInteger %}
+    {% endfor %}
+
+    {% if headcount >= '400' %}
+        {% assign redirecturl = 'https://my.tfh.org/eventrsvp/full?GroupId=148996' | Append:{{ group }} %}
+        {{ redirecturl | PageRedirect }}
+    {% endif %}
+{% endcomment %}

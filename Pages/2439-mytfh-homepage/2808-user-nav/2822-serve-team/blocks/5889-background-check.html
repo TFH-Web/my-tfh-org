@@ -1,0 +1,14 @@
+{% assign bcResult = CurrentPerson | Attribute:'BackgroundCheckResult' %}
+<h4>Background Check</h4>
+<p class="small">Some teams require a background check.</p>
+<p class="tall">
+{% if bcResult == 'Pass' %}
+    {% assign bcDate = CurrentPerson | Attribute:'BackgroundCheckDate' | Date:'MM/dd/yyyy' %}
+    {% assign nextBC = bcDate | DateAdd: 3,'y' | Date:'MM/yyyy' %}
+    <i class="fas fa-check-circle text-success"></i> Completed: {{ bcDate }}<br>
+    <span class="d-block small">Next background check: {{ nextBC }}</span>
+{% elseif bcResult == 'Fail' %}
+    <i class="fas fa-exclamation-circle text-warning"></i> Needs Attention<br>
+{% else %}
+    <i class="fas fa-question-circle text-info"></i> No Background Check Run<br>
+{% endif %}

@@ -1,0 +1,60 @@
+<style>
+    /* The grid */
+    .date-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+    .calendar {
+        border: none;
+    }
+    .calendar .date-grid a {
+        color: #333;
+        background-color: #b0e9a1;
+        border: 2px Solid #b0e9a1;
+        text-decoration: none;
+        margin: 4px;
+        text-align: center;
+        font-size: 18px;
+        padding: 15% 0;
+        transition: 0.3s;
+    }
+    .calendar .date-grid a.capacity-full {
+        background-color: #F7F7F7;
+        border: 2px Solid #F7F7F7;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+    .calendar .date-grid a:hover {
+        border: 2px Solid #333;
+        transition: 0.3s;
+    }
+    .calendar .key {
+        padding:4px 8px;
+        margin-top: 15px;
+        margin-left: 4px;
+        display:inline-block;
+    }
+    .calendar .key.available {
+        background-color:#B0E9A1;
+    }
+    .calendar .key.unavailable {
+        background-color:#F7F7F7;
+    }
+   
+</style>
+
+
+{% group where:'GroupTypeId == 164' securityenabled:'false' %}
+<div class="calendar my-5">
+    <h3>Select the date that you will fast each month.</h3>
+    <div class="date-grid">
+    {% for group in groupItems %}
+        {% assign membercount = group.Members | Size %}
+        {% assign spaceavailable = group.GroupCapacity | Minus:membercount %}
+        <a class='{% if spaceavailable <= 0 %}capacity-full {% endif %}animation-fade-in-med' href='https://my.tfh.org/intercession/fasting/signup?GroupGuid={{ group.Guid }}'>{{ group | Attribute:'DayofMonth' }}</a>
+    {% endfor %}
+    </div>
+    <div class="key available">Available</div>
+    <div class="key unavailable">Unavailable</div>
+</div>
+{% endgroup %}

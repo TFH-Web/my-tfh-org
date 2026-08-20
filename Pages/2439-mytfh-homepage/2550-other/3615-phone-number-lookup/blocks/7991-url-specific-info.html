@@ -1,0 +1,68 @@
+{% assign returnurl = 'Global' | PageParameter:'returnurl' | UrlDecode %}
+{% if returnurl contains 'http' %}
+    {% assign returnurl = returnurl | Url:'pathandquery' | RemoveFirst:'/' %}
+{% else %}
+    {% assign returnurl = returnurl | RemoveFirst:'/' %}
+{% endif %}
+
+{% if returnurl contains '?' %}
+    {% assign urlsplit = returnurl | Split:'?' %}
+    {% assign returnurl = urlsplit | First %}
+{% endif %}
+{% if returnurl contains '&' %}
+    {% assign urlsplit = returnurl | Split:'&' %}
+    {% assign returnurl = urlsplit | First %}
+{% endif %}
+{% assign route = returnurl %}
+{% capture pageId %}{[ pagebyroute route:'{{ route }}' ]}{% endcapture %}
+{% if pageId > 0 %}
+    {% comment %}Can't enable security because this is the login page. Person isn't logged in yet.{% endcomment %}
+    {% page id:'{{ pageId }}' securityenabled:'false' %}
+        {% assign header = page | Attribute:'LoginHeader' %}
+        {% assign subheader = page | Attribute:'LoginSubheader' %}
+        {% assign image = page | Attribute:'LoginBackgroundImage','Guid' %}
+    {% endpage %}
+{% endif %}
+
+{% assign hasHeader = true %}
+{% assign hasSubheader = true %}
+{% assign hasImage = true %}
+
+{% if header == '' or header == null %}
+    {% assign hasHeader = false %}
+{% endif %}
+{% if subheader == '' or subheader == null %}
+    {% assign hasSubheader = false %}
+{% endif %}
+{% if image == '' or image == null %}
+    {% assign hasImage = false %}
+{% endif %}
+
+{% if hasImage == true or hasHeader == true %}
+
+    {% comment %}Hide the default h3 header on the Phone Number Lookup block{% endcomment %}
+    {% stylesheet %}
+        h3.mt-0{ display: none; }
+    {% endstylesheet %}
+
+    {% if hasImage == true and hasHeader == true %}
+        <div class="p-3 text-white rounded " style="background-image:url('/GetImage.ashx?Guid={{ image }}&w=700');background-size:cover;background-position: center center;">
+            <div class="d-flex flex-column{% if hasSubheader == true %} justify-content-end{% else %} justify-content-center align-items-center{% endif %}" style="min-height:200px;">
+                <h1>{{ header }}</h1>
+                {% if hasSubheader == true %}
+                    <span>{{ subheader }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+    {% elseif hasImage == true and hasHeader == false %}
+        <img src="/GetImage.ashx?Guid={{ image }}&w=700" class="img-responsive w-100 rounded" />
+
+    {% elseif hasImage == false and hasHeader == true %}
+        <h1>{{ header }}</h1>
+        <span>{{ subheader }}</span>
+    {% endif %}
+
+    <hr>
+
+{% endif %}

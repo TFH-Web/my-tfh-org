@@ -1,0 +1,61 @@
+{% assign mode = 'Global' | Page:'QueryString' | Property:'mode' %}
+{% if mode == 'kiosk' %}
+    {% if CurrentPerson or CurrentPerson != null %}
+        {% assign modalTitle = "Logout to Continue" %}
+        {% assign modalText  = "It appears like someone is already logged in. Logout to continue." %}
+        {% assign logoutText  = "Logout" %}
+        
+        {% assign url = Global | Page:'Url' %}
+        {% if url contains '?' %}
+            {% assign logoutUrl = url | Append:'&logout=true' %}
+        {% else %}
+            {% assign logoutUrl = url | Append:'?logout=true' %}
+        {% endif %}
+            <script>
+                $(function(){
+                    bootbox.dialog({
+                        message: "<h3>{{ modalTitle }}</h3><p>{{ modalText }}</p>",
+                        buttons: {
+                            ok: {
+                                label: '{{ logoutText }}',
+                                className: 'btn-primary',
+                                callback: function () {
+                                    window.location.href = '{{ logoutUrl }}';
+                                }
+                            }
+                        }
+                    })
+                });
+            </script>
+    {% endif %}
+{% else %}
+    {% assign modalTitle = "Would you like to login?" %}
+    {% assign modalText  = "Already have an account? Speed up the process by logging in." %}
+    {% assign loginText  = "Login Now" %}
+    {% assign cancelText = "Continue as Guest" %}
+    {% unless CurrentPerson and CurrentPerson != null %}
+        <script>
+            $(function(){
+                bootbox.dialog({
+                    message: "<h3>{{ modalTitle }}</h3><p>{{ modalText }}</p>",
+                    buttons: {
+                        ok: {
+                            label: '{{ loginText }}',
+                            className: 'btn-primary',
+                            callback: function () {
+                                window.location.href = '/login?returnurl={{ 'Global' | Page:'Url' | Url:'pathandquery' | EscapeDataString }}';
+                            }
+                        },
+                        cancel: {
+                            label: '{{ cancelText }}',
+                            className: 'btn-default',
+                            callback: function () {
+                                // Do Nothing
+                            }
+                        }
+                    }
+                })
+            });
+        </script>
+    {% endunless %}
+{% endif %}

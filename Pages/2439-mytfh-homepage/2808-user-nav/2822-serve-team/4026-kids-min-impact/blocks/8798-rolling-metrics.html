@@ -1,0 +1,106 @@
+{% assign campusid = 'Global' | PageParameter:'Campus' %}
+
+{% if campusid == null or campusid == '' or campusid == empty %}
+{% assign campusid = 'All Campus' %}
+{% endif %}
+
+{% assign KAQtr = 'KAQtr' | PersistedDataset %}
+{% assign KAYear = 'KAYear' | PersistedDataset %}
+
+{% assign kAQtr = '' %}
+{% for k in KAQtr %}
+    {% if campusid == k.Campus %}
+        {% assign kAQtr = k.Total %}
+    {% endif %}
+{% endfor %}
+
+{% assign kAYear = '' %}
+{% for k in KAYear %}
+    {% if campusid == k.Campus %}
+        {% assign kAYear = k.Total %}
+    {% endif %}
+{% endfor %}
+
+{% assign FTFQtr = 'FTFQtr' | PersistedDataset %}
+{% assign FTFYear = 'FTFYear' | PersistedDataset %}
+
+{% assign fTFQtr = '' %}
+{% for k in FTFQtr %}
+    {% if campusid == k.Campus %}
+        {% assign fTFQtr = k.Total %}
+    {% endif %}
+{% endfor %}
+
+{% assign fTFYear = '' %}
+{% for k in FTFYear %}
+    {% if campusid == k.Campus %}
+        {% assign fTFYear = k.Total %}
+    {% endif %}
+{% endfor %}
+
+{% assign KBQtr = 'KBQtr' | PersistedDataset %}
+{% assign KBYear = 'KBYear' | PersistedDataset %}
+
+{% assign kBQtr = '' %}
+{% for k in KBQtr %}
+    {% if campusid == k.Campus %}
+        {% assign kBQtr = k.Total %}
+    {% endif %}
+{% endfor %}
+
+{% assign kBYear = '' %}
+{% for k in KBYear %}
+    {% if campusid == k.Campus %}
+        {% assign kBYear = k.Total %}
+    {% endif %}
+{% endfor %}
+
+
+{% assign VSQtr = 'VSQtr' | PersistedDataset %}
+{% assign VSYear = 'VSYear' | PersistedDataset %}
+
+{% assign vSQtr = '' %}
+{% for k in VSQtr %}
+    {% if campusid == k.Campus %}
+        {% assign vSQtr = k.Total %}
+    {% endif %}
+{% endfor %}
+
+{% assign vSYear = '' %}
+{% for k in VSYear %}
+    {% if campusid == k.Campus %}
+        {% assign vSYear = k.Total %}
+    {% endif %}
+{% endfor %}
+
+<div class="container">
+    
+    <div class="card">
+        <h3>{{ kAQtr }}</h3>
+        <br>
+        <p>{{ kAYear }}</p>
+        <h4>Kids Attended</h4>
+    </div>
+    
+    <div class="card">
+        <h3>{{ fTFQtr }}</h3>
+        <br>
+        <p>{{ fTFYear }}</p>
+        <h4>First Time Families</h4>
+    </div>
+    
+    <div class="card">
+        <h3>{{ kBQtr }}</h3>
+        <br>
+        <p>{{ kBYear }}</p>
+        <h4>Kids Baptisms</h4>
+    </div>
+    
+     <div class="card">
+        <h3>{{ vSQtr }}</h3>
+        <br>
+        <p>{{ vSYear }}</p>
+        <h4>Volunteers Served</h4>
+    </div>
+    
+</div>

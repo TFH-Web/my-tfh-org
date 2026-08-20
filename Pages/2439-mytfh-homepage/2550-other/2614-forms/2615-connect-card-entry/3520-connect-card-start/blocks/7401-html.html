@@ -1,0 +1,78 @@
+<style>
+    .button-card {
+        transition: transform 250ms ease-in-out;
+    }
+    .button-card:hover {
+        {% comment %}box-shadow: 10px 0px 37px -7px rgba(194,194,194,1);{% endcomment %}
+        transform: scale(1.03, 1.03);
+        border-color: var(--color-primary) !important;
+    }
+    .button-card .card-icon {
+        font-size: 1.5rem;
+        margin-top: auto;
+    }
+    
+    @media screen and (max-width: 576px) {
+        .connect-header-img {
+            width: calc(100% + 30px) !important;
+            margin-left: -15px;
+        }
+    }
+</style>
+
+{% assign queryParms = 'Global' | Page:'QueryString' | RemoveFromDictionary:'PageId'%}
+{% assign queryParmsSize = queryParms | Size %}
+{% assign linkParms = '' %}
+{% assign newForm = false %}
+
+{% comment %}-- Should it redirect to the new form? --{% endcomment %}
+{% if queryParms["new"] == true %}
+    {% assign newForm = true %}
+    {% assign queryParms = queryParms | RemoveFromDictionary:'new' %}
+    {% assign queryParmsSize = queryParms | Size %}
+{% endif %}
+
+{% comment %}-- Capture any page parameters to forward to the form --{% endcomment %}
+{% if queryParmsSize > 0 %}
+    {% for item in queryParms %}
+        {% assign kvItem = item | PropertyToKeyValue %}
+        {% capture linkParms %}{{ linkParms }}&{{ kvItem.Key }}={{ kvItem.Value }}{% endcapture %}
+    {% endfor %}
+{% endif %}
+
+{% comment %}-- Set the URL of the form to use --{% endcomment %}
+{% if newForm == true %}
+    {% comment %}-- New connect card with Discover and Essentials registration combined --{% endcomment %}
+    {% assign connectCardUrl = 'https://my.tfh.org/connectcard/4' %}
+{% else %}
+    {% comment %}-- Old stand-alone connect card --{% endcomment %}
+    {% assign connectCardUrl = 'https://my.tfh.org/connectcard/2' %}
+{% endif %}
+
+<img class="connect-header-img" src="/Content/ExternalSite/Forms/connect2020.png" style="width: 100%;" alt="TFH Connect">
+<p><br></p>
+
+<h1>Welcome Home</h1>
+<p class="text-muted">Which statement best describes you?</p>
+
+<div class="d-flex flex-column flex-sm-row py-4" style="gap: 16px;">
+    <a href="{{ connectCardUrl }}?Multi-SelectVisitSalvation=Salvation{{ linkParms }}" class="button-card d-flex flex-column px-3 py-4 border rounded border-gray-600 text-black w-100">
+        <span class="d-block text-muted">New to Jesus?</span>
+        <h2 class="mt-0 mb-1">I made a decision to follow Jesus.</h2>
+        <p class="text-muted"><em>We are excited for the decision you just made and want to help you get started.</em></p>
+        <div class="card-icon d-flex justify-content-end">
+            <i class="fal fa-long-arrow-right"></i>
+        </div>
+    </a>
+    <a href="{{ connectCardUrl }}?Multi-SelectVisitSalvation=First%20Time%20Visiting{{ linkParms }}" class="button-card d-flex flex-column px-3 py-4 border rounded border-gray-600 text-black w-100">
+        <span class="d-block text-muted">New to Church?</span>
+        <h2 class="mt-0 mb-1">I am new to The Father's House</h2>
+        <p class="text-muted"><em>We are so glad you visited today! We want to learn more about you and help you continue on your journey with Christ.</em></p>
+        <div class="card-icon d-flex justify-content-end">
+            <i class="fal fa-long-arrow-right"></i>
+        </div>
+    </a>
+</div>
+    
+
+    

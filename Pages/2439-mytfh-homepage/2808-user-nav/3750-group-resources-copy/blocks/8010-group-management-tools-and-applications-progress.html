@@ -1,0 +1,487 @@
+{% stylesheet compile:'less' %}
+    .grid-col-4 > * {
+        min-height: 120px;
+    }
+
+    .group-card {
+        position: relative;
+        transition: 200ms linear all;
+
+        a.list-card-link {
+            text-decoration: underline;
+            color: #fff;
+            position: relative;
+            z-index: 5;
+        }
+        &.new-group-card {
+            border: 1px solid #eee;
+
+            .progress {
+                height: 6px;
+                border-radius: unset;
+                margin-bottom: 6px;
+
+                .progress-bar {
+                    border-radius: unset;
+                    box-shadow: none;
+                }
+            }
+        }
+        &:not(.inactive):hover {
+            transition: 200ms linear all;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+        }
+    }
+
+    .group-leader-progress-bar {
+        --_progress-bar-size: 40px;
+        --_progress-bar-gap: 20px;
+        display: flex;
+        font-size: 12px;
+        text-align: center;
+        flex-direction: column;
+        gap: var(--_progress-bar-gap);
+        justify-content: space-between;
+        padding: 20px 10px 30px;
+        
+        .step {
+            display: flex;
+            gap: 10px;
+            position: relative;
+            
+            .icon {
+                color: #e6e6e6;
+                background-color: #fff;
+                border: 2px solid #e6e6e6;
+                outline: 2px solid #fff;
+                font-size: 17px;
+                font-weight: 700;
+                width: var(--_progress-bar-size);
+                height: var(--_progress-bar-size);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                position: relative;
+            }
+            .text {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                font-size: 14px;
+            }
+            .icon i {
+                display: none;
+            }
+            
+            &:not(:last-child)::before,
+            &:not(:first-child)::after {
+                content: '';
+                background-color: #e6e6e6;
+                width: 2px;
+                height: ~"calc(calc(var(--_progress-bar-size) / 2) + calc(var(--_progress-bar-gap) / 2))";
+                position: absolute;
+                left: ~"calc(var(--_progress-bar-gap) - 1px)";
+                z-index: -1;
+            }
+            &:not(:last-child)::before {
+                top: ~"calc(var(--_progress-bar-size) / 2)";
+            }
+            &:not(:first-child)::after {
+                top: ~"calc(var(--_progress-bar-gap) / -2)";
+            }
+            &.completed:not(:last-child)::before,
+            &.completed:not(:first-child)::after {
+                background-color: var(--color-primary);
+            }
+            &.completed .icon {
+                background-color: var(--color-primary);
+                border-color: var(--color-primary);
+            }
+            &.completed .icon i {
+                display: inline-block;
+                color: #fff;
+            }
+            &.completed .icon span {
+                display: none;
+            }
+        }
+    }
+    @media only screen and (min-width: 768px) {
+        .group-leader-application-progress {
+            text-align: center;
+        }
+        .group-leader-progress-bar {
+            flex-direction: row;
+            gap: 0;
+            
+            .step {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+
+                .icon {
+                    outline: 4px solid #fff;
+                }
+                &:not(:last-child)::before,
+                &:not(:first-child)::after {
+                    width: 50%;
+                    height: 2px;
+                    top: ~"calc(var(--_progress-bar-size) / 2)";
+                }
+                &:not(:last-child)::before {
+                    left: 50%;
+                }
+                &:not(:first-child)::after {
+                    left: 0;
+                }
+            }
+        }
+    }
+{% endstylesheet %}
+
+<!-- Links -->
+{% assign groupApplicationLink = 'https://my.tfh.org/formEntry/Authed/916' %}
+{% assign groupDetailLink = 'https://my.tfh.org/group-resources/group' %}
+
+<!-- Find groups this persons currently leads -->
+{% groupmember where:'GroupTypeId == 25 || GroupTypeId == 124 && PersonId == "{{ CurrentPerson.Id }}"' securityenabled:'false' %}
+    <!-- find active groups -->
+    {% for groupmember in groupmemberItems %}
+        {% if groupmember.Group.IsArchived != 'True' %}
+            {% if groupmember.GroupRoleId == 24 or groupmember.GroupRoleId == 161 %}
+                {% if groupmember.Group.IsActive == 'True' %}
+                    {% assign personsGroups = personsGroups | AddToArray:groupmember.Group | OrderBy:'Name'%}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    <!-- Find inative groups -->
+    {% for groupmember in groupmemberItems %}
+        {% if groupmember.Group.IsArchived != 'True' %}
+            {% if groupmember.GroupRoleId == 24 or groupmember.GroupRoleId == 161 %}
+                {% if groupmember.Group.IsActive != 'True' %}
+                    {% assign personsGroups = personsGroups | AddToArray:groupmember.Group %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    <!-- How many groups does this person lead? -->
+    {% assign personsGroupsSize = personsGroups | Size %}
+{% endgroupmember %}
+
+
+<!-- Get current group applications -->
+{% assign gCount = 0 %}<!-- Number of current group applications -->
+{% assign gStatus = 0 %}<!-- Status of current group applications -->
+{% sql return:'GroupApps' %}
+    SELECT ga.ConnectionstatusId as [Status],ga.ConnectionState as [State],ga.CreatedDateTime as [Date],[top].Value as [Topic],cat.Value as [Category],gen.Value as [Gender],first.Value as [FirstName],day.Value as [DayofWeek]
+    FROM [ConnectionRequest] ga
+    LEFT JOIN [PersonAlias] pa1 on pa1.Id=ga.PersonAliasId 
+    LEFT JOIN [AttributeValue] [wfId] on [wfId].EntityId=ga.Id AND [wfId].AttributeId=40663 -- WorkflowId From ConnectionRequest
+    LEFT JOIN [AttributeValue] [top] on [top].EntityId=wfId.Value AND [top].AttributeId=40232 -- Topic from Workflow
+    LEFT JOIN [AttributeValue] [cat] on [cat].EntityId=wfId.Value AND [cat].AttributeId=40230 --Category From Workflow
+    LEFT JOIN [AttributeValue] [gen] on [gen].EntityId=wfId.Value AND [gen].AttributeId=40231 -- Gender From Workflow
+    LEFT JOIN [AttributeValue] [first] on [first].EntityId=wfId.Value AND [first].AttributeId=40208 -- First Name From Workflow
+    LEFT JOIN [AttributeValue] [day] on [day].EntityId=wfId.Value AND [day].AttributeId=40236 -- Day of Week From Workflow
+    WHERE pa1.PersonId = {{ CurrentPerson.Id }}
+    AND ga.ConnectionTypeId=29
+    ORDER BY ga.CreatedDateTime DESC
+{% endsql %}
+<!-- Set number of group applications found -->
+{% assign gCount = GroupApps | Size %}
+
+
+<!-- If not leading any groups and no group new group applications were fouund, get current group leader applications -->
+{% if gCount <= 0 and personsGroupsSize <= 0 %}
+    {% assign glCount = 0 %}<!-- Number of current group leader applications -->
+    {% assign glStatus = 0 %}<!-- Status of current group leader applications -->
+    {% sql return:'LeaderApps' %}
+        SELECT TOP 1 gl.ConnectionstatusId as [Status],gl.ConnectionState as [State],gl.CreatedDateTime as [Date]
+        FROM [ConnectionRequest] gl
+        INNER JOIN [PersonAlias] pa1 on pa1.Id=gl.PersonAliasId 
+        WHERE pa1.PersonId = {{ CurrentPerson.Id }}
+        AND gl.ConnectionTypeId=25
+        ORDER BY gl.CreatedDateTime DESC
+    {% endsql %}
+    {% for l in LeaderApps %}
+        {% if l.Status == 139 %} <!-- Application Submitted / Applicaiton Under Review -->
+            {% assign glStatus = 1 %}
+        {% elseif l.Status == 140 %} <!-- Prereqs not met yet -->
+            {% assign glStatus = 2 %}
+        {% elseif l.Status == 138 %} <!-- In Review / Waiting for Director Approval -->
+            {% assign glStatus = 3 %}
+        {% elseif l.Status== 141 %} <!-- Approved -->
+            {% assign glStatus = 4 %}
+        {% elseif l.Status == 173 %} <!-- Denied -->
+            {% assign glStatus = 10 %}
+        {% endif %}
+        <!-- Set number of group leader applications found -->
+        {% assign glCount = glCount | Plus: 1 %}
+    {% endfor %}
+{% endif %}
+
+
+<!-- If leading a group or have a current group applicaiton, show them-->
+{% if personsGroupsSize > 0 or gCount > 0 %}
+
+        <!-- Check if a renewal period is active -->
+    {% capture renewalPeriodId %}{[ isactivegroupssemester ]}{% endcapture %}
+    
+    <!-- Show renewal banner if renewal period is active -->
+    {% if renewalPeriodId >= 1 %}
+        {% definedvalue where:'Id == {{ renewalPeriodId }}' %}
+            {% for value in definedvalueItems %}
+                {% assign now = 'Now' | Date:'yyyy-MM-dd HH:mm' %}
+                {% assign renewStartDate = value | Attribute:'StartDate' %}
+                {% assign renewEndDate = value | Attribute:'EndDate' %}
+
+                {% assign isRenewPeriod = now | IsDateBetween:renewStartDate,renewEndDate %}
+                {% if isRenewPeriod %}
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="alert alert-primary" role="alert">
+                                <h5>Renew your group for the {{ value.Value }} semester</h5>
+                                The next semester is starting soon. <a href="/formEntry/Authed/917">Renew your group today!</a>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% enddefinedvalue %}
+    {% endif %}
+
+    <!-- Manage Your Group Section -->
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 mt-2 mb-4">
+                <h3>Manage Your Group</h3>
+                <hr>
+
+                <div class="grid-col-4">
+                    <!-- for each group -->
+                    {% for group in personsGroups %}
+                        {% assign groupCapacity = groupCapacity %}
+
+                        {% groupmember where:'GroupMemberStatus == 1 || GroupMemberStatus == 2 && GroupId == "{{group.Id}}"' count:'true' %}
+                            {% assign groupSize = count %}
+                        {% endgroupmember %}
+
+                        {% assign privateGroup = group | Attribute:'KeepPublic' %}
+
+                        {% assign groupCategory = group | Attribute:'TFHGroupsCategory' %}
+                        {% assign category = group | Attribute:'GroupCategory','Object' %}
+                        {% assign gender = group | Attribute:'Gender','Object' %}
+
+                        {% if category.Value == 'Gender Specific' %}
+                            {% assign hexColorCode = gender | Attribute:'HexColor' %}
+                        {% else  %}
+                            {% assign hexColorCode = category | Attribute:'HexColorCode' %}
+                            {% if hexColorCode == '' %}
+                                {% assign hexColorCode = '#000' %}
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% assign pending = 0 -%}
+                        {% for member in group.Members -%}
+                            {% if member.GroupMemberStatus == 'Pending' -%}
+                                {% assign pending = pending | Plus:1 -%}
+                            {% endif -%}
+                        {% endfor -%}
+
+                        {% capture groupAlerts %}
+                            {% if privateGroup == 'Always Private' -%}
+                                {% assign groupAlertsExist = 1 -%}
+                                <span><i class="fas fa-lock pr-1" style="font-size: .9rem;"></i>Private Group</span>
+                            {% endif %}
+                            {% if pending != 0 -%}
+                                {% assign groupAlertsExist = 1 -%}
+                                <span><i class="fas fa-exclamation-circle pr-1" style="font-size: .9rem;"></i>{{ pending }} Pending Members</span>
+                            {% endif -%}
+                            {% if groupSize >= groupCapacity -%}
+                                {% assign groupAlertsExist = 1 -%}
+                                <span><i class="fas fa-exclamation-circle pr-1" style="font-size: .9rem;"></i>Group at Capacity</span>
+                            {% endif -%}
+                        {% endcapture %}
+
+                        {% if group.IsActive == 'True' %}  
+                        <div class="card group-card card-dark text-white" style="background-color:{{ hexColorCode }}">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <div class="d-flex flex-column h-100 justify-content-between">
+                                    <div>
+                                        <h6 class="card-title mt-0 mb-0">{{ group.Name }}</h6>
+                                        <a class="list-card-link mr-2" id="group-manage-link" href="{{ groupDetailLink }}?groupId={{group.Id}}">Manage</a>
+                                        {% if isRenewPeriod %}
+                                            {% assign daysSinceLastRenewed = group | Attribute:'LastRenewalDate' | DaysSince %}
+                                            {% if daysSinceLastRenewed == null or daysSinceLastRenewed > 40 %}
+                                                <a class="list-card-link" href="{{ 'Global' | Attribute:'TFHGroupRenewURL' }}?groupid={{group.Id}}">Renew</a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    {% if groupAlertsExist == 1 %}
+                                    <div class="card-alerts o-80 small d-flex flex-wrap mt-2 mr-2" style="row-gap: .25rem; column-gap: .5rem;">
+                                        {{ groupAlerts }}
+                                    </div>
+                                    {% endif %}
+                                </div> 
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="card group-card card-dark text-gray-600 inactive" style="background-color:#FAFAFC">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <div class="d-flex flex-column h-100 justify-content-between">
+                                    <div>
+                                        <h6 class="card-title mt-0 mb-0">{{ group.Name }}</h6>
+                                        {% if isRenewPeriod %}
+                                            <a href="{{ 'Global' | Attribute:'TFHGroupRenewURL' }}?groupid={{group.Id}}">Renew</a>
+                                        {% endif %}
+                                    </div>
+                                    {% if groupAlertsExist == 1 %}
+                                    <div class="card-alerts o-80 small d-flex flex-wrap mt-2 mr-2" style="row-gap: .25rem; column-gap: .5rem;">
+                                        <span>Inactive</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    <!-- If current group application(s) exists -->
+                    {% if gCount > 0 %}
+                    {% for g in GroupApps %}
+                        {% if g.Status == 162 %} <!-- App Submitted -->
+                            {% assign gStatus = 1 %}
+                            {% assign gStatusPercent = 10 %}
+                            {% assign gStatusText = 'application has been submitted' %}
+                        {% elseif g.Status == 163 %} <!-- Submitted for Pastoral Review -->
+                            {% assign gStatus = 2 %}
+                            {% assign gStatusPercent = 35 %}
+                            {% assign gStatusText = 'is being reviewed' %}
+                        {% elseif g.Status == 164 %} <!-- Approved for Build -->
+                            {% assign gStatus = 3 %}
+                            {% assign gStatusPercent = 65 %}
+                            {% assign gStatusText = 'is approved and is being built' %}
+                        {% elseif g.Status == 165 %}<!-- Group Built -->
+                            {% assign gStatus = 4 %}
+                            {% assign gStatusPercent = 100 %}
+                            {% assign gStatusText = 'is ready!' %}
+                        {% elseif g.Status == 166 %}<!-- Denied -->
+                            {% assign gStatus = 10 %}
+                        {% endif %}
+                        <!-- Set the group name -->
+                        {% capture groupName %}
+                            {% if g.FirstName %}{{ g.FirstName | Possessive }}{% endif %}
+                            {% if g.DayofWeek %}{{ g.DayofWeek }}{% endif %}
+                            {% for g in GroupApps %}
+                                {% if g.Category == 'Gender Specific' %}
+                                    {{ g.Gender | Possessive }}
+                                {% else %}
+                                    {{ g.Category }}
+                                {% endif %}
+                            {% endfor %}
+                            {% if g.Topic %}{{ g.Topic }}{% endif %}
+                            Group
+                        {% endcapture %}
+                        <!-- if the group is not built or denied, show its status-->
+                        {% if gStatus <= 3 %}
+                        <div class="card group-card new-group-card inactive" style="background-color:#fff">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <div class="d-flex flex-column h-100 w-100 justify-content-around">
+                                    <h6 class="card-title mt-0 mb-0">{{ groupName }}</h6>
+                                    <span class="text-primary"><strong>Setup {{ gStatusPercent }}% Complete</strong></span>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ gStatusPercent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ gStatusPercent }}%;">
+                                        <span class="sr-only">{{ gStatusPercent }}% Complete</span>
+                                        </div>
+                                    </div>
+                                    <span class="small text-muted">Your group {{ gStatusText }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                    
+                </div><!-- End Grid -->
+            </div><!-- End Col -->
+        </div><!-- End Row -->
+    </div><!-- End Container -->
+
+<!-- If not leading any groups and no group applications were fouund, show current group leader application progress -->
+{% elseif glCount > 0 and glStatus != 10 %}
+    <div class="group-leader-application-progress container">
+        <div class="row">
+            <div class="col-xs-12">
+                <h3>Group Leader Application Progress</h3>
+                <p>Thank you for your interest in becoming a TFH Group Leader! Your application is currently being processed.</p>
+                <div class="group-leader-progress-bar">
+                    <div class="step{% if glStatus >= 1 %} completed{% endif %}">
+                        <div class="icon"><span>1</span><i class="fas fa-check"></i></div>
+                        <div class="text"><span>Application Submitted</span></div>
+                    </div>
+                    <div class="step{% if glStatus >= 3 %} completed{% endif %}">
+                        <div class="icon"><span>2</span><i class="fas fa-check"></i></div>
+                        <div class="text">
+                            <span>
+                                {% if glStatus >= 3 %} <!-- requirements met -->
+                                Group Leader Requirements Met
+                                {% else %} <!-- app submitted or requiremens not met -->
+                                    {% if glStatus == 2 %}<!-- requirements not met -->
+                                    <span class="text-red-700">Group Leader Requirements not met</span>
+                                    {% else %}<!-- app submitted -->
+                                    Group Leader Requirements in Review
+                                    {% endif %}
+                                    <!-- if not completed, show requirement links -->
+                                    <br><a href="https://www.tfh.org/discover">Discover</a>
+                                    <br><a href="https://www.tfh.org/groups#join-a-group">Join a Group</a>
+                                    <br><a href="https://www.tfh.org/groups#lead-a-group">Group Leader Training</a>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="step{% if glStatus >= 3 %} completed{% endif %}">
+                        <div class="icon"><span>3</span><i class="fas fa-check"></i></div>
+                        <div class="text"><span>In Review</span></div>
+                    </div>
+                    <div class="step{% if glStatus >= 4 %} completed{% endif %}">
+                        <div class="icon"><span>4</span><i class="fas fa-check"></i></div>
+                        <div class="text"><span>Approved</span></div>
+                    </div>
+                    <div class="step">
+                        <div class="icon"><span>5</span><i class="fas fa-check"></i></div>
+                        <div class="text">
+                            <span>
+                                Create Your First Group
+                                {% if glStatus >= 4 and glStatus != 10 %}
+                                <br><a href="https://my.tfh.org/formEntry/Authed/916">Group Application</a><br>
+                                {% endif %} 
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Make the entire Manage your group card clickable -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.group-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('a')) {
+                // Click is inside a link, do nothing
+                return;
+            }
+            // Use the href of the manage link for redirection
+            const manageLink = card.querySelector('#group-manage-link');
+            if (manageLink) {
+                window.location.href = manageLink.href;
+            }
+        });
+    });
+});
+</script>
+    

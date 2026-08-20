@@ -1,0 +1,78 @@
+<!-- DO NOT DELETE! THIS IS WORKING OBSERVERS WHICH WILL BE USEFUL IN THE FUTURE -->
+
+{% assign inst = 'Global' | PageParameter:'RegistrationInstanceId' %}
+{% if inst == 928 %}
+    <script>
+    
+        function updateTitle() {
+            var title = $('input[id="rock-check-box-list-8dc078b2-5c29-4818-b374-9c9fad8abe46-By-checking this box&comma; I understand that it is my responsibility to provide my groups Parent or Legal Guardian with Liability&comma; Medical release&comma; and Transportation waivers&comma; in case of Emergency."] span');
+            var needsUpdate = title.text().includes('&comma;');
+        
+            if (title && needsUpdate) {
+                title.text(title.text().replace('&comma;', ','));
+            }
+        };
+    
+        /*function updateH3() {
+            var title2 = $('div.registrationentry-summary form div.well h4');
+            var needsUpdate2 = title2.text().includes('&comma;');
+        
+            if (title2 && needsUpdate2) {
+                title2.text(title2.text().replace('&comma;', ','));
+            }
+        };*/
+        
+        const targetNode = document.querySelector('.dom-observer');
+        const observer = new MutationObserver(updateTitle);
+        const observer2 = new MutationObserver(updateH3);
+        
+        $(function() {
+            updateTitle();
+            /*updateH3();*/
+            observer.observe(targetNode, { childList: true, subtree: true });
+            /*observer2.observe(targetNode, { childList: true, subtree: true });*/
+        });
+    
+    </script>
+{% endif %}
+
+
+
+
+<!-- DO NOT DELETE! THIS IS WORKING OBSERVERS WHICH WILL BE USEFUL IN THE FUTURE -->
+
+{% assign inst = 'Global' | PageParameter:'RegistrationInstanceId' %}
+{% if inst == 625 %}
+    <script>
+    
+        function updateTitle() {
+            var title = $('div[blockguid="459f470b-3da4-450e-b506-a4b4fc82c341"] h1');
+            var needsUpdate = title.text().includes('Registration');
+        
+            if (title && needsUpdate) {
+                title.text(title.text().replace('Registration', 'Purchase'));
+            }
+        };
+    
+        function updateH3() {
+            var title2 = $('div.registrationentry-summary form div.well h4');
+            var needsUpdate2 = title2.text().includes('Registration');
+        
+            if (title2 && needsUpdate2) {
+                title2.text(title2.text().replace('Registration', 'Purchase'));
+            }
+        };
+        
+        const targetNode = document.querySelector('.dom-observer');
+        const observer = new MutationObserver(updateTitle);
+        const observer2 = new MutationObserver(updateH3);
+        
+        $(function() {
+            updateTitle();
+            updateH3();
+            observer.observe(targetNode, { childList: true, subtree: true });
+            observer2.observe(targetNode, { childList: true, subtree: true });
+        });
+    
+    </script>
+{% endif %}
