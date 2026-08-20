@@ -4,43 +4,24 @@ Repo: https://github.com/TFH-Web/my-tfh-org
 
 ---
 
-# 🛑 STOP — THIS REPO IS NOT A MIRROR OF THE LIVE SITE
+## This repo mirrors production
 
-**Most of this repo is from January 2019. What is live in Rock on my.tfh.org is
-newer than what is here, and the two have drifted apart for years.**
+`Pages/` is a faithful mirror of the live MyTFH site (Rock site 17) on
+rock.tfh.org, pulled 2026-08-20 via the Magnus CLI. It replaced a set of
+hand-organised topical folders that dated from January 2019 and had drifted
+from live for years.
 
-Files here were exported once and then edited in place inside Rock. Nothing syncs
-them. A file in this repo may be months or years behind its live counterpart, and
-nothing in the file itself will tell you that.
+Treat `Pages/` as accurate **as of its pull date**, not as a live feed. Nothing
+syncs it automatically. Before relying on a file for anything consequential,
+re-pull it:
 
-### The rule
+```bash
+magnus cat <block-content-path> -s https://rock.tfh.org
+```
 
-> **Before assuming any file here reflects what is live on my.tfh.org — ASK TIM.**
-
-Ask first. Do not infer freshness from the file's contents, its formatting, its
-git history, or how plausible it looks. Do not "check" by reasoning about it.
-Ask.
-
-This applies to:
-
-- Reading a file to learn how something currently works
-- Editing a file, or using one as the basis for new work
-- Quoting a file's contents back as the current state of the site
-- Copying its conventions, class names, or patterns into anything new
-
-**Why this matters:** editing a stale file and pasting it into Rock silently
-reverts every live change made since 2019. There is no warning and no diff — the
-block just loses years of work. This has to be a question you ask, not a risk you
-assess.
-
-### What is actually current
-
-Only `SignUps/` (August 2026) is known to match what is in Rock. Everything else
-carries a ⚠️ in the File Structure table below and must be confirmed with Tim
-before use.
-
-If you need a trustworthy baseline for a 2019 file, the fix is to pull the
-current version out of Rock and commit that first — then work from the commit.
+The Magnus workflow, server list, `-s` requirement and CLI gotchas are
+documented in the parent `../CLAUDE.md`. Read that before running any `magnus`
+command.
 
 ---
 
@@ -256,41 +237,58 @@ Established against prod on 2026-08-18. These cost real work to discover.
 
 ## File Structure
 
-Page content is organised by site area, in PascalCase folders matching the
-section of my.tfh.org it serves. Site-wide files sit at the root.
+```
+Pages/                          mirror of the live MyTFH page tree
+  2439-mytfh-homepage/          site root; everything nests below it
+    _page.md                    every block on the page: zone, name, type, id
+    blocks/{id}-{name}.html     markup, byte-exact from Rock
+    {childId}-{child-name}/     child pages, nested to match live
+  _ACCESS-DENIALS.md            crawl permission log (currently zero denials)
+theme/                          MyTFH-2021 theme, refreshed from serverfs
+  Layouts/  Styles/  Assets/
+_reference-design-handoff/      design prototype + spec. Reference only
+_temporary-files/               scratch probes. Never pasted into Rock
+```
 
-| Path | Purpose | Status |
-|---|---|---|
-| `SignUps/` | Public sign-up pages — see its `README.md` for Rock setup | **Current** (Aug 2026) |
-| `mytfh.css` | Site-wide styles | ⚠️ 2019 |
-| `mytfh.html` | Site-wide / landing block | ⚠️ 2019 |
-| `Connect/` `Events/` `FAQs/` `Forms/` `Give/` `Groups/` `Imagine/` `KidMin/` `Resources/` `SupportPages/` | Page content by area | ⚠️ 2019 |
-| `_reference-design-handoff/` | Design handoff prototype + spec. Reference only, never production code | — |
-| `_temporary-files/` | Scratch probes and experiments. Never pasted into Rock long-term | — |
+289 pages to depth 7; 268 content files.
 
-### ⚠️ Most of this repo is stale
+### What is and isn't in `Pages/`
 
-Everything marked ⚠️ above dates from **January 2019** (two commits, both
-"Initial commit") and has drifted from the live site ever since.
+Only **content-bearing** blocks have a file: HTML Content blocks in content
+zones (Main, Feature, SectionA–C, Sidebar1/2). Chrome blocks — Footer, Header,
+Login, Navigation — are **recorded in `_page.md` but not written to disk**,
+because they are the same shared block instance repeated across dozens of
+pages; writing them per-page would create duplicates that silently diverge.
 
-**See the rule at the top of this file: ask Tim before assuming any of it
-reflects what is live.** That is not a soft suggestion — it is the first thing
-to do with any ⚠️ file.
+Non-HTML-Content blocks (Workflow Entry, Registration, Page Menu, Login Status,
+Redirect, Content Channel View) hold no markup and are recorded only. Many form
+pages under `2550-other/2614-forms/` are pure Workflow Entry and therefore have
+a `_page.md` but no `blocks/` at all — that is correct, not a gap.
 
-Two specifics once a file has been confirmed:
+Empty files are meaningful: the block exists in Rock and contains nothing. 25 of
+the 268 are like this.
 
-- Pull the current version out of Rock and commit it as a baseline *before*
-  editing, or the edit silently reverts years of live changes.
-- The 2019 CSS uses ID selectors and a `mytfh-` prefix. New work uses `tfh-`
-  classes and no ID selectors — do not copy the old conventions forward.
+### Pulled files carry no source comment
 
-### Styles: pending consolidation
+The parent repo rule requiring a GitHub permalink comment applies to files
+**authored here to be pasted into Rock**. Files in `Pages/` are pulls *from*
+Rock and are byte-exact — adding a header would make the mirror lie. Add the
+comment when you author something new, not when you sync.
 
-`theme/Styles/_css-overrides.less` section 22 is currently a **standalone file**, deliberately not
-merged into `mytfh.css`. `mytfh.css` is 7 years stale, so it must first be
-refreshed from what is actually live in Rock's Theme Styler → CSS Overrides.
-Once that baseline is committed, the sign-up styles should be appended into it
-and the standalone file retired — Rock has one override field, not two.
+### Block content versioning
+
+Rock keeps version history on HTML Content blocks and Magnus exposes each
+version as a separate node. Pulls take the **highest version number** and note
+the count in `_page.md`. Rock renders the *approved* version, which is almost
+always the latest but is not guaranteed to be — check `HtmlContent.IsApproved`
+if a pulled file ever disagrees with what the page actually shows.
+
+### Known quirks in live Rock, surfaced by the mirror
+
+- Page **3750** "Group Resources - Copy" duplicates page 2824 with different
+  block ids — a staging leftover, probably deletable in Rock.
+- Page **2853** "Groups Communication Preferences" uses an older chrome block
+  set (ids in the 300s) than every other page — never migrated.
 
 ---
 
