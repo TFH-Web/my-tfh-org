@@ -1,0 +1,167 @@
+<!-- Source: https://github.com/TFH-Web/my-tfh-org/blob/master/Pages/2439-mytfh-homepage/2550-other/4048-my-classes/4049-in-class-experience-beta/blocks/8826-in-class-experience-html.html -->
+{%- comment -%}
+  Discover — class home (page 4049, route class/discover)
+  ------------------------------------------------------
+  Shows the signed-in person which Discover class they are in, when and where
+  it meets, and the weeks in it. Each week links to page 4050.
+
+  WHAT IS DATA-DRIVEN
+    Campus, class dates and the week list all come from Rock. The person's
+    membership in a Discover placement group resolves to an EventItem, and
+    that event's occurrences are the weeks.
+
+  WHAT IS HARD-CODED (beta)
+    Week titles and summaries, in the WEEK COPY block below. Keep the keys in
+    step with 8827-in-class-experience-html.html on page 4050, which carries
+    the same list plus the agendas.
+
+  THE EVENT IDS
+    508 Vacaville, 509 East Bay, 510 Napa, 511 Roseville — these are
+    EventItem ids. RegistrationInstance rows 508-511 ALSO exist, are the 2023
+    "Discover Your Life at TFH" instances, and map to different campuses.
+    Any query here must hit EventItem.
+{%- endcomment -%}
+
+{%- assign eventIds = '508,509,510,511' -%}
+
+{%- if CurrentPerson == null -%}
+
+  <div class="discover">
+    <div class="discover-empty">
+      <h2 class="discover-empty__title">Please sign in</h2>
+      <p class="discover-empty__body">Sign in with the account you registered with and your Discover class will show up here.</p>
+      <a class="btn btn-primary" href="/page/3436?returnurl={{ 'Global' | Page:'Url' | EscapeDataString }}">Sign In</a>
+    </div>
+  </div>
+
+{%- else -%}
+
+  {%- comment -%}
+    One statement, as the SQL shortcode requires. The CTE resolves the person's
+    event first, then every occurrence of that event is listed as a week --
+    rather than listing only the occurrences their group happens to be mapped
+    to, which would silently drop a week if only one occurrence carries the
+    linkage row.
+  {%- endcomment -%}
+  {% sql personid:'{{ CurrentPerson.Id }}' return:'weeks' %}
+    WITH MyEvent AS (
+        SELECT TOP 1 eio.EventItemId
+        FROM   GroupMember gm
+        JOIN   EventItemOccurrenceGroupMap m  ON m.GroupId = gm.GroupId
+        JOIN   EventItemOccurrence         eio ON eio.Id = m.EventItemOccurrenceId
+        WHERE  gm.PersonId = @personid
+          AND  gm.IsArchived = 0
+          AND  gm.GroupMemberStatus = 1
+          AND  eio.EventItemId IN (508, 509, 510, 511)
+        ORDER BY eio.EventItemId
+    )
+    SELECT  ROW_NUMBER() OVER (ORDER BY s.EffectiveStartDate, eio.Id) AS WeekNumber,
+            eio.Id                AS OccurrenceId,
+            ei.Name               AS EventName,
+            ISNULL(c.Name, '')    AS CampusName,
+            ISNULL(eio.Location, '') AS LocationText,
+            s.EffectiveStartDate  AS WeekDate,
+            ISNULL(eio.ContactEmail, '') AS ContactEmail,
+            ISNULL(p.NickName + ' ' + p.LastName, '') AS ContactName
+    FROM    EventItemOccurrence eio
+    JOIN    MyEvent me        ON me.EventItemId = eio.EventItemId
+    JOIN    EventItem ei      ON ei.Id = eio.EventItemId
+    LEFT JOIN Campus c        ON c.Id = eio.CampusId
+    LEFT JOIN Schedule s      ON s.Id = eio.ScheduleId
+    LEFT JOIN PersonAlias pa  ON pa.Id = eio.ContactPersonAliasId
+    LEFT JOIN Person p        ON p.Id = pa.PersonId
+    ORDER BY s.EffectiveStartDate, eio.Id
+  {% endsql %}
+
+  {%- if weeks == empty -%}
+
+    <div class="discover">
+      <div class="discover-empty">
+        <h2 class="discover-empty__title">You're not in a Discover class yet</h2>
+        <p class="discover-empty__body">Once you're added to a class at your campus, it will show up here. If you signed up and this looks wrong, let your campus office know.</p>
+      </div>
+    </div>
+
+  {%- else -%}
+
+    {%- assign first = weeks[0] -%}
+
+    {%- comment -%}
+      SQL NULL renders blank but still passes "!= empty", so every optional
+      value is captured and trimmed before it is tested. Without that the
+      fallbacks never fire.
+    {%- endcomment -%}
+    {%- capture campusRaw -%}{{ first.CampusName }}{%- endcapture -%}
+    {%- assign campusName = campusRaw | Trim -%}
+    {%- capture whereRaw -%}{{ first.LocationText }}{%- endcapture -%}
+    {%- assign whereText = whereRaw | Trim -%}
+    {%- capture hostRaw -%}{{ first.ContactName }}{%- endcapture -%}
+    {%- assign hostName = hostRaw | Trim -%}
+    {%- capture hostMailRaw -%}{{ first.ContactEmail }}{%- endcapture -%}
+    {%- assign hostEmail = hostMailRaw | Trim -%}
+
+    {%- comment -%} WEEK COPY — keep in step with page 4050 {%- endcomment -%}
+    {%- assign weekTitles = 'Week 1|Week 2|Week 3|Week 4' | Split:'|' -%}
+    {%- assign weekSummaries = 'Our story, our vision, and designing your next step.|Getting connected — Spirit, family, generosity and serving.| | ' | Split:'|' -%}
+
+    <div class="discover">
+
+      <section class="discover__head">
+        {%- if campusName != '' -%}
+        <p class="discover__eyebrow">{{ campusName }}</p>
+        {%- endif -%}
+        <h1 class="discover__title">Discover</h1>
+        <p class="discover__lead">Welcome, {{ CurrentPerson.NickName }}. Your Discover experience begins {{ first.WeekDate | Date:'dddd, MMMM d' }}.</p>
+      </section>
+
+      <section class="discover-facts">
+        <div class="discover-facts__row">
+          <span class="discover-facts__label">When</span>
+          <span class="discover-facts__value">{{ first.WeekDate | Date:'dddd' }}s</span>
+        </div>
+        {%- if whereText != '' -%}
+        <div class="discover-facts__row">
+          <span class="discover-facts__label">Where</span>
+          <span class="discover-facts__value">{{ whereText }}</span>
+        </div>
+        {%- endif -%}
+        {%- if hostName != '' -%}
+        <div class="discover-facts__row">
+          <span class="discover-facts__label">Your host</span>
+          <span class="discover-facts__value">{{ hostName }}</span>
+        </div>
+        {%- endif -%}
+      </section>
+
+      <section class="discover__section">
+        <h2 class="discover__sectionlabel">Your Weeks</h2>
+        <div class="discover__weeks">
+          {%- for w in weeks -%}
+            {%- assign idx = forloop.index0 -%}
+            <a class="discover-week" href="/class/discover/week-{{ w.WeekNumber }}">
+              <span class="discover-week__body">
+                <span class="discover-week__date">{{ w.WeekDate | Date:'dddd, MMMM d' }}</span>
+                <span class="discover-week__title">{{ weekTitles[idx] | Default:'Week' }}</span>
+                {%- capture summary -%}{{ weekSummaries[idx] }}{%- endcapture -%}
+                {%- assign summary = summary | Trim -%}
+                {%- if summary != '' -%}
+                <span class="discover-week__summary">{{ summary }}</span>
+                {%- endif -%}
+              </span>
+              <svg class="discover__arrow" width="16" height="16" viewBox="0 0 16 16" fill="#FFFFFF" aria-hidden="true"><path d="M 0 6.99 L 0 9.01 L 12.121 9.01 L 6.566 14.566 L 8 16 L 16 8 L 8 0 L 6.566 1.434 L 12.121 6.99 L 0 6.99 Z"></path></svg>
+            </a>
+          {%- endfor -%}
+        </div>
+      </section>
+
+      {%- if hostEmail != '' -%}
+      <section class="discover__aside">
+        <span class="discover__asidetext">Questions between sessions?</span>
+        <a class="discover__link" href="mailto:{{ hostEmail }}">Email your host</a>
+      </section>
+      {%- endif -%}
+
+    </div>
+
+  {%- endif -%}
+{%- endif -%}

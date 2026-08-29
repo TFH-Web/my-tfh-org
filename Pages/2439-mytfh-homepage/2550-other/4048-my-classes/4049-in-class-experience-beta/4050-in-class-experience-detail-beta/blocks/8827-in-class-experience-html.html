@@ -1,0 +1,210 @@
+<!-- Source: https://github.com/TFH-Web/my-tfh-org/blob/master/Pages/2439-mytfh-homepage/2550-other/4048-my-classes/4049-in-class-experience-beta/4050-in-class-experience-detail-beta/blocks/8827-in-class-experience-html.html -->
+{%- comment -%}
+  Discover — week detail (page 4050, route class/discover/{ClassWeek})
+  -------------------------------------------------------------------
+  One week of the class: its date, its agenda, and any resources attached to
+  an agenda item.
+
+  ROUTE PARAMETER
+    {ClassWeek} is a slug of the fixed form "week-1", "week-2". It is a
+    controlled vocabulary, not derived from a name, which is what keeps it
+    clear of the slug-normalisation trap documented in CLAUDE.md. It is still
+    untrusted URL input, so it is sanitised to [a-z0-9-] before use and then
+    range-checked against the weeks this person actually has.
+
+  WHAT IS DATA-DRIVEN
+    The week list and its dates, from the person's Discover placement group ->
+    EventItem -> occurrences. Same query as page 4049.
+
+  WHAT IS HARD-CODED (beta)
+    Every agenda, in the AGENDA COPY section. Written as literal markup per
+    week rather than encoded into a Lava array, so a non-developer can edit a
+    line without decoding a delimiter scheme. Week titles and summaries must
+    stay in step with 8826-in-class-experience-html.html on page 4049.
+
+  TODO before this leaves beta: the two Week 2 resource links point at "#".
+{%- endcomment -%}
+
+{%- if CurrentPerson == null -%}
+
+  <div class="discover">
+    <div class="discover-empty">
+      <h2 class="discover-empty__title">Please sign in</h2>
+      <p class="discover-empty__body">Sign in with the account you registered with to see your class.</p>
+      <a class="btn btn-primary" href="/page/3436?returnurl={{ 'Global' | Page:'Url' | EscapeDataString }}">Sign In</a>
+    </div>
+  </div>
+
+{%- else -%}
+
+  {%- comment -%}
+    PageParameter is read in object form. The filter form returns nothing on
+    this Rock instance.
+  {%- endcomment -%}
+  {%- capture rawWeek -%}{{ PageParameter.ClassWeek }}{%- endcapture -%}
+  {%- assign weekSlug = rawWeek | Trim | Downcase | RegExReplace:'[^a-z0-9-]','' -%}
+  {%- comment -%}
+    AsInteger yields nothing for a missing or non-numeric slug. "unless > 0"
+    covers null and zero and negatives in one test, without comparing to null
+    directly.
+  {%- endcomment -%}
+  {%- assign weekNum = weekSlug | Remove:'week-' | AsInteger -%}
+  {%- unless weekNum > 0 -%}{%- assign weekNum = 1 -%}{%- endunless -%}
+
+  {% sql personid:'{{ CurrentPerson.Id }}' return:'weeks' %}
+    WITH MyEvent AS (
+        SELECT TOP 1 eio.EventItemId
+        FROM   GroupMember gm
+        JOIN   EventItemOccurrenceGroupMap m  ON m.GroupId = gm.GroupId
+        JOIN   EventItemOccurrence         eio ON eio.Id = m.EventItemOccurrenceId
+        WHERE  gm.PersonId = @personid
+          AND  gm.IsArchived = 0
+          AND  gm.GroupMemberStatus = 1
+          AND  eio.EventItemId IN (508, 509, 510, 511)
+        ORDER BY eio.EventItemId
+    )
+    SELECT  ROW_NUMBER() OVER (ORDER BY s.EffectiveStartDate, eio.Id) AS WeekNumber,
+            s.EffectiveStartDate AS WeekDate
+    FROM    EventItemOccurrence eio
+    JOIN    MyEvent me   ON me.EventItemId = eio.EventItemId
+    LEFT JOIN Schedule s ON s.Id = eio.ScheduleId
+    ORDER BY s.EffectiveStartDate, eio.Id
+  {% endsql %}
+
+  {%- if weeks == empty -%}
+
+    <div class="discover">
+      <div class="discover-empty">
+        <h2 class="discover-empty__title">You're not in a Discover class yet</h2>
+        <p class="discover-empty__body">Once you're added to a class at your campus, it will show up here.</p>
+      </div>
+    </div>
+
+  {%- else -%}
+
+    {%- assign weekCount = weeks | Size -%}
+    {%- if weekNum > weekCount -%}{%- assign weekNum = weekCount -%}{%- endif -%}
+    {%- assign idx = weekNum | Minus:1 -%}
+    {%- assign thisWeek = weeks[idx] -%}
+    {%- assign nextNum = weekNum | Plus:1 -%}
+
+    {%- comment -%} WEEK COPY — keep in step with page 4049 {%- endcomment -%}
+    {%- assign weekTitles = 'Week 1|Week 2|Week 3|Week 4' | Split:'|' -%}
+    {%- assign weekSummaries = 'Our story, our vision, and designing your next step.|Getting connected — Spirit, family, generosity and serving.| | ' | Split:'|' -%}
+
+    <div class="discover">
+
+      <a class="discover__back" href="/class/discover">
+        <svg class="discover__arrow" width="16" height="16" viewBox="0 0 16 16" fill="#707378" aria-hidden="true"><path d="M 0 6.99 L 0 9.01 L 12.121 9.01 L 6.566 14.566 L 8 16 L 16 8 L 8 0 L 6.566 1.434 L 12.121 6.99 L 0 6.99 Z"></path></svg>
+        <span>Discover</span>
+      </a>
+
+      <section class="discover__head">
+        <p class="discover__eyebrow">{{ thisWeek.WeekDate | Date:'dddd, MMMM d' }}</p>
+        <h1 class="discover__title">{{ weekTitles[idx] | Default:'This Week' }}</h1>
+        {%- capture summary -%}{{ weekSummaries[idx] }}{%- endcapture -%}
+        {%- assign summary = summary | Trim -%}
+        {%- if summary != '' -%}
+        <p class="discover__lead">{{ summary }}</p>
+        {%- endif -%}
+      </section>
+
+      {%- comment -%} ===== AGENDA COPY — edit here ===== {%- endcomment -%}
+      <section class="discover-agenda">
+        <h2 class="discover-agenda__label">Agenda</h2>
+
+        {%- case weekNum -%}
+        {%- when 1 -%}
+
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">1</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">30 Years Of Pursuit</span>
+            </div>
+          </div>
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">2</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">Lead Pastors' Vision</span>
+            </div>
+          </div>
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">3</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">A Week At Your Campus</span>
+            </div>
+          </div>
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">4</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">Testimony + Care Pathways</span>
+            </div>
+          </div>
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">5</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">Design Your Pathway + Q&amp;A</span>
+            </div>
+          </div>
+
+        {%- when 2 -%}
+
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">1</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">Holy Spirit + Gifts</span>
+            </div>
+          </div>
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">2</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">Life Change, Essentials, Finance + Generosity</span>
+            </div>
+          </div>
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">3</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">Family Ministries, Groups + Coaches</span>
+            </div>
+          </div>
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">4</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">Global Reach + Serve Teams</span>
+              <div class="discover-agenda__links">
+                <a class="discover-res" href="#">
+                  <span>Serve Team Agreement</span>
+                  <svg class="discover__arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M 0 6.99 L 0 9.01 L 12.121 9.01 L 6.566 14.566 L 8 16 L 16 8 L 8 0 L 6.566 1.434 L 12.121 6.99 L 0 6.99 Z"></path></svg>
+                </a>
+                <a class="discover-res" href="#">
+                  <span>Sign Up For Serve Team Weekend</span>
+                  <svg class="discover__arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M 0 6.99 L 0 9.01 L 12.121 9.01 L 6.566 14.566 L 8 16 L 16 8 L 8 0 L 6.566 1.434 L 12.121 6.99 L 0 6.99 Z"></path></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        {%- else -%}
+
+          <div class="discover-agenda__row">
+            <span class="discover-agenda__n">&nbsp;</span>
+            <div class="discover-agenda__body">
+              <span class="discover-agenda__title">The agenda for this week is coming soon.</span>
+            </div>
+          </div>
+
+        {%- endcase -%}
+      </section>
+      {%- comment -%} ===== end agenda copy ===== {%- endcomment -%}
+
+      <section class="discover__actions">
+        {%- if weekNum < weekCount -%}
+        <a class="btn btn-primary" href="/class/discover/week-{{ nextNum }}">Go To {{ weekTitles[weekNum] | Default:'Next Week' }}</a>
+        {%- endif -%}
+        <a class="btn btn-default" href="/class/discover">All Weeks</a>
+      </section>
+
+    </div>
+
+  {%- endif -%}
+{%- endif -%}

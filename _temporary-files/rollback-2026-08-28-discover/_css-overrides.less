@@ -2,7 +2,6 @@
 // -------------------------
 // 0. Variables
 // 0.1 MyTFH Public Design Tokens
-// 0.2 MyTFH Shared Primitives
 // 1. Buttons & Links
 // 2. Background Colors
 // 3. Alerts
@@ -27,7 +26,6 @@
 // 21. Tables
 // 22. Sign-Up Pages
 // 23. Serve Team Picker
-// 24. Class Pages (Discover)
 
 
 
@@ -73,162 +71,7 @@
 @mytfh-font-disp:  "neue-haas-grotesk-display", "Helvetica Neue", Helvetica, Arial, sans-serif;
 @mytfh-ease:       cubic-bezier(.4, 0, .2, 1);
 
-// Type scale.
-// The public system runs at two densities. The desktop-first pages -- sign-ups
-// (22) and the serve team picker (23) -- top out at a 32px title. The
-// mobile-first class pages (24) are drawn to a larger display scale. Both are
-// listed here so a new feature picks an existing step instead of inventing one.
-@mytfh-fs-display:  48px;  // mobile hero title
-@mytfh-fs-title:    32px;  // page title
-@mytfh-fs-h2:       26px;  // card headline
-@mytfh-fs-h3:       24px;  // section title, empty-state title
-@mytfh-fs-lead:     21px;  // agenda row title
-@mytfh-fs-body-lg:  20px;  // lead paragraph, panel value
-@mytfh-fs-body:     18px;  // body copy
-@mytfh-fs-sm:       17px;  // supporting copy
-@mytfh-fs-xs:       16px;  // small print, pills
-@mytfh-fs-label:    15px;  // uppercase eyebrow, class pages
-@mytfh-fs-label-sm: 14px;  // uppercase eyebrow, serve team
-
-// Letter-spacing travels with size: the system tightens as type grows, and
-// eyebrows are the one place tracking opens up instead.
-@mytfh-ls-display:  -2px;
-@mytfh-ls-title:    -1.2px;
-@mytfh-ls-h2:       -1px;
-@mytfh-ls-lead:     -0.8px;
-@mytfh-ls-body:     -0.6px;
-@mytfh-ls-sm:       -0.5px;
-@mytfh-ls-xs:       -0.4px;
-@mytfh-ls-label:     0.6px;
-@mytfh-ls-label-sm:  1.2px;
-
-// Spacing steps, from the design handoff.
-@mytfh-space-1:  8px;
-@mytfh-space-2: 12px;
-@mytfh-space-3: 16px;
-@mytfh-space-4: 20px;
-@mytfh-space-5: 24px;
-@mytfh-space-6: 32px;
-@mytfh-space-7: 40px;
-@mytfh-space-8: 56px;
-
-@mytfh-radius-md: 12px;    // resource rows on the class pages
-
 // Shadows: none, anywhere. There is deliberately no shadow token.
-
-
-
-
-// 0.2 MyTFH Shared Primitives
-// -------------------------
-// Mixins for the shapes that every public feature on this site repeats: the
-// panel card, the one-column grid, the hairline-ruled section head, and the
-// type steps. Sections 22, 23 and 24 all draw the same card and the same
-// title; before this layer existed each one carried its own copy of the
-// declarations, so a change to the card meant three edits and usually got one.
-//
-// These are MIXINS, not classes. A feature keeps its own semantic class name
-// and calls the mixin, so the markup still reads as what it is
-// (.signup-card, .serve-card, .discover-card) and no page has to add a
-// second, meaningless class to get the shape.
-//
-// Each mixin carries only the declarations its callers genuinely share.
-// Margins, max-widths and hover treatments differ per feature and stay with
-// the feature -- pulling those in here would force callers to undo them.
-
-.mytfh-root() {
-    font-family: @mytfh-font;
-    color: @mytfh-ink;
-}
-
-// One column by default. Features add their own @screen-sm-min rule to go
-// multi-column; the breakpoint is not baked in here because the column count
-// is a feature decision.
-.mytfh-grid() {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: @mytfh-gap;
-}
-
-// The flat panel card. No shadow, ever -- see section 0.1.
-.mytfh-card() {
-    display: flex;
-    flex-direction: column;
-    background: @mytfh-panel;
-    border-radius: @mytfh-radius;
-    overflow: hidden;
-}
-
-// A baseline-aligned row with a hairline under it. Used as a section head
-// (22) and as the selection bar (23).
-.mytfh-hairline-row() {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: @mytfh-space-3;
-    flex-wrap: wrap;
-    border-bottom: 1px solid @mytfh-rule;
-    padding-bottom: @mytfh-space-3;
-    margin-bottom: @mytfh-gap;
-}
-
-// ---- Type steps ----
-// Callers set their own margin; these carry size, weight and tracking only.
-
-.mytfh-type-title() {
-    font-size: @mytfh-fs-title;
-    line-height: 1;
-    font-weight: 500;
-    letter-spacing: @mytfh-ls-title;
-    color: @mytfh-ink;
-}
-
-.mytfh-type-sectiontitle() {
-    font-size: @mytfh-fs-h3;
-    line-height: 1.1;
-    font-weight: 500;
-    letter-spacing: @mytfh-ls-h2;
-}
-
-.mytfh-type-intro() {
-    font-size: @mytfh-fs-body;
-    line-height: 1.4;
-    font-weight: 400;
-    letter-spacing: @mytfh-ls-body;
-    color: @mytfh-ink-2;
-}
-
-// The uppercase label. Size and tracking are parameters because the two
-// densities disagree: 14px/1.2px on the desktop-first pages, 15px/0.6px on
-// the class pages. Deliberately sets no font-weight -- callers that need one
-// declare it, and the desktop-first pages do not.
-.mytfh-type-eyebrow(@size: @mytfh-fs-label-sm; @ls: @mytfh-ls-label-sm; @lh: 1) {
-    font-family: @mytfh-font-disp;
-    font-size: @size;
-    line-height: @lh;
-    text-transform: uppercase;
-    letter-spacing: @ls;
-    color: @mytfh-ink-2;
-}
-
-// A real <button> reset to read as a link, so an in-page action stays
-// keyboard-reachable and is announced as an action rather than a link.
-.mytfh-link-reset() {
-    font-family: inherit;
-    font-size: @mytfh-fs-xs;
-    font-weight: 400;
-    color: @mytfh-link;
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-
-    &:hover,
-    &:focus {
-        color: @mytfh-link;
-        text-decoration: underline;
-    }
-}
 
 
 
@@ -1325,7 +1168,8 @@ table.table-clean>thead>tr>th{
 // at the page-layout level so every element on the page agrees -- the handoff's
 // 1200px content column is enforced there, not here.
 .signup {
-    .mytfh-root();
+    font-family: @signup-font;
+    color: @signup-ink;
 }
 
 .signup__head {
@@ -1337,12 +1181,20 @@ table.table-clean>thead>tr>th{
 }
 
 .signup__title {
-    .mytfh-type-title();
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -1.2px;
     margin: 0;
+    color: @signup-ink;
 }
 
 .signup__intro {
-    .mytfh-type-intro();
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: -0.6px;
+    color: @signup-ink-2;
     margin: 0;
 }
 
@@ -1363,12 +1215,18 @@ table.table-clean>thead>tr>th{
 
 // Single column by default; multi-column switches on at @screen-sm-min.
 .signup__grid {
-    .mytfh-grid();
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: @signup-gap;
 }
 
 // ---- Group card (menu) ----
 .signup-card {
-    .mytfh-card();
+    display: flex;
+    flex-direction: column;
+    background: @signup-panel;
+    border-radius: @signup-radius;
+    overflow: hidden;
     text-decoration: none;
     color: @signup-ink;
     outline: 2px solid transparent;
@@ -1514,11 +1372,21 @@ table.table-clean>thead>tr>th{
 
 // ---- Section head ----
 .signup__sectionhead {
-    .mytfh-hairline-row();
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid @signup-rule;
+    padding-bottom: 16px;
+    margin-bottom: @signup-gap;
 }
 
 .signup__sectiontitle {
-    .mytfh-type-sectiontitle();
+    font-size: 24px;
+    line-height: 1.1;
+    font-weight: 500;
+    letter-spacing: -1px;
     margin: 0;
 }
 
@@ -1682,7 +1550,10 @@ table.table-clean>thead>tr>th{
 }
 
 .signup-empty__title {
-    .mytfh-type-sectiontitle();
+    font-size: 24px;
+    line-height: 1.1;
+    font-weight: 500;
+    letter-spacing: -1px;
     margin: 0;
 }
 
@@ -1743,30 +1614,51 @@ table.table-clean>thead>tr>th{
 // matching the min-width idiom used throughout this file.
 
 .serve {
-    .mytfh-root();
+    font-family: @mytfh-font;
+    color: @mytfh-ink;
 }
 
 // ---- Page head ----
 .serve__step {
-    .mytfh-type-eyebrow();
-    margin-bottom: @mytfh-space-2;
+    font-family: @mytfh-font-disp;
+    font-size: 14px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: @mytfh-ink-2;
+    margin-bottom: 12px;
 }
 
 .serve__title {
-    .mytfh-type-title();
-    margin: 0 0 @mytfh-space-2;
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -1.2px;
+    color: @mytfh-ink;
+    margin: 0 0 12px;
 }
 
 .serve__intro {
-    .mytfh-type-intro();
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: -0.6px;
+    color: @mytfh-ink-2;
     max-width: 620px;
-    margin: 0 0 @mytfh-space-6;
+    margin: 0 0 32px;
 }
 
 // ---- Selection bar ----
 // Same hairline-rule-under-a-baseline-row shape as .signup__sectionhead.
 .serve__bar {
-    .mytfh-hairline-row();
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid @mytfh-rule;
+    padding-bottom: 16px;
+    margin-bottom: @mytfh-gap;
 }
 
 .serve__count {
@@ -1779,7 +1671,20 @@ table.table-clean>thead>tr>th{
 // Reset rather than styled -- it reads as a link, like .signup__back.
 .serve__clear,
 .serve__more {
-    .mytfh-link-reset();
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 400;
+    color: @mytfh-link;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+        color: @mytfh-link;
+        text-decoration: underline;
+    }
 }
 
 // ---- Featured section + See More ----
@@ -1788,7 +1693,12 @@ table.table-clean>thead>tr>th{
 }
 
 .serve__sectionlabel {
-    .mytfh-type-eyebrow();
+    font-family: @mytfh-font-disp;
+    font-size: 14px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: @mytfh-ink-2;
     margin: 0 0 @mytfh-gap;
 }
 
@@ -1805,13 +1715,19 @@ table.table-clean>thead>tr>th{
 
 // ---- Grid ----
 .serve__grid {
-    .mytfh-grid();
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: @mytfh-gap;
 }
 
 // ---- Team card ----
 .serve-card {
     position: relative;
-    .mytfh-card();
+    display: flex;
+    flex-direction: column;
+    background: @mytfh-panel;
+    border-radius: @mytfh-radius;
+    overflow: hidden;
     cursor: pointer;
     outline: 2px solid transparent;
     outline-offset: -2px;
@@ -1998,339 +1914,4 @@ table.table-clean>thead>tr>th{
     .serve__grid {
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     }
-}
-
-
-
-
-// 24. Class Pages (Discover)
-// ---------------------
-// The in-class experience at /class/discover (page 4049) and
-// /class/discover/{ClassWeek} (page 4050). Both pages render one block each;
-// the Lava lives in
-// Pages/.../4048-my-classes/4049-in-class-experience-beta/ in this repo.
-//
-// Drawn mobile-first from a 430px-wide design, and it stays a single column at
-// every width -- this is a phone experience people open in a chair on a Sunday,
-// not a dashboard. The column is therefore centred rather than stretched, which
-// is the one place this section departs from the "no outer margin" rule: the
-// margin here centres a fixed-width column, it does not inset the content from
-// the page.
-//
-// Type runs a step larger than sections 22 and 23 (48px title against 32px);
-// both scales live in section 0.1 and this section picks the display end.
-// Everything structural -- card, grid, eyebrow, hairline row -- comes from the
-// shared primitives in section 0.2.
-
-.discover {
-    .mytfh-root();
-    max-width: 480px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: @mytfh-space-6;
-}
-
-// ---- Page head ----
-.discover__head {
-    display: flex;
-    flex-direction: column;
-    gap: @mytfh-space-3;
-}
-
-.discover__eyebrow {
-    .mytfh-type-eyebrow(@mytfh-fs-label; @mytfh-ls-label; 1.2);
-    font-weight: 500;
-    margin: 0;
-}
-
-.discover__title {
-    font-size: @mytfh-fs-display;
-    line-height: 1;
-    font-weight: 500;
-    letter-spacing: @mytfh-ls-display;
-    color: @mytfh-ink;
-    margin: 0;
-}
-
-.discover__lead {
-    font-size: @mytfh-fs-body-lg;
-    line-height: 1.25;
-    font-weight: 400;
-    letter-spacing: @mytfh-ls-lead;
-    color: @mytfh-ink-2;
-    margin: 0;
-}
-
-// ---- Back link (week page) ----
-.discover__back {
-    display: inline-flex;
-    align-items: center;
-    gap: @mytfh-space-2;
-    font-size: @mytfh-fs-sm;
-    letter-spacing: @mytfh-ls-sm;
-    color: @mytfh-ink-2;
-    text-decoration: none;
-    padding: 4px 0;
-
-    &:hover,
-    &:focus {
-        color: @mytfh-ink;
-        text-decoration: none;
-    }
-
-    .discover__arrow {
-        transform: scaleX(-1);
-    }
-}
-
-// ---- Section label ----
-.discover__sectionlabel {
-    .mytfh-type-eyebrow(@mytfh-fs-label; @mytfh-ls-label; 1.2);
-    font-weight: 500;
-    margin: 0;
-}
-
-// ---- When / Where / Host panel ----
-.discover-facts {
-    .mytfh-card();
-    box-sizing: border-box;
-    padding: @mytfh-space-5;
-    gap: @mytfh-space-4;
-}
-
-.discover-facts__row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.discover-facts__label {
-    font-size: @mytfh-fs-label;
-    letter-spacing: @mytfh-ls-xs;
-    color: @mytfh-ink-2;
-}
-
-.discover-facts__value {
-    font-size: @mytfh-fs-body-lg;
-    font-weight: 500;
-    line-height: 1.25;
-    letter-spacing: @mytfh-ls-lead;
-}
-
-// ---- Week cards ----
-.discover__section {
-    display: flex;
-    flex-direction: column;
-    gap: @mytfh-space-2;
-}
-
-.discover__weeks {
-    display: flex;
-    flex-direction: column;
-    gap: @mytfh-space-2;
-}
-
-// The one saturated surface in the flow. White-on-green, so the ink tokens do
-// not apply and the muted tint is an alpha of white rather than @mytfh-ink-2 --
-// a grey would go muddy over the green.
-.discover-week {
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: @mytfh-space-3;
-    background: @mytfh-green;
-    border-radius: @mytfh-radius;
-    padding: @mytfh-space-5;
-    color: #FFFFFF;
-    text-decoration: none;
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    transition: outline-color 160ms @mytfh-ease;
-
-    &:hover,
-    &:focus {
-        color: #FFFFFF;
-        text-decoration: none;
-        outline-color: @mytfh-ink;
-    }
-}
-
-.discover-week__body {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.discover-week__date {
-    font-size: @mytfh-fs-label;
-    letter-spacing: @mytfh-ls-xs;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.discover-week__title {
-    font-size: @mytfh-fs-h2;
-    font-weight: 500;
-    line-height: 1.1;
-    letter-spacing: @mytfh-ls-h2;
-}
-
-.discover-week__summary {
-    font-size: @mytfh-fs-sm;
-    line-height: 1.35;
-    letter-spacing: @mytfh-ls-sm;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.discover__arrow {
-    flex-shrink: 0;
-}
-
-// ---- Agenda (week page) ----
-.discover-agenda {
-    box-sizing: border-box;
-    background: @mytfh-panel;
-    border-radius: @mytfh-radius;
-    padding: @mytfh-space-5;
-}
-
-.discover-agenda__label {
-    .mytfh-type-eyebrow(@mytfh-fs-label; @mytfh-ls-label; 1.2);
-    font-weight: 500;
-    margin: 0;
-    padding-bottom: @mytfh-space-3;
-}
-
-// Rules go on the TOP of every row, so the list reads as ruled-off from its
-// heading and the last row does not leave a trailing line above the buttons.
-.discover-agenda__row {
-    display: flex;
-    align-items: flex-start;
-    gap: @mytfh-space-3;
-    border-top: 1px solid @mytfh-rule;
-    padding: @mytfh-space-4 0;
-}
-
-.discover-agenda__n {
-    flex: 0 0 20px;
-    font-size: @mytfh-fs-body;
-    font-weight: 500;
-    line-height: 1.35;
-    letter-spacing: @mytfh-ls-body;
-    color: @mytfh-ink-2;
-}
-
-.discover-agenda__body {
-    display: flex;
-    flex-direction: column;
-    gap: @mytfh-space-2;
-}
-
-.discover-agenda__title {
-    font-size: @mytfh-fs-lead;
-    font-weight: 500;
-    line-height: 1.25;
-    letter-spacing: @mytfh-ls-lead;
-}
-
-// ---- Resource rows ----
-.discover-agenda__links {
-    display: flex;
-    flex-direction: column;
-    gap: @mytfh-space-1;
-}
-
-.discover-res {
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: @mytfh-space-2;
-    min-height: 56px;
-    padding: 14px @mytfh-space-3;
-    background: @mytfh-track;
-    border-radius: @mytfh-radius-md;
-    font-size: @mytfh-fs-body;
-    font-weight: 500;
-    line-height: 1.3;
-    letter-spacing: @mytfh-ls-body;
-    color: @mytfh-link;
-    text-decoration: none;
-
-    &:hover,
-    &:focus {
-        background: darken(@mytfh-track, 4%);
-        color: @mytfh-link;
-        text-decoration: none;
-    }
-}
-
-// ---- Footer actions ----
-// Native .btn, per the site rule. Section 1 caps .btn at 200px inside main,
-// which is wrong for a stacked full-width pair, so the cap is lifted here.
-.discover__actions {
-    display: flex;
-    flex-direction: column;
-    gap: @mytfh-space-2;
-
-    .btn {
-        width: 100%;
-        max-width: none;
-        min-height: 48px;
-        padding: 12px @mytfh-space-5;
-        font-size: @mytfh-fs-body;
-        border-radius: @mytfh-radius-btn;
-    }
-}
-
-// ---- Aside ----
-.discover__aside {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: @mytfh-space-1;
-}
-
-.discover__asidetext {
-    font-size: @mytfh-fs-xs;
-    line-height: 1.4;
-    letter-spacing: @mytfh-ls-sm;
-    color: @mytfh-ink-2;
-}
-
-.discover__link {
-    font-size: @mytfh-fs-body;
-    font-weight: 500;
-    letter-spacing: @mytfh-ls-body;
-    color: @mytfh-link;
-
-    &:hover,
-    &:focus {
-        color: @mytfh-link;
-        text-decoration: underline;
-    }
-}
-
-// ---- Empty state ----
-// Shown when the signed-in person is not a member of any Discover placement
-// group. It is a real state, not an error: someone can land here from a link
-// before they have been added to a class.
-.discover-empty {
-    .mytfh-card();
-    align-items: center;
-    text-align: center;
-    gap: @mytfh-space-3;
-    box-sizing: border-box;
-    padding: @mytfh-space-8 @mytfh-space-5;
-}
-
-.discover-empty__title {
-    .mytfh-type-sectiontitle();
-    margin: 0;
-}
-
-.discover-empty__body {
-    .mytfh-type-intro();
-    margin: 0;
 }
