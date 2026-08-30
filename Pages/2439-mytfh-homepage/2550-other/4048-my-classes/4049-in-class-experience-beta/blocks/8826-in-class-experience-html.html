@@ -111,7 +111,19 @@
         <p class="discover__eyebrow">{{ campusName }}</p>
         {%- endif -%}
         <h1 class="discover__title">Discover</h1>
+        {%- comment -%}
+          "begins" is only true before the first session. Once the class has
+          started the same sentence reads as though it has not, so the copy
+          switches. Compared as yyyyMMdd strings, which sort correctly as text
+          and avoid date-object comparison in Lava.
+        {%- endcomment -%}
+        {%- assign todayKey = 'Now' | Date:'yyyyMMdd' -%}
+        {%- assign firstKey = first.WeekDate | Date:'yyyyMMdd' -%}
+        {%- if firstKey > todayKey -%}
         <p class="discover__lead">Welcome, {{ CurrentPerson.NickName }}. Your Discover experience begins {{ first.WeekDate | Date:'dddd, MMMM d' }}.</p>
+        {%- else -%}
+        <p class="discover__lead">Welcome, {{ CurrentPerson.NickName }}. Here's everything for your Discover class.</p>
+        {%- endif -%}
       </section>
 
       <section class="discover-facts">

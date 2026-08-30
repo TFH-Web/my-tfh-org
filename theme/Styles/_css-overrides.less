@@ -2312,6 +2312,14 @@ table.table-clean>thead>tr>th{
     }
 }
 
+// The site chrome's black footer butts straight up against the block, which
+// left the last element sitting on the fold. The wrapper itself takes no outer
+// padding -- that is the site rule -- so the breathing room goes on the last
+// child instead, which is spacing between elements and therefore allowed.
+.discover > *:last-child {
+    margin-bottom: @mytfh-space-7;
+}
+
 // ---- Empty state ----
 // Shown when the signed-in person is not a member of any Discover placement
 // group. It is a real state, not an error: someone can land here from a link
