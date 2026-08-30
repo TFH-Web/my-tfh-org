@@ -155,7 +155,7 @@
         {%- assign startVal = startRaw | Trim -%}
         <div class="discover-facts__row">
           <span class="discover-facts__label">When</span>
-          <span class="discover-facts__value">{{ first.WeekDate | Date:'dddd' }}s{% if startVal != '' %} &middot; {{ first.WeekStart | Date:'h:mm tt' }}{% endif %}</span>
+          <span class="discover-facts__value">{{ first.WeekDate | Date:'dddd' }}s{% if startVal != '' %} at {{ first.WeekStart | Date:'h:mm tt' | Downcase | Remove:' ' }}{% endif %}</span>
         </div>
         {%- if whereText != '' -%}
         <div class="discover-facts__row">
