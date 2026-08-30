@@ -62,7 +62,10 @@
             ISNULL(eio.Location, '') AS LocationText,
             s.EffectiveStartDate  AS WeekDate,
             ISNULL(eio.ContactEmail, '') AS ContactEmail,
-            ISNULL(p.NickName + ' ' + p.LastName, '') AS ContactName
+            ISNULL(p.NickName + ' ' + p.LastName, '') AS ContactName,
+            TRY_CONVERT(datetime,
+                STUFF(STUFF(STUFF(ics.DtStartRaw, 14, 0, ':'), 12, 0, ':'), 9, 1, ' ')
+            ) AS WeekStart
     FROM    EventItemOccurrence eio
     JOIN    MyEvent me        ON me.EventItemId = eio.EventItemId
     JOIN    EventItem ei      ON ei.Id = eio.EventItemId
@@ -70,6 +73,21 @@
     LEFT JOIN Schedule s      ON s.Id = eio.ScheduleId
     LEFT JOIN PersonAlias pa  ON pa.Id = eio.ContactPersonAliasId
     LEFT JOIN Person p        ON p.Id = pa.PersonId
+    OUTER APPLY (
+        -- Schedule.EffectiveStartDate is a bare date, so the meeting time has
+        -- to come out of the iCal body. DTSTART appears either as
+        -- "DTSTART:20260906T114500" or with parameters
+        -- ("DTSTART;TZID=...:20260906T114500"); anchoring on the first ':'
+        -- after the keyword handles both. TRY_CONVERT above yields NULL rather
+        -- than throwing if a schedule is ever shaped differently.
+        SELECT CASE
+                 WHEN CHARINDEX('DTSTART', s.iCalendarContent) > 0
+                 THEN SUBSTRING(s.iCalendarContent,
+                        CHARINDEX(':', s.iCalendarContent,
+                                  CHARINDEX('DTSTART', s.iCalendarContent)) + 1, 15)
+                 ELSE NULL
+               END AS DtStartRaw
+    ) ics
     ORDER BY s.EffectiveStartDate, eio.Id
   {% endsql %}
 
@@ -127,9 +145,17 @@
       </section>
 
       <section class="discover-facts">
+        {%- comment -%}
+          WeekStart is NULL when the iCal has no parseable DTSTART. SQL NULL
+          renders blank but still passes "!= empty", so it is captured and
+          trimmed before being tested -- otherwise the day-only fallback would
+          never fire and the value would read "Sundays - ".
+        {%- endcomment -%}
+        {%- capture startRaw -%}{{ first.WeekStart }}{%- endcapture -%}
+        {%- assign startVal = startRaw | Trim -%}
         <div class="discover-facts__row">
           <span class="discover-facts__label">When</span>
-          <span class="discover-facts__value">{{ first.WeekDate | Date:'dddd' }}s</span>
+          <span class="discover-facts__value">{{ first.WeekDate | Date:'dddd' }}s{% if startVal != '' %} &middot; {{ first.WeekStart | Date:'h:mm tt' }}{% endif %}</span>
         </div>
         {%- if whereText != '' -%}
         <div class="discover-facts__row">
