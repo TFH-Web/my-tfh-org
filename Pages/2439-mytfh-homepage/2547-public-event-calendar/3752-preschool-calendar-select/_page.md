@@ -17,6 +17,7 @@
 | Login | Top Navigation | Page Menu | 5855 | no — not HTML Content |
 | Feature | Preschool Calendar Header | HTML Content | 8017 | yes — `blocks/8017-preschool-calendar-header.html` (empty) |
 | Main | Select Calendar | HTML Content | 8016 | yes — `blocks/8016-select-calendar.html` |
+| Main | Preschool Lunch Bunch Calendar | Calendar Lava | 8830 | yes — `blocks/8830-preschool-lunch-bunch-calendar.lava` (Lava Template attribute; paste via Rock UI, Magnus cannot reach it) |
 | Footer | Footer | HTML Content | 5851 | no — shared chrome |
 | Footer | ShortLinkCreator | HTML Content | 6476 | no — shared chrome |
 | Footer | Hide language and Live chat for Admins | HTML Content | 7125 | no — shared chrome |

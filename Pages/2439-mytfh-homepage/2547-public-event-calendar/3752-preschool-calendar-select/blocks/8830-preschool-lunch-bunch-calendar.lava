@@ -1,0 +1,106 @@
+<!-- Source: https://github.com/TFH-Web/my-tfh-org/blob/master/Pages/2439-mytfh-homepage/2547-public-event-calendar/3752-preschool-calendar-select/blocks/8830-preschool-lunch-bunch-calendar.lava -->
+<!--
+  Block:  [Main] Preschool Lunch Bunch Calendar (Calendar Lava, block 8830)
+  Page:   3752 - Preschool Calendar Select
+  Paste into the block's "Lava Template" setting (Magnus cannot reach this
+  attribute - it exposes only Pre-HTML / Post-HTML for Calendar Lava blocks).
+
+  Register button links straight to the linked registration instance:
+    /Registration?RegistrationInstanceId={id}&EventOccurrenceId={occurrenceId}
+  falling back to the calendar detail page when an occurrence has no
+  registration linkage.
+
+  Button enabled/disabled state comes from the registration instance's own
+  Start/End date-times, not from the occurrence date.
+-->
+
+{% stylesheet %}.btn-primary {color: #fff;}{% endstylesheet %}
+{{ 'Lunch Bunch Registration' | SetPageTitle }}
+
+<div class="mb-4" style="max-width: 100ch;">
+  <p><strong>Registration opens monthly on the 15th for the next month's Lunch Bunch.</strong></p>
+</div>
+
+{% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
+
+{% for eventItemOccurrence in EventItemOccurrences %}
+  <div class="card card-dark mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center mb-3 mb-sm-1 mb-md-0">
+        <div class="icon mr-3 pull-left bg-secondary">
+          <span class="date">{{ eventItemOccurrence.Date | Date: 'MMM' }}</span>
+        </div>
+        <div class="event-title">
+          <h6 class="card-title mt-0 mb-1">{{ eventItemOccurrence.Date | Date: 'MMMM yyyy' }}</h6>
+          <span>Starting at {{ eventItemOccurrence.Time | Date:'HH tt' }}</span>
+        </div>
+      </div>
+
+      {%- comment -%}
+        Prefer the occurrence's own registration instance. An occurrence can carry
+        several linkages (group-only linkages have no RegistrationInstanceId), so
+        take the first one that actually points at a registration, and carry that
+        instance's Start/End dates forward for the open/closed test below.
+        SQL NULLs render blank but are not `empty`, so capture + Trim before testing.
+      {%- endcomment -%}
+      {% assign registerUrl = '' %}
+      {% assign regStart = '' %}
+      {% assign regEnd = '' %}
+      {% for linkage in eventItemOccurrence.EventItemOccurrence.Linkages %}
+        {% if registerUrl == '' and linkage.RegistrationInstanceId > 0 %}
+          {% capture registerUrl %}/Registration?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceId={{ eventItemOccurrence.EventItemOccurrence.Id }}{% endcapture %}
+          {% capture regStart %}{{ linkage.RegistrationInstance.StartDateTime }}{% endcapture %}
+          {% capture regEnd %}{{ linkage.RegistrationInstance.EndDateTime }}{% endcapture %}
+          {% assign regStart = regStart | Trim %}
+          {% assign regEnd = regEnd | Trim %}
+        {% endif %}
+      {% endfor %}
+
+      {% if registerUrl == '' %}
+        {% if eventItemOccurrence.DetailPage != null %}
+          {% capture registerUrl %}{{ eventItemOccurrence.DetailPage }}{% endcapture %}
+        {% else %}
+          {% capture registerUrl %}{{ DetailsPage }}?EventOccurrenceId={{ eventItemOccurrence.EventItemOccurrence.Id }}{% endcapture %}
+        {% endif %}
+      {% endif %}
+
+      {%- comment -%}
+        Open unless the registration instance says otherwise. A blank Start means
+        "already open"; a blank End means "never closes". DateDiff returns
+        (target - input), so a positive value means the target is still ahead of now.
+      {%- endcomment -%}
+      {% assign regIsOpen = true %}
+      {% assign regClosedLabel = 'Registration closed' %}
+
+      {% if regStart != '' %}
+        {% assign minutesUntilOpen = 'Now' | DateDiff:regStart,'m' %}
+        {% if minutesUntilOpen > 0 %}
+          {% assign regIsOpen = false %}
+          {% capture regClosedLabel %}Opens {{ regStart | Date:'MMM d' }}{% endcapture %}
+        {% endif %}
+      {% endif %}
+
+      {% if regIsOpen and regEnd != '' %}
+        {% assign minutesUntilClose = 'Now' | DateDiff:regEnd,'m' %}
+        {% if minutesUntilClose < 0 %}
+          {% assign regIsOpen = false %}
+          {% assign regClosedLabel = 'Registration closed' %}
+        {% endif %}
+      {% endif %}
+
+      {% if regIsOpen %}
+        <a class="btn btn-primary" href="{{ registerUrl }}">
+          Register <i class="fa fa-chevron-right font-weight-light"></i>
+        </a>
+      {% else %}
+        <a href="#" class="btn btn-primary disabled" role="button" aria-disabled="true">{{ regClosedLabel }}</a>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+
+{% if eventItemOccurrenceCount == 0 %}
+  <div class="panel panel-default margin-t-md d-inline-block">
+    <div class="margin-all-md">There are no events in this time frame.</div>
+  </div>
+{% endif %}
